@@ -52,6 +52,29 @@ async function main() {
   if (landed1 !== "/review" || !signedIn1) failures.push(`invite flow landed on ${landed1} (signed in: ${signedIn1})`);
   await ctx1.close();
 
+  // 1b. Default-template invite (implicit flow: verify endpoint → redirect with #access_token).
+  // Hosted free-tier projects cannot customise templates, so this path must work too.
+  {
+    const { adminClient } = await import("./lib");
+    const admin = adminClient();
+    const implicitEmail = `implicit-${Date.now()}@local.test`;
+    const { data: link, error } = await admin.auth.admin.generateLink({ type: "invite", email: implicitEmail, options: { redirectTo: `${BASE}/auth/confirm?next=/home` } });
+    if (error || !link.properties?.action_link) failures.push(`generateLink failed: ${error?.message}`);
+    else {
+      const { data: league } = await admin.from("leagues").select("id").limit(1).single();
+      await admin.from("memberships").insert({ league_id: league!.id, user_id: link.user.id, role: "member", status: "invited", invited_email: implicitEmail });
+      const ctx = await browser.newContext();
+      const page = await ctx.newPage();
+      await page.goto(link.properties.action_link, { waitUntil: "domcontentloaded" });
+      await page.waitForURL((u) => u.pathname === "/game-centre" || u.pathname.startsWith("/login"), { timeout: 20_000 }).catch(() => {});
+      const landed = new URL(page.url()).pathname;
+      const signedIn = (await page.locator("text=Sign out").count()) > 0;
+      console.log(`Implicit-flow invite landed on ${landed}, signed in: ${signedIn}`);
+      if (landed !== "/game-centre" || !signedIn) failures.push(`implicit invite landed on ${landed} (signed in: ${signedIn})`);
+      await ctx.close();
+    }
+  }
+
   // 2. Magic link requested from the real login form for an existing member.
   const ctx2 = await browser.newContext();
   const page2 = await ctx2.newPage();

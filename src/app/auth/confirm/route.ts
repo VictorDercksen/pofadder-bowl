@@ -19,6 +19,14 @@ export async function GET(request: NextRequest) {
   const redirectTo = request.nextUrl.clone();
   redirectTo.search = "";
 
+  // No verifiable parameter: Supabase's default templates put the session in the URL
+  // fragment (implicit flow). The fragment survives the redirect; the client page stores it.
+  if (!token_hash && !code) {
+    redirectTo.pathname = "/auth/session";
+    redirectTo.searchParams.set("next", next);
+    return NextResponse.redirect(redirectTo);
+  }
+
   const supabase = await createClient();
   let ok = false;
   if (token_hash && type) {
