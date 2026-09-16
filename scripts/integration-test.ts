@@ -139,6 +139,17 @@ async function main() {
     const { error: mf } = await member.from("evidence_files").insert({ submission_id: submissionId, storage_path: path + "2", mime_type: "application/gpx+xml", byte_size: 6, kind: "gps" });
     assert.ok(mf, "member cannot attach files");
   });
+  await test("storage: signed upload URL path (browser small-file route) works for the participant only", async () => {
+    const path = `${event.id}/${ids.participant}/${submissionId}/signed.png`;
+    const { data: signed, error } = await participant.storage.from("evidence").createSignedUploadUrl(path);
+    assert.ok(!error && signed?.token, error?.message);
+    const { error: up } = await participant.storage.from("evidence").uploadToSignedUrl(path, signed!.token, new Blob([new Uint8Array([137, 80, 78, 71])], { type: "image/png" }), { contentType: "image/png" });
+    assert.ok(!up, up?.message);
+    const { data: listed } = await participant.storage.from("evidence").list(`${event.id}/${ids.participant}/${submissionId}`, { search: "signed.png" });
+    assert.equal(listed?.length, 1);
+    const { error: memberSigned } = await member.storage.from("evidence").createSignedUploadUrl(`${event.id}/${ids.member}/${submissionId}/m.png`);
+    assert.ok(memberSigned, "member must not obtain a signed upload URL");
+  });
   await test("submit → approve is idempotent and score derives from approved state", async () => {
     const { error } = await participant.rpc("submit_submission", { p_submission: submissionId });
     assert.ok(!error, error?.message);

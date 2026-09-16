@@ -38,13 +38,15 @@ export async function inviteMember(input: { email: string; displayName?: string;
   } else userId = invite.data.user?.id;
   if (!userId) return { ok: false, message: "Invite failed." };
 
-  const { error } = await admin.from("memberships").upsert(
-    { league_id: ctx.league.id, user_id: userId, role: parsed.data.role, is_commissioner: parsed.data.isCommissioner, status: "invited", invited_email: email, invited_by: ctx.user.id },
-    { onConflict: "league_id,user_id", ignoreDuplicates: false },
-  );
-  if (error) return { ok: false, message: `Membership could not be created: ${error.message}` };
+  // Never overwrite an existing membership (re-inviting must not demote or deactivate anyone).
+  const { data: existing } = await admin.from("memberships").select("id, status").eq("league_id", ctx.league.id).eq("user_id", userId).maybeSingle();
+  if (!existing) {
+    const { error } = await admin.from("memberships").insert({ league_id: ctx.league.id, user_id: userId, role: parsed.data.role, is_commissioner: parsed.data.isCommissioner, status: "invited", invited_email: email, invited_by: ctx.user.id });
+    if (error) return { ok: false, message: `Membership could not be created: ${error.message}` };
+  }
   revalidatePath("/review/members");
-  return { ok: true, message: invite.error ? `${email} already had an account; membership set and a sign-in link sent.` : `Invitation emailed to ${email}.` };
+  if (existing) return { ok: true, message: `${email} already has a membership (${existing.status}); a sign-in link was sent and roles were left unchanged.` };
+  return { ok: true, message: invite.error ? `${email} already had an account; membership created and a sign-in link sent.` : `Invitation emailed to ${email}.` };
 }
 
 export async function setMemberRole(input: { userId: string; role: "member" | "participant"; isCommissioner: boolean; status: "invited" | "active" | "removed" }): Promise<ActionResult> {

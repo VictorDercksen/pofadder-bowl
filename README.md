@@ -50,6 +50,9 @@ npm test                 # vitest: bingo lines, prediction scoring/locking, even
 npm run test:integration # against the local stack: RLS across 4 accounts, storage policies,
                          # approval idempotency + concurrency, supersede transition,
                          # prediction lock/reveal/resolution, bingo cards/wins, feed, certificate
+npm run test:auth-flow   # against the local stack + `next start -p 3001`: bootstrap invite email →
+                         # Mailpit → signed-in /review; login-form magic link → /game-centre;
+                         # sign-out; no email for uninvited addresses
 npm run build            # next build
 npm run screenshots      # Playwright: every screen × 3 roles × 360/390/1280 px + demo/public,
                          # overflow check and keyboard-tab smoke test → ./screenshots
@@ -71,7 +74,7 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
 
 ## Production setup
 
-1. **Supabase project**: `npx supabase link --project-ref <ref>` then `npm run db:push` (migrations) and run `supabase/seed.sql` (SQL editor or `psql`). In **Auth → Providers → Email** disable *Allow new users to sign up*; keep magic links/OTP on. In **Auth → URL configuration** set the site URL to your origin and add `<origin>/auth/confirm` to redirect URLs. Confirm the `evidence` bucket exists and is private (the storage migration creates it).
+1. **Supabase project**: `npx supabase link --project-ref <ref>` then `npm run db:push` (migrations) and run `supabase/seed.sql` (SQL editor or `psql`). In **Auth → Sign In / Providers** turn **off** *Allow new users to sign up* (invite-only) but keep the **Email provider enabled** (disabling the provider blocks all email logins, including invites). In **Auth → URL configuration** set the site URL to your origin and add `<origin>/auth/confirm` to redirect URLs. In **Auth → Email templates** paste `supabase/templates/invite.html` into *Invite user* and `supabase/templates/magic_link.html` into *Magic link* (they link to `/auth/confirm?token_hash=…&type=…`; the route also accepts the default PKCE `?code=` links as a fallback). Confirm the `evidence` bucket exists and is private (the storage migration creates it).
 2. **Environment** (see `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (server only, needed for invites), `NEXT_PUBLIC_APP_ORIGIN`, `NEXT_PUBLIC_LEAGUE_SLUG`, `NEXT_PUBLIC_EVENT_SLUG`, `SLEEPER_LEAGUE_ID`, `NEXT_PUBLIC_SUPABASE_RESUMABLE_URL` (`https://<ref>.storage.supabase.co/storage/v1/upload/resumable` on hosted projects), `NEXT_PUBLIC_MAP_TILE_URL` + `NEXT_PUBLIC_MAP_TILE_ATTRIBUTION` (licensed tile provider; leave empty for the labelled static fallback).
 3. **First commissioner** (trusted server step, never the first public registrant):
    ```bash

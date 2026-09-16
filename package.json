@@ -14,7 +14,8 @@
     "db:push": "supabase db push",
     "bootstrap:commissioner": "tsx scripts/bootstrap-commissioner.ts",
     "seed:local-fixtures": "tsx scripts/seed-local-fixtures.ts",
-    "screenshots": "tsx scripts/screenshots.ts"
+    "screenshots": "tsx scripts/screenshots.ts",
+    "test:auth-flow": "tsx scripts/auth-flow-test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -43,6 +44,6 @@
     "vitest": "^5.0.1"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": "22.x || 24.x"
   }
 }
