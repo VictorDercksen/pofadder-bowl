@@ -1,0 +1,299 @@
+"use client";
+
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
+import { useRouter } from "next/navigation";
+import { Status } from "@/components/ui/TitleRow";
+import { createDraft, deleteDraftFile, submitDraft, updateCaption } from "@/lib/actions/evidence";
+import { formatBytes, validateFile } from "@/lib/evidence-rules";
+import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
+import { useOnline } from "@/lib/hooks";
+
+export type ExistingFile = { id: string; original_name: string | null; kind: string; byte_size: number };
+export type ExistingSubmission = { id: string; version: number; status: string; caption: string; files: ExistingFile[] } | null;
+
+type Props = {
+  targetKind: "challenge" | "press";
+  targetId: string;
+  targetTitle: string;
+  /** Latest submission for this target (any status). */
+  current: ExistingSubmission;
+  accept?: string;
+  captureHint?: string;
+  captionPlaceholder?: string;
+  /** Imperative handle so other components (press room recorder) can add a captured file. */
+  ref?: Ref<EvidenceUploaderHandle>;
+};
+
+export type EvidenceUploaderHandle = { addFile: (file: File) => void };
+
+type Row = { local: LocalDraftFile; progress: number; handle?: UploadHandle };
+
+/**
+ * Evidence locker: pick files, keep a local draft in IndexedDB, upload directly to
+ * private storage with progress/retry/cancel, then submit for review.
+ * Labels are explicit: draft (local) → uploaded (in storage) → submitted (in review).
+ */
+export function EvidenceUploader({ targetKind, targetId, targetTitle, current, accept, captureHint, captionPlaceholder, ref }: Props) {
+  const router = useRouter();
+  const draftKey = `${targetKind}:${targetId}`;
+  const editable = !current || current.status === "draft" || current.status === "flagged";
+  const [submissionId, setSubmissionId] = useState<string | undefined>(editable ? current?.id : undefined);
+  const [caption, setCaption] = useState(editable ? (current?.caption ?? "") : "");
+  const [rows, setRows] = useState<Row[]>([]);
+  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
+  const online = useOnline();
+  const [pending, startTransition] = useTransition();
+  const [localSaved, setLocalSaved] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Restore a local draft (files kept on this device).
+  useEffect(() => {
+    loadDraft(draftKey).then((d) => {
+      if (!d) return;
+      if (!editable && d.files.every((f) => f.status === "uploaded")) return;
+      setCaption((c) => c || d.caption);
+      if (d.submissionId && editable) setSubmissionId((s) => s ?? d.submissionId);
+      setRows(d.files.filter((f) => f.status !== "uploaded").map((f) => ({ local: f, progress: 0 })));
+      setLocalSaved(true);
+    });
+  }, [draftKey, editable]);
+
+  const persist = useCallback(
+    async (nextRows: Row[], nextCaption: string, nextSubmissionId?: string) => {
+      const draft: LocalDraft = { key: draftKey, targetId, targetKind, submissionId: nextSubmissionId, caption: nextCaption, files: nextRows.map((r) => r.local), updatedAt: Date.now() };
+      const res = await saveDraft(draft);
+      setLocalSaved(res.ok);
+      if (!res.ok) setNote({ text: res.message, tone: "warn" });
+      return res.ok;
+    },
+    [draftKey, targetId, targetKind],
+  );
+
+  async function ensureSubmission(): Promise<string | null> {
+    if (submissionId) return submissionId;
+    const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId, caption } : { pressPromptId: targetId, caption });
+    if (!res.ok || !res.submissionId) {
+      setNote({ text: res.ok ? "Could not create a draft." : res.message, tone: "error" });
+      return null;
+    }
+    setSubmissionId(res.submissionId);
+    return res.submissionId;
+  }
+
+  function addFiles(list: FileList | File[] | null) {
+    if (!list) return;
+    const next: Row[] = [];
+    for (const file of Array.from(list)) {
+      const v = validateFile(file.type, file.name, file.size);
+      if (!v.ok) {
+        setNote({ text: `${file.name}: ${v.reason}`, tone: "error" });
+        continue;
+      }
+      next.push({ local: { id: crypto.randomUUID(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued" }, progress: 0 });
+    }
+    if (next.length === 0) return;
+    const all = [...rows, ...next];
+    setRows(all);
+    persist(all, caption, submissionId).then((ok) => ok && setNote({ text: `${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, tone: "ok" }));
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  useImperativeHandle(ref, () => ({ addFile: (file: File) => addFiles([file]) }));
+
+  async function uploadAll() {
+    if (!online) {
+      setNote({ text: "Offline. Files stay in the local draft and can be uploaded when you reconnect.", tone: "warn" });
+      return;
+    }
+    const sid = await ensureSubmission();
+    if (!sid) return;
+    const queue = rows.filter((r) => r.local.status !== "uploaded");
+    if (queue.length === 0) return;
+    for (const row of queue) {
+      const file = new File([row.local.blob], row.local.name, { type: row.local.type });
+      const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0 } : r))));
+      setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
+      const res = await handle.done;
+      setRows((prev) => {
+        const updated = prev.map((r) => (r.local.id === row.local.id ? { ...r, handle: undefined, progress: res.ok ? 1 : r.progress, local: { ...r.local, status: res.ok ? ("uploaded" as const) : ("failed" as const), error: res.ok ? undefined : res.message } } : r));
+        persist(updated.filter((r) => r.local.status !== "uploaded"), caption, sid);
+        return updated;
+      });
+      if (!res.ok) setNote({ text: res.message, tone: "error" });
+    }
+    router.refresh();
+  }
+
+  function cancel(row: Row) {
+    row.handle?.abort();
+  }
+
+  function removeLocal(row: Row) {
+    const next = rows.filter((r) => r.local.id !== row.local.id);
+    setRows(next);
+    persist(next, caption, submissionId);
+  }
+
+  function saveCaption() {
+    startTransition(async () => {
+      await persist(rows, caption, submissionId);
+      if (submissionId) {
+        const res = await updateCaption({ submissionId, caption });
+        setNote({ text: res.ok ? "Caption saved to the draft." : res.message, tone: res.ok ? "ok" : "error" });
+      } else setNote({ text: "Draft saved on this device.", tone: "ok" });
+    });
+  }
+
+  function submit() {
+    if (!online) {
+      setNote({ text: "Offline. Save the draft and submit after reconnecting.", tone: "warn" });
+      return;
+    }
+    const uploadedCount = (current?.files.length ?? 0) + rows.filter((r) => r.local.status === "uploaded").length;
+    const queued = rows.some((r) => r.local.status !== "uploaded");
+    if (queued) {
+      setNote({ text: "Upload the queued files first (or remove them) before submitting.", tone: "warn" });
+      return;
+    }
+    if (!submissionId || uploadedCount === 0) {
+      setNote({ text: "Attach and upload at least one file before submitting.", tone: "warn" });
+      return;
+    }
+    startTransition(async () => {
+      if (caption !== (current?.caption ?? "")) await updateCaption({ submissionId, caption });
+      const res = await submitDraft({ submissionId });
+      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      if (res.ok) {
+        await clearDraft(draftKey);
+        setRows([]);
+        router.refresh();
+      }
+    });
+  }
+
+  function removeUploaded(fileId: string) {
+    startTransition(async () => {
+      const res = await deleteDraftFile({ fileId });
+      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      router.refresh();
+    });
+  }
+
+  const statusLabel = !current ? "No proof yet" : current.status === "draft" ? `Draft v${current.version}` : current.status === "submitted" ? `Submitted v${current.version} · pending review` : current.status === "approved" ? `Approved v${current.version}` : current.status === "flagged" ? `Flagged v${current.version} · needs more proof` : `Superseded v${current.version}`;
+
+  return (
+    <div className="pb-panel">
+      <div className="pb-panel-top">
+        <h2>{targetTitle}</h2>
+        <span className={`pb-tag ${current?.status === "flagged" || current?.status === "submitted" ? "orange" : ""}`}>{statusLabel.toUpperCase()}</span>
+      </div>
+      {current?.status === "approved" || current?.status === "submitted" ? (
+        <p className="pb-small" style={{ marginTop: 9 }}>
+          {current.status === "approved" ? "This proof is approved. Uploading replacement evidence creates a new version for review; the approved version is kept and only superseded by an explicit commissioner decision." : "This version is with the commissioner. You can start a new version if something is missing."}
+        </p>
+      ) : (
+        <p className="pb-small" style={{ marginTop: 9 }}>{captureHint ?? "Every play needs evidence. Give it a caption."}</p>
+      )}
+
+      {editable ? (
+        <>
+          <div className="pb-drop">
+            <h3>Bring receipts. Literally.</h3>
+            <p>Photos, video, receipts and watch exports live here. Files stay on this device as a draft until you upload them.</p>
+            <div className="pb-actions" style={{ justifyContent: "center" }}>
+              <label className="pb-secondary" style={{ cursor: "pointer" }}>
+                Choose files
+                <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => addFiles(e.target.files)} className="pb-sr-only" />
+              </label>
+              {rows.some((r) => r.local.status !== "uploaded") ? (
+                <button className="pb-primary" type="button" onClick={uploadAll} disabled={!online}>
+                  Upload {rows.filter((r) => r.local.status !== "uploaded").length} file(s)
+                </button>
+              ) : null}
+            </div>
+          </div>
+          {rows.map((row) => (
+            <div className="pb-file" key={row.local.id}>
+              <span className="pb-avatar" aria-hidden="true">{row.local.type.startsWith("video") ? "▷" : row.local.type.startsWith("image") ? "◫" : "▤"}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <b style={{ overflowWrap: "anywhere" }}>{row.local.name}</b>
+                <br />
+                <span className="pb-small">
+                  {formatBytes(row.local.size)} · {row.local.status === "uploaded" ? "Uploaded" : row.local.status === "failed" ? `Failed · ${row.local.error}` : row.handle ? `Uploading ${Math.round(row.progress * 100)}%` : "Draft on this device"}
+                </span>
+                {row.handle ? (
+                  <div className="pb-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(row.progress * 100)} aria-label={`Upload progress for ${row.local.name}`}>
+                    <span style={{ width: `${Math.round(row.progress * 100)}%` }} />
+                  </div>
+                ) : null}
+              </div>
+              {row.handle ? (
+                <button className="pb-text-action" type="button" onClick={() => cancel(row)}>Cancel</button>
+              ) : row.local.status === "failed" ? (
+                <button className="pb-text-action" type="button" onClick={uploadAll}>Retry</button>
+              ) : row.local.status !== "uploaded" ? (
+                <button className="pb-text-action" type="button" onClick={() => removeLocal(row)}>Remove</button>
+              ) : null}
+            </div>
+          ))}
+        </>
+      ) : null}
+
+      {current && current.files.length > 0 ? (
+        <div style={{ marginTop: 12 }}>
+          <div className="pb-kicker">UPLOADED · VERSION {current.version}</div>
+          {current.files.map((f) => (
+            <div className="pb-file" key={f.id}>
+              <span className="pb-avatar" aria-hidden="true">{f.kind === "video" ? "▷" : f.kind === "photo" ? "◫" : "▤"}</span>
+              <div style={{ flex: 1 }}>
+                <b>{f.original_name ?? "file"}</b>
+                <br />
+                <span className="pb-small">{f.kind} · {formatBytes(f.byte_size)} · in private storage</span>
+              </div>
+              {current.status === "draft" ? (
+                <button className="pb-text-action" type="button" onClick={() => removeUploaded(f.id)} disabled={pending}>Remove</button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {editable ? (
+        <>
+          <label className="pb-field">
+            Caption
+            <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2000} placeholder={captionPlaceholder ?? "What did you find out?"} />
+          </label>
+          <div className="pb-actions">
+            <button className="pb-primary" type="button" onClick={submit} disabled={pending}>
+              {current?.status === "flagged" ? "Resubmit proof" : "Submit for review"}
+            </button>
+            <button className="pb-secondary" type="button" onClick={saveCaption} disabled={pending}>Save draft</button>
+          </div>
+          <p className="pb-small" style={{ marginTop: 12 }}>
+            {online ? "Connected · submitted proof goes to commissioner review." : "Offline · files and caption stay in the local draft until you reconnect."}
+            {localSaved ? " Local draft saved on this device." : ""}
+          </p>
+        </>
+      ) : (
+        <div className="pb-actions">
+          <button
+            className="pb-secondary"
+            type="button"
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () => {
+                const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId } : { pressPromptId: targetId });
+                setNote({ text: res.ok ? `New version v${res.version} started.` : res.message, tone: res.ok ? "ok" : "error" });
+                router.refresh();
+              })
+            }
+          >
+            Start a new version
+          </button>
+        </div>
+      )}
+      <Status tone={note?.tone}>{note?.text}</Status>
+    </div>
+  );
+}

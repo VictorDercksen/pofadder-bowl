@@ -1,0 +1,560 @@
+{
+  "provenance": "User-supplied programme; event plans and historical statistics not independently verified for this handoff.",
+  "event": {
+    "id": "pofadder-bowl-2026",
+    "league": "Show Us Your TD’s",
+    "participant": "Victor Dercksen",
+    "seasonPunished": 2024,
+    "timezone": "Africa/Johannesburg",
+    "departure": "2026-09-23T19:15:00+02:00",
+    "awayArrival": "2026-09-24T04:45:00+02:00",
+    "returnDeparture": "2026-09-24T22:30:00+02:00",
+    "homeArrival": "2026-09-25T07:35:00+02:00",
+    "home": "Malmesbury",
+    "away": "Pofadder",
+    "carrier": "Intercape Mainliner",
+    "statedProgrammeDistanceKm": 974,
+    "requiredRunKm": 14,
+    "maxProofPoints": 100
+  },
+  "quarters": [
+    {
+      "quarter": 1,
+      "heading": "Outbound / Wednesday 23 Sept",
+      "items": [
+        {
+          "time": "18:45",
+          "description": "Malmesbury Motors, 43 Voortrekker Rd. Departure clip, ticket close-up.",
+          "date": "2026-09-23"
+        },
+        {
+          "time": "19:15",
+          "description": "Intercape departs. N7 north, N14 east. One update from the dark, then sleep.",
+          "date": "2026-09-23"
+        }
+      ]
+    },
+    {
+      "quarter": 2,
+      "heading": "The run / Thursday 24 Sept",
+      "items": [
+        {
+          "time": "04:45",
+          "description": "Arrive KLK Garage, Skool St. Night sign selfie. Walk to the Hotel.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "05:00",
+          "description": "Rest.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "06:30",
+          "description": "14 km run. Voortrekker St east, R358 north 5 km, turn at 6.0 km on the watch, back to town, 2 km town loop to the Hotel. GPS export is the proof.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "08:30",
+          "description": "Breakfast at Pofadder Inn. Daylight sign selfie.",
+          "date": "2026-09-24"
+        }
+      ]
+    },
+    {
+      "quarter": 3,
+      "heading": "Town duty / Thursday 24 Sept",
+      "items": [
+        {
+          "time": "09:30",
+          "description": "Tourism Bureau, 103 Voortrekker St. Town history, oldest building, Heritage Day events.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "10:30",
+          "description": "Checkpoints on foot. See play-by-play.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "13:00",
+          "description": "Chicken and rib combo, Badgers Grill. Rated on camera.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "14:00",
+          "description": "Rest. Cut footage, write the report.",
+          "date": "2026-09-24"
+        }
+      ]
+    },
+    {
+      "quarter": 4,
+      "heading": "Homebound / Thursday into Friday",
+      "items": [
+        {
+          "time": "17:30",
+          "description": "Sunset on the N14 edge of town. Loser's speech.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "19:00",
+          "description": "Dinner, Pofadder Inn.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "21:30",
+          "description": "Check out, walk to KLK Garage.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "22:30",
+          "description": "Intercape departs. No second bus.",
+          "date": "2026-09-24"
+        },
+        {
+          "time": "07:35",
+          "description": "Friday. Arrive Malmesbury. Sentence served.",
+          "date": "2026-09-25"
+        }
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "challenge-01",
+      "sequence": 1,
+      "title": "Town welcome sign, in the dark, on arrival",
+      "proofType": "photo",
+      "points": 5
+    },
+    {
+      "id": "challenge-02",
+      "sequence": 2,
+      "title": "14 km run, full GPS trace including the R358 leg",
+      "proofType": "watch export",
+      "points": 25
+    },
+    {
+      "id": "challenge-03",
+      "sequence": 3,
+      "title": "Welcome sign again, in daylight, still in running kit",
+      "proofType": "photo",
+      "points": 5
+    },
+    {
+      "id": "challenge-04",
+      "sequence": 4,
+      "title": "Three locals asked what Pofadder is known for",
+      "proofType": "3 clips",
+      "points": 10
+    },
+    {
+      "id": "challenge-05",
+      "sequence": 5,
+      "title": "Oldest building in town, with its year",
+      "proofType": "photo",
+      "points": 5
+    },
+    {
+      "id": "challenge-06",
+      "sequence": 6,
+      "title": "Chicken and rib combo, rated out of ten",
+      "proofType": "clip",
+      "points": 5
+    },
+    {
+      "id": "challenge-07",
+      "sequence": 7,
+      "title": "Final league standings read aloud in the Hotel bar",
+      "proofType": "clip",
+      "points": 15
+    },
+    {
+      "id": "challenge-08",
+      "sequence": 8,
+      "title": "R50 spent in Pofadder on a public holiday",
+      "proofType": "receipt",
+      "points": 10
+    },
+    {
+      "id": "challenge-09",
+      "sequence": 9,
+      "title": "Sunset loser's speech on the N14",
+      "proofType": "clip",
+      "points": 10
+    },
+    {
+      "id": "challenge-10",
+      "sequence": 10,
+      "title": "Boarding the 22:30 bus, ticket and face in frame",
+      "proofType": "clip",
+      "points": 10
+    }
+  ],
+  "penalties": [
+    "Missed the 22:30 bus: sentence doubled next season.",
+    "Run under 14.0 km on the trace: 25 points forfeited, plus 5 km added to next year's run.",
+    "Any checkpoint without proof: zero points for that play."
+  ],
+  "standings": [
+    {
+      "division": "Lambeau",
+      "teams": [
+        {
+          "divisionPosition": 1,
+          "team": "Saquon These Balls",
+          "manager": "@llewellyn",
+          "record": "17-11",
+          "pointsFor": 1751.8,
+          "pointsAgainst": 1816.4,
+          "overallRank": 3,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 2,
+          "team": "LAW's Daybreakers",
+          "manager": "@Wentzel",
+          "record": "16-12",
+          "pointsFor": 1689.9,
+          "pointsAgainst": 1676.44,
+          "overallRank": 5,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 3,
+          "team": "LaPorta Potty",
+          "manager": "@PeetduPlessis",
+          "record": "15-13",
+          "pointsFor": 1618.54,
+          "pointsAgainst": 1815.72,
+          "overallRank": 6,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 4,
+          "team": "PurdyGood",
+          "manager": "@Blackburn22",
+          "record": "13-15",
+          "pointsFor": 1693.62,
+          "pointsAgainst": 1661.14,
+          "overallRank": 8,
+          "sentenced": false
+        }
+      ]
+    },
+    {
+      "division": "Arrowhead",
+      "teams": [
+        {
+          "divisionPosition": 1,
+          "team": "Tee'z Nuts",
+          "manager": "@deanbb",
+          "record": "19-9",
+          "pointsFor": 1900.1,
+          "pointsAgainst": 1739.86,
+          "overallRank": 1,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 2,
+          "team": "Bad Nabers",
+          "manager": "@TheoLotter",
+          "record": "17-11",
+          "pointsFor": 1775.42,
+          "pointsAgainst": 1565.62,
+          "overallRank": 2,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 3,
+          "team": "Chase-ing Mahomelessness",
+          "manager": "@VictorDercksen",
+          "record": "13-15",
+          "pointsFor": 1741.84,
+          "pointsAgainst": 1706.3,
+          "overallRank": 7,
+          "sentenced": true
+        },
+        {
+          "divisionPosition": 4,
+          "team": "Wentz upon a time",
+          "manager": "@Pierre05",
+          "record": "6-22",
+          "pointsFor": 1495.12,
+          "pointsAgainst": 1808.54,
+          "overallRank": 12,
+          "sentenced": false
+        }
+      ]
+    },
+    {
+      "division": "Soldier",
+      "teams": [
+        {
+          "divisionPosition": 1,
+          "team": "Goedert's Glory Gobblers",
+          "manager": "@CarelvanZyl",
+          "record": "16-12",
+          "pointsFor": 1849.24,
+          "pointsAgainst": 1566.74,
+          "overallRank": 4,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 2,
+          "team": "Brownnatron",
+          "manager": "@SB123456",
+          "record": "13-15",
+          "pointsFor": 1633.54,
+          "pointsAgainst": 1743.42,
+          "overallRank": 9,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 3,
+          "team": "Too Legette To Quit",
+          "manager": "@chvisser98",
+          "record": "12-16",
+          "pointsFor": 1725.3,
+          "pointsAgainst": 1675.72,
+          "overallRank": 10,
+          "sentenced": false
+        },
+        {
+          "divisionPosition": 4,
+          "team": "1.02 Boys",
+          "manager": "@Skin4TheWin",
+          "record": "11-17",
+          "pointsFor": 1646.52,
+          "pointsAgainst": 1745.04,
+          "overallRank": 11,
+          "sentenced": false
+        }
+      ]
+    }
+  ],
+  "roster": {
+    "columns": [
+      "Slot",
+      "Player and supplied team/result",
+      "Stat line",
+      "Actual points and projection"
+    ],
+    "rows": [
+      [
+        "QB",
+        "Patrick MahomesKC. W 26-25 vs CIN",
+        "18/25, 151 yd, 2 TD, 2 INT, 4 car 29 yd, 2 sacks",
+        "16.94proj 23.86"
+      ],
+      [
+        "RB",
+        "David MontgomeryHOU. W 19-13 vs CHI",
+        "11 car 35 yd, 1 TD, 4/4 rec 35 yd",
+        "17.00proj 11.73"
+      ],
+      [
+        "WR",
+        "Xavier WorthyKC. W 26-25 vs CIN",
+        "1 car 5 yd, 2/4 rec 17 yd",
+        "4.20proj 12.04"
+      ],
+      [
+        "WR",
+        "Chris OlaveNO. W 44-19 @ DAL",
+        "1 car 7 yd, 4/6 rec 81 yd",
+        "12.80proj 14.22"
+      ],
+      [
+        "TE",
+        "Trey McBrideARI. W 41-10 vs LAR",
+        "6/6 rec 67 yd, 1 fumble TD",
+        "18.70proj 11.84"
+      ],
+      [
+        "W/R/T",
+        "Jerome FordRB. Questionable",
+        "7 car 64 yd, 1/2 rec",
+        "7.40proj 12.25"
+      ],
+      [
+        "W/T",
+        "Ja'Marr ChaseCIN. L 25-26 @ KC",
+        "4/5 rec 35 yd",
+        "7.50proj 18.17"
+      ],
+      [
+        "K",
+        "Jason SandersNYJ. W 24-17 @ TEN",
+        "1/1 FG (30-39), 1/1 XP",
+        "4.00proj 8.39"
+      ],
+      [
+        "DEF",
+        "New York JetsW 24-17 @ TEN",
+        "1 INT, 17 pts allowed, 300 yds allowed, 4 sacks, 1 FF, 1 FR, 1 block",
+        "14.00proj 11.13"
+      ],
+      [
+        "",
+        "Total",
+        "Chase, Worthy and Sanders came in 23 points under projection between them.",
+        "102.54proj 123.63"
+      ]
+    ],
+    "verificationRequired": true,
+    "note": "Source contains apparent player/team/result mismatches, notably David Montgomery labelled HOU and Jason Sanders labelled NYJ. Preserve supplied data pending verification. Do not seed it as newly verified NFL data."
+  },
+  "bingo": [
+    {
+      "index": 0,
+      "free": false,
+      "text": "Someone asks why you’re here"
+    },
+    {
+      "index": 1,
+      "free": false,
+      "text": "Group chat shows zero sympathy"
+    },
+    {
+      "index": 2,
+      "free": false,
+      "text": "Bus sleep counted as recovery"
+    },
+    {
+      "index": 3,
+      "free": false,
+      "text": "“Never drafting him again”"
+    },
+    {
+      "index": 4,
+      "free": false,
+      "text": "First town-sign selfie is blurry"
+    },
+    {
+      "index": 5,
+      "free": false,
+      "text": "Regret at kilometre 9"
+    },
+    {
+      "index": 6,
+      "free": false,
+      "text": "A local has never heard of Sleeper"
+    },
+    {
+      "index": 7,
+      "free": false,
+      "text": "Find a shop that’s actually open"
+    },
+    {
+      "index": 8,
+      "free": false,
+      "text": "“It’s a fantasy football thing”"
+    },
+    {
+      "index": 9,
+      "free": false,
+      "text": "Watch says 13.99 km"
+    },
+    {
+      "index": 10,
+      "free": false,
+      "text": "Take a photo of absolutely nothing"
+    },
+    {
+      "index": 11,
+      "free": false,
+      "text": "League requests a VAR review"
+    },
+    {
+      "index": 12,
+      "free": true,
+      "text": "Dignity left in Malmesbury"
+    },
+    {
+      "index": 13,
+      "free": false,
+      "text": "Chicken and ribs get a full scouting report"
+    },
+    {
+      "index": 14,
+      "free": false,
+      "text": "Someone asks if you lost a bet"
+    },
+    {
+      "index": 15,
+      "free": false,
+      "text": "Phone battery enters the red zone"
+    },
+    {
+      "index": 16,
+      "free": false,
+      "text": "“At least the weather’s nice”"
+    },
+    {
+      "index": 17,
+      "free": false,
+      "text": "The standings hurt more out loud"
+    },
+    {
+      "index": 18,
+      "free": false,
+      "text": "Run gets called “character building”"
+    },
+    {
+      "index": 19,
+      "free": false,
+      "text": "A stranger offers more sympathy than the league"
+    },
+    {
+      "index": 20,
+      "free": false,
+      "text": "Check the return ticket for the fifth time"
+    },
+    {
+      "index": 21,
+      "free": false,
+      "text": "Sunset speech needs a second take"
+    },
+    {
+      "index": 22,
+      "free": false,
+      "text": "Someone suggests doing this annually"
+    },
+    {
+      "index": 23,
+      "free": false,
+      "text": "22:30 bus feels like a playoff win"
+    },
+    {
+      "index": 24,
+      "free": false,
+      "text": "“Same time next year?” in the chat"
+    }
+  ],
+  "pressQuestions": [
+    "Has ownership lost confidence in your drafting strategy?",
+    "At what point did you realise your bench had more potential than your starting lineup?",
+    "What would you say to the fans who paid absolutely nothing to watch this?",
+    "What changes will management make before next season?"
+  ],
+  "townPins": {
+    "usage": "Town-centre preview only. Never treat as a device check-in or exact venue pin.",
+    "malmesbury": {
+      "latitude": -33.4608,
+      "longitude": 18.72714
+    },
+    "pofadder": {
+      "latitude": -29.12861,
+      "longitude": 19.39472
+    }
+  },
+  "demoOnly": {
+    "approvedPoints": 35,
+    "approvedAfterSampleReview": 45,
+    "recapScore": 100,
+    "runDistanceKm": 14.03,
+    "sampleBingoWinner": "Tee’z Nuts",
+    "samplePredictionWinner": "LaPorta Potty",
+    "note": "Illustrative mockup values; never seed these as production results."
+  }
+}
