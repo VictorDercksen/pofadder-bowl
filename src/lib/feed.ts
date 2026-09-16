@@ -9,7 +9,7 @@ export type FeedPost = {
   created_at: string;
   author_id: string | null;
   author_name: string;
-  kit_team: string;
+  kit_team: string | null;
   kit_number: number;
   reaction_count: number;
   reacted: boolean;
@@ -45,7 +45,7 @@ export async function loadFeed(ctx: LeagueContext, limit = 24): Promise<FeedPost
       created_at: p.created_at,
       author_id: p.author_id,
       author_name: author?.display_name ?? (p.kind === "system" ? "The League" : "League member"),
-      kit_team: author?.kit_team ?? "cin",
+      kit_team: author?.kit_team ?? null,
       kit_number: author?.kit_number ?? 9,
       reaction_count: rs.length,
       reacted: rs.some((r) => r.user_id === ctx.user.id),

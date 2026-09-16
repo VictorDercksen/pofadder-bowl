@@ -48,14 +48,14 @@ export function BingoBoard({ layout, squares, confirmedPositions, proposedSquare
 
   return (
     <>
-      <div className="pb-bingo-letters" aria-hidden="true">
+      <div className="pb-bingo-letters kit" aria-hidden="true">
         <span>B</span>
         <span>I</span>
         <span>N</span>
         <span>G</span>
         <span>O</span>
       </div>
-      <div className="pb-bingo" role="group" aria-label="Your bingo card">
+      <div className="pb-bingo kit" role="group" aria-label="Your bingo card">
         {layout.map((position, cell) => {
           const sq = byPosition.get(position);
           if (!sq) return <button key={cell} type="button" disabled>?</button>;

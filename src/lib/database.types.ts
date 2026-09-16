@@ -1084,7 +1084,7 @@ export type Database = {
           display_name: string
           id: string
           kit_number: number
-          kit_team: string
+          kit_team: string | null
           updated_at: string
         }
         Insert: {
@@ -1092,7 +1092,7 @@ export type Database = {
           display_name: string
           id: string
           kit_number?: number
-          kit_team?: string
+          kit_team?: string | null
           updated_at?: string
         }
         Update: {
@@ -1100,7 +1100,7 @@ export type Database = {
           display_name?: string
           id?: string
           kit_number?: number
-          kit_team?: string
+          kit_team?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1317,6 +1317,23 @@ export type Database = {
           line_key: string
         }[]
       }
+      claim_kit: {
+        Args: { p_number: number; p_team: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          id: string
+          kit_number: number
+          kit_team: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       claim_sleeper_identity: {
         Args: { p_league: string; p_sleeper_user_id?: string }
         Returns: {
@@ -1339,6 +1356,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      claimed_kits: {
+        Args: never
+        Returns: {
+          display_name: string
+          kit_team: string
+          user_id: string
+        }[]
       }
       confirm_sleeper_link: {
         Args: {

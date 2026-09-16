@@ -2,13 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { getLeagueContext } from "@/lib/league";
+import { getLeagueContext, getLeagueContextRaw } from "@/lib/league";
 import { KITS } from "@/lib/nfl";
 import type { ActionResult } from "@/lib/actions/feed";
 
 const profileSchema = z.object({
   displayName: z.string().trim().min(1).max(40),
-  kitTeam: z.string().refine((c) => c in KITS, "Unknown franchise"),
   kitNumber: z.number().int().min(0).max(99),
 });
 
@@ -16,10 +15,29 @@ export async function updateProfile(input: z.input<typeof profileSchema>): Promi
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid profile." };
   const ctx = await getLeagueContext();
-  const { error } = await ctx.supabase.from("profiles").update({ display_name: parsed.data.displayName, kit_team: parsed.data.kitTeam, kit_number: parsed.data.kitNumber }).eq("id", ctx.user.id);
-  if (error) return { ok: false, message: "Could not save your kit." };
+  const { error } = await ctx.supabase.from("profiles").update({ display_name: parsed.data.displayName, kit_number: parsed.data.kitNumber }).eq("id", ctx.user.id);
+  if (error) return { ok: false, message: "Could not save your details." };
   revalidatePath("/", "layout");
-  return { ok: true, message: "Kit saved. Your jersey cards now wear it." };
+  return { ok: true, message: "Saved. Your jersey cards now show it." };
+}
+
+const kitSchema = z.object({
+  kitTeam: z.string().refine((c) => c in KITS && c !== "nfl", "Unknown franchise"),
+  kitNumber: z.number().int().min(0).max(99),
+});
+
+/**
+ * Claim a franchise. The database enforces that a franchise is worn by only one member
+ * (unique index + locked RPC), so two members cannot pick the same team.
+ */
+export async function claimKit(input: z.input<typeof kitSchema>): Promise<ActionResult> {
+  const parsed = kitSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Pick a franchise and a number." };
+  const ctx = await getLeagueContextRaw();
+  const { error } = await ctx.supabase.rpc("claim_kit", { p_team: parsed.data.kitTeam, p_number: parsed.data.kitNumber });
+  if (error) return { ok: false, message: error.code === "23505" ? error.message.replace(/^.*?The /, "The") : error.message };
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Kit claimed. This franchise is yours for the league." };
 }
 
 export async function claimSleeperIdentity(input: { sleeperUserId: string | null }): Promise<ActionResult> {

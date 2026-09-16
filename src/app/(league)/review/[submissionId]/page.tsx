@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Shield } from "@/components/ui/Marks";
+import { MemberBadge, Shield } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { ReviewForm } from "@/components/review/ReviewForm";
@@ -18,7 +18,7 @@ export default async function ReviewSubmissionPage(props: PageProps<"/review/[su
     s.challenge_id ? ctx.supabase.from("challenges").select("*").eq("id", s.challenge_id).maybeSingle() : Promise.resolve({ data: null }),
     s.press_prompt_id ? ctx.supabase.from("press_prompts").select("*").eq("id", s.press_prompt_id).maybeSingle() : Promise.resolve({ data: null }),
     ctx.supabase.from("review_decisions").select("*").eq("submission_id", s.id).order("created_at", { ascending: false }),
-    ctx.supabase.from("profiles").select("display_name").eq("id", s.submitter_id).maybeSingle(),
+    ctx.supabase.from("profiles").select("display_name, kit_team, kit_number").eq("id", s.submitter_id).maybeSingle(),
     ctx.supabase.from("evidence_submissions").select("id, version, status").eq("event_id", ctx.event.id).eq("submitter_id", s.submitter_id).order("version", { ascending: false }),
   ]);
   const related = (siblings ?? []).filter(() => true);
@@ -27,7 +27,7 @@ export default async function ReviewSubmissionPage(props: PageProps<"/review/[su
 
   return (
     <>
-      <TitleRow kicker={`COMMISSIONER’S VIEW · ${challenge ? `CHALLENGE #${String(challenge.sequence).padStart(2, "0")}` : "PRESS ROOM"}`} title={title} blurb={`${submitter?.display_name ?? "Participant"} · version ${s.version} · ${s.status}`} tag={challenge ? `${challenge.points} POINTS` : "MEDIA DUTY"} identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
+      <TitleRow kicker={`COMMISSIONER’S VIEW · ${challenge ? `CHALLENGE #${String(challenge.sequence).padStart(2, "0")}` : "PRESS ROOM"}`} title={title} blurb={<><MemberBadge code={submitter?.kit_team} name={submitter?.display_name ?? "Participant"} number={submitter?.kit_number} /> · version {s.version} · {s.status}</>} tag={challenge ? `${challenge.points} POINTS` : "MEDIA DUTY"} identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
       <p className="pb-small" style={{ marginBottom: 12 }}>
         <Link href="/review" className="pb-text-action">← Back to the review queue</Link>
       </p>

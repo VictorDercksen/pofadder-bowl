@@ -21,6 +21,8 @@ export const NFL_SHIELD_SRC = "/nfl/nfl.png";
 export type Kit = { body: string; shadow: string; accent: string; number?: string; text?: string; sleeveStyle?: "stripes" | "bengal" };
 
 export const KITS: Record<string, Kit> = {
+  /** League kit for members without a franchise and for system posts. */
+  nfl: { body: "#183b2f", shadow: "#0f261c", accent: "#e8bd67", number: "#f4f0e6" },
   nyg: { body: "#073493", shadow: "#032666", accent: "#bd202d" },
   kc: { body: "#b70e24", shadow: "#8e0818", accent: "#ffb81c", number: "#fff8e7" },
   cin: { body: "#171a19", shadow: "#070807", accent: "#f15b24", number: "#fff9ec", sleeveStyle: "bengal" },
@@ -55,8 +57,14 @@ export const KITS: Record<string, Kit> = {
   sea: { body: "#002244", shadow: "#00132a", accent: "#69be28" },
 };
 
-export function kitFor(code: string): Kit {
-  return KITS[code] ?? KITS.nyg;
+export function kitFor(code: string | null | undefined): Kit {
+  return KITS[code ?? "nfl"] ?? KITS.nfl;
+}
+
+/** Inline CSS variables for a member's kit, usable on any themed block. */
+export function kitVars(code: string | null | undefined): Record<string, string> {
+  const kit = kitFor(code);
+  return { "--kit": kit.body, "--kit-deep": kit.shadow, "--kit-accent": kit.accent, "--kit-number": kit.number ?? "#fff9ed", "--kit-text": kit.text ?? "#fff9ed" };
 }
 
 /** Codes shown in the franchise logo strip (order from the approved mockup). */

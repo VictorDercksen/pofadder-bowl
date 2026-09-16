@@ -70,6 +70,17 @@ async function main() {
     page.on("pageerror", (e) => consoleErrors.push(`${role}: pageerror ${e.message.slice(0, 160)}`));
     await signIn(page, FIXTURES[role as keyof typeof FIXTURES].email);
     for (const path of screens) await shoot(page, path, role);
+    // Mobile drawer: open it, capture, close with Escape.
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto(`${BASE}/game-centre`, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    await page.click(".pb-menu-btn");
+    await page.waitForTimeout(400);
+    const drawerOpen = await page.locator(".pb-drawer.open").count();
+    if (!drawerOpen) problems.push(`${role}: mobile drawer did not open`);
+    await page.screenshot({ path: `${OUT}/${role}_drawer@390.png`, fullPage: false });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    if (await page.locator(".pb-drawer.open").count()) problems.push(`${role}: drawer did not close on Escape`);
     // Keyboard navigation smoke: tab through the game centre and make sure focus moves.
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(`${BASE}/game-centre`, { waitUntil: "domcontentloaded", timeout: 45_000 });

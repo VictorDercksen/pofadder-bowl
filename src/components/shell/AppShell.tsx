@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Shield, TeamLogo } from "@/components/ui/Marks";
 import { LOGO_STRIP } from "@/lib/nfl";
 import { NavLinks, type NavItem } from "@/components/shell/NavLinks";
+import { NavDrawer } from "@/components/shell/NavDrawer";
 
 export type ShellRole = "participant" | "member" | "commissioner" | "demo" | "guest";
 
@@ -27,6 +28,8 @@ export function AppShell({
   base,
   account,
   badge,
+  drawerIdentity,
+  drawerFooter,
   children,
   footerNote,
 }: {
@@ -34,6 +37,9 @@ export function AppShell({
   base: string;
   account?: ReactNode;
   badge?: ReactNode;
+  /** Member insignia block shown at the top of the mobile drawer. */
+  drawerIdentity?: ReactNode;
+  drawerFooter?: ReactNode;
   children: ReactNode;
   footerNote?: string;
 }) {
@@ -41,6 +47,7 @@ export function AppShell({
   return (
     <div className="pb">
       <header className="pb-top">
+        <NavDrawer items={items} identity={drawerIdentity ?? <div className="pb-brand" style={{ color: "#f4f0e6" }}>POFADDER BOWL ’26</div>} footer={drawerFooter} />
         <Link href={role === "demo" ? "/demo" : "/game-centre"} className="pb-brand" style={{ textDecoration: "none" }}>
           <Shield />
           <div>

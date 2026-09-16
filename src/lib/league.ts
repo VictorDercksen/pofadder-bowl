@@ -35,6 +35,14 @@ export const getVerifiedUser = cache(async (): Promise<{ supabase: SupabaseClien
  * and to /no-access when the account has no active membership for the configured league.
  */
 export const getLeagueContext = cache(async (): Promise<LeagueContext> => {
+  const ctx = await getLeagueContextRaw();
+  // Every member wears a franchise: first sign-in goes to the kit picker.
+  if (!ctx.profile.kit_team) redirect("/choose-team");
+  return ctx;
+});
+
+/** Same as getLeagueContext but allows members who have not chosen a kit yet. */
+export const getLeagueContextRaw = cache(async (): Promise<LeagueContext> => {
   const { supabase, user } = await getVerifiedUser();
   if (!user) redirect("/login?reason=session");
 

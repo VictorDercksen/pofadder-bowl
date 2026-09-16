@@ -23,6 +23,16 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
             <Link href="/login" className="pb-text-action">Real sign-in</Link>
           </>
         }
+        drawerIdentity={
+          <div className="pb-drawer-identity">
+            <TeamLogo code="nyg" size={52} decorative />
+            <span>
+              <b>Demo member</b>
+              <small>Interactive demo · nothing is saved</small>
+            </span>
+          </div>
+        }
+        drawerFooter={<Link href="/login" className="pb-text-action">Real league sign-in</Link>}
         footerNote="Sample activity · Team marks: ESPN · No GPS or account connection · Nothing is saved"
       >
         <div className="pb-demo-banner">

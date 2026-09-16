@@ -31,7 +31,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 }
 
 /** Renders a share image / certificate PNG on a canvas from the real summary. */
-async function renderCertificate(summary: CertificateSummary, issued: boolean, kitTeam: string): Promise<Blob | null> {
+async function renderCertificate(summary: CertificateSummary, issued: boolean, kitTeam: string | null): Promise<Blob | null> {
   const W = 1200;
   const H = 1200;
   const canvas = document.createElement("canvas");
@@ -61,7 +61,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   c.strokeRect(40, 40, W - 80, H - 80);
   c.lineWidth = 2;
   c.strokeRect(54, 54, W - 108, H - 108);
-  const [logo, shield] = await Promise.all([loadImage(teamLogoSrc(kitTeam)), loadImage("/nfl/nfl.png")]);
+  const [logo, shield] = await Promise.all([loadImage(teamLogoSrc(kitTeam ?? "nfl")), loadImage("/nfl/nfl.png")]);
   if (logo) c.drawImage(logo, W / 2 - 150, 100, 110, 110);
   if (shield) c.drawImage(shield, W / 2 - 22, 106, 70, 88);
   // PB patch
@@ -142,7 +142,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }
 
-export function CertificateExport({ summary, issued, kitTeam }: { summary: CertificateSummary; issued: boolean; kitTeam: string }) {
+export function CertificateExport({ summary, issued, kitTeam }: { summary: CertificateSummary; issued: boolean; kitTeam: string | null }) {
   const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [busy, setBusy] = useState(false);
 

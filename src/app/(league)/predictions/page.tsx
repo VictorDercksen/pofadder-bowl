@@ -1,4 +1,6 @@
 import { TitleRow } from "@/components/ui/TitleRow";
+import { KitPanel } from "@/components/ui/KitPanel";
+import { MemberBadge } from "@/components/ui/Marks";
 import { PredictionSlip, RulesEditor } from "@/components/predictions/PredictionSlip";
 import { getLeagueContext } from "@/lib/league";
 import { DEFAULT_RULES } from "@/lib/predictions";
@@ -18,19 +20,19 @@ export default async function PredictionsPage() {
     ctx.supabase.from("predictions_revealed").select("*").eq("event_id", ctx.event.id),
     ctx.supabase.from("official_results").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("prediction_awards").select("*").eq("event_id", ctx.event.id),
-    ctx.supabase.from("profiles").select("id, display_name"),
+    ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
   const r = rules ?? { ...DEFAULT_RULES, event_id: ctx.event.id, updated_at: "" };
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+  const kits = new Map((profiles ?? []).map((p) => [p.id, p.kit_team]));
   const totals = new Map<string, number>();
   for (const a of awards ?? []) totals.set(a.user_id, (totals.get(a.user_id) ?? 0) + a.points);
 
   return (
     <>
-      <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team="gb" />
+      <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-panel">
-          <h2>The prediction slip</h2>
+        <KitPanel team={ctx.profile.kit_team} name="The prediction slip" kicker={`${ctx.profile.display_name.toUpperCase()} · #${String(ctx.profile.kit_number).padStart(2, "0")}`}>
           <PredictionSlip locked={locked} lockAt={ctx.event.prediction_lock_at} existing={mine ? { run_seconds: mine.run_seconds, meal_rating: mine.meal_rating, complaint_count: mine.complaint_count } : null} />
           {revealed ? (
             <div style={{ marginTop: 18 }}>
@@ -48,7 +50,7 @@ export default async function PredictionsPage() {
                 <tbody>
                   {(all ?? []).map((p) => (
                     <tr key={p.user_id ?? ""}>
-                      <td>{p.display_name}</td>
+                      <td><MemberBadge code={p.kit_team} name={p.display_name ?? "member"} size={22} /></td>
                       <td>{secondsToClock(p.run_seconds ?? 0)}</td>
                       <td>{p.meal_rating} / 10</td>
                       <td>{p.complaint_count}</td>
@@ -62,7 +64,7 @@ export default async function PredictionsPage() {
           ) : (
             <p className="pb-small" style={{ marginTop: 14 }}>Other members’ answers are hidden until {formatDateTime(ctx.event.prediction_reveal_at, tz)}.</p>
           )}
-        </div>
+        </KitPanel>
         <div className="pb-panel">
           <h3>How the points work</h3>
           <div className="pb-challenge">
@@ -99,7 +101,7 @@ export default async function PredictionsPage() {
               {[...totals.entries()].sort((a, b) => b[1] - a[1]).map(([uid, pts], i) => (
                 <div className="pb-rank" key={uid}>
                   <b className="pb-ranking-num">{i + 1}</b>
-                  <div>{names.get(uid) ?? "member"}</div>
+                  <div><MemberBadge code={kits.get(uid)} name={names.get(uid) ?? "member"} size={24} /></div>
                   <span>{pts}</span>
                 </div>
               ))}

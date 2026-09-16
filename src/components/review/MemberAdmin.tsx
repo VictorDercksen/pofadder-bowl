@@ -62,7 +62,7 @@ export function InviteForm() {
   );
 }
 
-export function MemberRow({ membership, profile, isSelf, isEventParticipant, sleeperUsers }: { membership: { user_id: string; role: "member" | "participant"; is_commissioner: boolean; status: "invited" | "active" | "removed"; invited_email: string | null; sleeper_user_id: string | null; sleeper_confirmed: boolean; created: string }; profile: { display_name: string; kit_team: string; kit_number: number } | null; isSelf: boolean; isEventParticipant: boolean; sleeperUsers: { id: string; label: string }[] }) {
+export function MemberRow({ membership, profile, isSelf, isEventParticipant, sleeperUsers }: { membership: { user_id: string; role: "member" | "participant"; is_commissioner: boolean; status: "invited" | "active" | "removed"; invited_email: string | null; sleeper_user_id: string | null; sleeper_confirmed: boolean; created: string }; profile: { display_name: string; kit_team: string | null; kit_number: number } | null; isSelf: boolean; isEventParticipant: boolean; sleeperUsers: { id: string; label: string }[] }) {
   const router = useRouter();
   const [role, setRole] = useState(membership.role);
   const [commish, setCommish] = useState(membership.is_commissioner);

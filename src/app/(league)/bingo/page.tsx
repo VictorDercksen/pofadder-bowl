@@ -1,7 +1,9 @@
 import { TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { KitPanel } from "@/components/ui/KitPanel";
 import { BingoBoard } from "@/components/bingo/BingoBoard";
 import { getLeagueContext } from "@/lib/league";
+import { teamName } from "@/lib/nfl";
 import { formatTime } from "@/lib/time";
 
 export const metadata = { title: "Punishment Bingo" };
@@ -15,14 +17,14 @@ export default async function BingoPage() {
     ctx.supabase.from("bingo_incidents").select("*").eq("event_id", ctx.event.id).order("created_at", { ascending: false }),
     ctx.supabase.rpc("bingo_leaderboard", { p_event: ctx.event.id }),
     ctx.supabase.from("bingo_wins").select("*").eq("event_id", ctx.event.id).eq("user_id", ctx.user.id),
-    ctx.supabase.from("profiles").select("id, display_name"),
+    ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
 
   if (cardError || !card || !squares) {
     return (
       <>
-        <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." tag="BINGO" team="cin" />
+        <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." tag="BINGO" team={ctx.profile.kit_team} />
         <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
           Your bingo card could not be created ({cardError?.message ?? "no squares seeded"}). Refresh, or ask the commissioner to check the event seed.
         </div>
@@ -33,21 +35,13 @@ export default async function BingoPage() {
   const confirmedPositions = new Set((incidents ?? []).filter((i) => i.status === "confirmed").map((i) => squares.find((s) => s.id === i.square_id)?.position).filter((p): p is number => p != null));
   const proposedSquareIds = new Set((incidents ?? []).filter((i) => i.status === "proposed").map((i) => i.square_id));
   const myLines = (wins ?? []).filter((w) => w.line_key !== "full_house");
+  const marked = [...confirmedPositions].filter((p) => card.layout.includes(p)).length;
 
   return (
     <>
-      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag={myLines.length ? `BINGO · ${myLines.length} LINE${myLines.length === 1 ? "" : "S"}` : "PERSONAL BINGO CARD"} team="cin" />
+      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag={myLines.length ? `BINGO · ${myLines.length} LINE${myLines.length === 1 ? "" : "S"}` : "PERSONAL BINGO CARD"} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-panel">
-          <div className="pb-panel-top">
-            <h3>{ctx.profile.display_name}’s card</h3>
-            <span className="pb-tag">{[...confirmedPositions].filter((p) => card.layout.includes(p)).length}/25 marked</span>
-          </div>
-          <div className="pb-bingo-banner">
-            <TeamLogo code={ctx.profile.kit_team} size={31} />
-            <span>THE PUNISHMENT PLAYBOOK</span>
-            <TeamLogo code="cin" size={31} />
-          </div>
+        <KitPanel team={ctx.profile.kit_team} name={`${ctx.profile.display_name}’s card`} kicker={`${teamName(ctx.profile.kit_team ?? "nfl").toUpperCase()} · ${marked}/25 MARKED`}>
           <BingoBoard
             layout={card.layout}
             squares={squares.map((s) => ({ id: s.id, position: s.position, text: s.text, is_free: s.is_free }))}
@@ -59,7 +53,7 @@ export default async function BingoPage() {
           <p className="pb-small" style={{ marginTop: 12 }}>
             Tap a square to propose an incident. Confirmed incidents mark everyone’s matching squares; rows, columns, diagonals and full house are detected on the server. Your layout is fixed for the event.
           </p>
-        </div>
+        </KitPanel>
         <div>
           <div className="pb-panel">
             <h3>The misery leaderboard</h3>
@@ -81,7 +75,7 @@ export default async function BingoPage() {
             <h3>Incident booth</h3>
             <p>
               {(incidents ?? []).filter((i) => i.status === "confirmed").length} confirmed · {(incidents ?? []).filter((i) => i.status === "proposed").length} proposed
-              {ctx.isCommissioner ? " · confirm or reject on the card above." : " · commissioners confirm incidents."}
+              {ctx.isCommissioner ? " · confirm or reject on the card." : " · commissioners confirm incidents."}
             </p>
           </div>
         </div>

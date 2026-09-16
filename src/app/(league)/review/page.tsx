@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield } from "@/components/ui/Marks";
+import { MemberBadge, Shield } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
@@ -20,10 +20,11 @@ export default async function ReviewPage() {
     ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("bingo_incidents").select("*, square:bingo_squares(text)").eq("event_id", ctx.event.id).eq("status", "proposed"),
     ctx.supabase.from("review_decisions").select("*").order("created_at", { ascending: false }).limit(8),
-    ctx.supabase.from("profiles").select("id, display_name"),
+    ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
   const byChallenge = new Map((challenges ?? []).map((c) => [c.id, c]));
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+  const kits = new Map((profiles ?? []).map((p) => [p.id, p.kit_team]));
   const queue = subs.filter((s) => s.status === "submitted");
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
 
@@ -49,7 +50,7 @@ export default async function ReviewPage() {
                   <div style={{ minWidth: 0 }}>
                     <strong>{c ? c.title : "Press room answer"}</strong>
                     <p>
-                      v{s.version} · {s.files.length} file(s) · {names.get(s.submitter_id) ?? "participant"} · submitted {s.submitted_at ? formatDateTime(s.submitted_at, tz) : "—"}
+                      v{s.version} · {s.files.length} file(s) · <MemberBadge code={kits.get(s.submitter_id)} name={names.get(s.submitter_id) ?? "participant"} size={20} /> · submitted {s.submitted_at ? formatDateTime(s.submitted_at, tz) : "—"}
                       {c ? ` · ${c.points} points` : ""}
                     </p>
                   </div>
@@ -126,7 +127,7 @@ export default async function ReviewPage() {
                     {c ? c.title : "Press room answer"} · v{d.submission_version} {d.decision}
                   </strong>
                   <p>
-                    {names.get(d.actor_id) ?? "commissioner"} · {formatDateTime(d.created_at, tz)}
+                    <MemberBadge code={kits.get(d.actor_id)} name={names.get(d.actor_id) ?? "commissioner"} size={20} /> · {formatDateTime(d.created_at, tz)}
                     {d.reason ? ` · ${d.reason}` : ""}
                   </p>
                 </div>

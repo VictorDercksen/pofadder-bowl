@@ -4,12 +4,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { claimSleeperIdentity, updateProfile } from "@/lib/actions/account";
-import { NFL_TEAMS } from "@/lib/nfl";
 
-export function KitForm({ displayName, kitTeam, kitNumber }: { displayName: string; kitTeam: string; kitNumber: number }) {
+export function KitForm({ displayName, kitNumber }: { displayName: string; kitNumber: number }) {
   const router = useRouter();
   const [name, setName] = useState(displayName);
-  const [team, setTeam] = useState(kitTeam);
   const [number, setNumber] = useState(kitNumber);
   const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -19,22 +17,10 @@ export function KitForm({ displayName, kitTeam, kitNumber }: { displayName: stri
         Nameplate
         <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
       </label>
-      <div className="pb-inline-fields">
-        <label className="pb-field">
-          Franchise
-          <select value={team} onChange={(e) => setTeam(e.target.value)}>
-            {NFL_TEAMS.map((t) => (
-              <option key={t.code} value={t.code}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="pb-field">
-          Number (0–99)
-          <input type="number" min={0} max={99} value={number} onChange={(e) => setNumber(Number(e.target.value))} />
-        </label>
-      </div>
+      <label className="pb-field">
+        Number (0–99)
+        <input type="number" min={0} max={99} value={number} onChange={(e) => setNumber(Number(e.target.value))} />
+      </label>
       <div className="pb-actions">
         <button
           className="pb-primary"
@@ -42,13 +28,13 @@ export function KitForm({ displayName, kitTeam, kitNumber }: { displayName: stri
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await updateProfile({ displayName: name, kitTeam: team, kitNumber: number });
+              const res = await updateProfile({ displayName: name, kitNumber: number });
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })
           }
         >
-          Save kit
+          Save nameplate
         </button>
       </div>
       <Status tone={note?.tone}>{note?.text}</Status>

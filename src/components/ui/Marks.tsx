@@ -6,8 +6,21 @@ export function Shield({ className = "pb-nfl-mark", size = 35, height }: { class
   return <Image className={className} src={NFL_SHIELD_SRC} alt="NFL shield" width={size} height={height ?? Math.round(size * 1.257)} />;
 }
 
-export function TeamLogo({ code, decorative = false, className = "pb-team-logo", size = 36 }: { code: string; decorative?: boolean; className?: string; size?: number }) {
-  return <Image className={className} src={teamLogoSrc(code)} alt={decorative ? "" : teamName(code)} width={size} height={size} />;
+/** Franchise badge. A member without a kit shows the league shield. */
+export function TeamLogo({ code, decorative = false, className = "pb-team-logo", size = 36 }: { code: string | null | undefined; decorative?: boolean; className?: string; size?: number }) {
+  const c = code ?? "nfl";
+  return <Image className={className} src={teamLogoSrc(c)} alt={decorative ? "" : c === "nfl" ? "No kit chosen" : teamName(c)} width={size} height={size} />;
+}
+
+/** A member's insignia: badge + name, used wherever a member appears. */
+export function MemberBadge({ code, name, number, size = 26, muted = false }: { code: string | null | undefined; name: string; number?: number | null; size?: number; muted?: boolean }) {
+  return (
+    <span className="pb-member" style={muted ? { color: "var(--pb-muted)" } : undefined}>
+      <TeamLogo code={code} decorative size={size} className="pb-member-logo" />
+      <span className="pb-member-name">{name}</span>
+      {number != null ? <span className="pb-member-number">#{String(number).padStart(2, "0")}</span> : null}
+    </span>
+  );
 }
 
 export function LeaguePatch({ small = false }: { small?: boolean }) {

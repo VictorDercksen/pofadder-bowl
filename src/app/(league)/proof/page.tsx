@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { KitPanel } from "@/components/ui/KitPanel";
 import { getEventScore, requireParticipant } from "@/lib/league";
 import { loadChallenges } from "@/lib/itinerary";
 import { latestFor, loadSubmissions, statusLabel } from "@/lib/evidence";
@@ -16,10 +17,9 @@ export default async function ProofPage() {
 
   return (
     <>
-      <TitleRow kicker={`${ctx.isParticipant ? "VICTOR’S VIEW" : "COMMISSIONER PREVIEW"} · ${score.approvedChallenges} OF ${score.total} APPROVED`} title="The proof locker." blurb="Every play needs evidence. Every point has to be earned." tag={`${score.approved} / ${score.max} POINTS`} team="phi" />
+      <TitleRow kicker={`${ctx.isParticipant ? "VICTOR’S VIEW" : "COMMISSIONER PREVIEW"} · ${score.approvedChallenges} OF ${score.total} APPROVED`} title="The proof locker." blurb="Every play needs evidence. Every point has to be earned." tag={`${score.approved} / ${score.max} POINTS`} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-panel">
-          <h3>Ten plays. One hundred points.</h3>
+        <KitPanel team={ctx.profile.kit_team} name="Ten plays. One hundred points." kicker={`${ctx.profile.display_name.toUpperCase()} · PROOF LOCKER`}>
           {challenges.map((c) => {
             const s = latestFor(subs, { challengeId: c.id });
             return (
@@ -37,7 +37,7 @@ export default async function ProofPage() {
               </div>
             );
           })}
-        </div>
+        </KitPanel>
         <div>
           {next ? (
             <div className="pb-next">

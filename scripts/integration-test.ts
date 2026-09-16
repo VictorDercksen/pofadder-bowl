@@ -293,6 +293,26 @@ async function main() {
     assert.equal(keys.size, dup?.length, "no duplicate wins");
   });
 
+  console.log("\nKits");
+  await test("a franchise can be claimed by only one member; direct column edits are blocked", async () => {
+    await admin.from("profiles").update({ kit_team: null }).in("id", [ids.member, ids.commissioner]);
+    const { error: e1 } = await member.rpc("claim_kit", { p_team: "phi", p_number: 7 });
+    assert.ok(!e1, e1?.message);
+    const { error: e2 } = await commissioner.rpc("claim_kit", { p_team: "phi", p_number: 1 });
+    assert.ok(e2 && /already worn/.test(e2.message), "second claim of the same franchise must fail");
+    const { error: e3 } = await commissioner.rpc("claim_kit", { p_team: "kc", p_number: 1 });
+    assert.ok(!e3, e3?.message);
+    const { error: e4 } = await member.rpc("claim_kit", { p_team: "xyz", p_number: 1 });
+    assert.ok(e4, "unknown franchise must fail");
+    const { data: direct } = await member.from("profiles").update({ kit_team: "kc" }).eq("id", ids.member).select();
+    assert.equal(direct?.length ?? 0, 0, "kit_team must not be editable directly");
+    const { data: claimed } = await member.rpc("claimed_kits");
+    assert.ok(claimed?.some((c) => c.kit_team === "kc") && claimed?.some((c) => c.kit_team === "phi"));
+    const { error: out } = await outsider.rpc("claim_kit", { p_team: "buf", p_number: 1 });
+    assert.ok(out, "non-member cannot claim a kit");
+    await member.rpc("claim_kit", { p_team: "cin", p_number: 9 });
+  });
+
   console.log("\nFeed");
   await test("comments and one reaction per member; outsider excluded", async () => {
     const { data: post, error } = await member.from("activity_posts").insert({ event_id: event.id, author_id: ids.member, kind: "comment", heading: "From the locker room", body: "<b>no sympathy</b>" }).select().single();
