@@ -40,7 +40,7 @@ export default async function AccountPage() {
           </div>
           <div className="pb-panel" style={{ marginTop: 18 }}>
             <h3>Password</h3>
-            <p className="pb-small" style={{ marginTop: 6 }}>Email links expire and sometimes land in the wrong browser. Set a password once and sign in with it from any device; the email link keeps working as a backup.</p>
+            <p className="pb-small" style={{ marginTop: 6 }}>Change the password you sign in with. Forgotten it on another device? The Email link tab on the sign-in page still works and lets you set a new one.</p>
             <PasswordForm />
           </div>
           <div className="pb-panel" style={{ marginTop: 18 }}>

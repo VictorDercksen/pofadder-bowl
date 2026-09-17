@@ -58,7 +58,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Regenerate types after schema changes: `npx supabase gen types typescript --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` into `src/lib/database.types.ts`, stripping anything before `export type Json` (`--local` has hung).
 - Realtime: tables must be in the `supabase_realtime` publication (see `*_policies.sql`) and readable under RLS for the subscriber. Subscribe from a client component and call `router.refresh()`; keep a bounded visible-tab poll as fallback (`SidelineFeed`, `CheckinLive`).
 - Storage uploads use resumable TUS (`src/lib/uploads.ts`); hosted projects need `NEXT_PUBLIC_SUPABASE_RESUMABLE_URL` on the direct storage host.
-- Auth is invite-only magic links. `[auth] enable_signup=false` is invite-only; `[auth.email] enable_signup=false` would disable all email logins. The default mailer only delivers to Supabase org members; custom SMTP is required before inviting the league.
+- Auth is invite-only: the invite/magic link signs a member in once, then the `/set-password` gate in `getLeagueContext` (first gate, before Sleeper team and kit) forces a password; `/login` opens on the Password tab. `has_password` comes from the `league_context` RPC (`auth.users.encrypted_password`), with `user_metadata.has_password` as the pre-migration fallback (`src/lib/password-gate.ts`). `[auth] enable_signup=false` is invite-only; `[auth.email] enable_signup=false` would disable all email logins. The default mailer only delivers to Supabase org members; custom SMTP is required before inviting the league.
 
 ## Roles and the member view
 

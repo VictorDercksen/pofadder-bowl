@@ -5,19 +5,19 @@ import { Football } from "@/components/ui/Football";
 import { passwordSignIn, requestSignInLink, verifyEmailCode, type PasswordSignInState, type SignInState } from "./actions";
 
 /**
- * Two ways in. The email link (or its 6-digit code) needs no memory; a password, set once in
- * League access, means never waiting for an email again.
+ * Two ways in. Password first: every member sets one on their first visit (the /set-password
+ * gate), so the email link (or its 6-digit code) is only for the invite and for a forgotten password.
  */
 export function LoginForm({ next }: { next: string }) {
-  const [mode, setMode] = useState<"link" | "password">("link");
+  const [mode, setMode] = useState<"link" | "password">("password");
   return (
     <div>
       <div className="pb-login-tabs" role="tablist" aria-label="Sign-in method">
-        <button type="button" role="tab" aria-selected={mode === "link"} className={mode === "link" ? "on" : ""} onClick={() => setMode("link")}>
-          Email link
-        </button>
         <button type="button" role="tab" aria-selected={mode === "password"} className={mode === "password" ? "on" : ""} onClick={() => setMode("password")}>
           Password
+        </button>
+        <button type="button" role="tab" aria-selected={mode === "link"} className={mode === "link" ? "on" : ""} onClick={() => setMode("link")}>
+          Email link
         </button>
       </div>
       {mode === "link" ? <LinkForm next={next} /> : <PasswordForm next={next} />}
@@ -45,7 +45,7 @@ function LinkForm({ next }: { next: string }) {
         </div>
         {sent ? (
           <div className="pb-status" role="status" aria-live="polite">
-            Check your inbox for a Pofadder Bowl sign-in link. It expires after a short while and works once.
+            Check your inbox for a Pofadder Bowl sign-in link. It expires after a short while and works once. Once inside, set your password so you never need another link.
           </div>
         ) : null}
         {state.status === "error" ? (
@@ -98,7 +98,7 @@ function PasswordForm({ next }: { next: string }) {
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </div>
-      <p className="pb-small" style={{ marginTop: 12 }}>No password yet? Sign in with the email link once, then set one under League access.</p>
+      <p className="pb-small" style={{ marginTop: 12 }}>First time here, or forgotten it? Use the Email link tab: the link signs you in and asks you to set a new password.</p>
       {state.error ? (
         <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
           {state.error}

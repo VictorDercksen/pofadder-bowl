@@ -32,6 +32,17 @@ async function latestMessageFor(email: string, since: number): Promise<{ subject
   throw new Error(`no email for ${email}`);
 }
 
+/** Invited accounts hold no password, so the first landing is the /set-password gate. Complete it. */
+async function passGate(page: import("@playwright/test").Page, password = "pofadder-flow-2026") {
+  await page.waitForURL((u) => !u.pathname.startsWith("/auth") && !u.pathname.startsWith("/login"), { timeout: 20_000 }).catch(() => {});
+  if (new URL(page.url()).pathname !== "/set-password") return false;
+  await page.fill('input[autocomplete="new-password"] >> nth=0', password);
+  await page.fill('input[autocomplete="new-password"] >> nth=1', password);
+  await page.click('button:has-text("Set password and continue")');
+  await page.waitForURL((u) => u.pathname !== "/set-password", { timeout: 20_000 }).catch(() => {});
+  return true;
+}
+
 async function main() {
   const browser = await chromium.launch();
   const failures: string[] = [];
@@ -45,10 +56,11 @@ async function main() {
   const ctx1 = await browser.newContext();
   const page1 = await ctx1.newPage();
   await page1.goto(invite.link.replace(/^https?:\/\/[^/]+/, BASE), { waitUntil: "domcontentloaded" });
-  await page1.waitForURL((u) => !u.pathname.startsWith("/auth") && !u.pathname.startsWith("/login"), { timeout: 20_000 }).catch(() => {});
+  const gated1 = await passGate(page1);
   const landed1 = new URL(page1.url()).pathname;
   const signedIn1 = (await page1.locator("text=Sign out").count()) > 0;
-  console.log(`Invite landed on ${landed1}, signed in: ${signedIn1}`);
+  console.log(`Invite landed on ${landed1} (password gate: ${gated1}), signed in: ${signedIn1}`);
+  if (!gated1) failures.push("invite flow skipped the /set-password gate");
   if (landed1 !== "/review" || !signedIn1) failures.push(`invite flow landed on ${landed1} (signed in: ${signedIn1})`);
   await ctx1.close();
 
@@ -66,10 +78,12 @@ async function main() {
       const ctx = await browser.newContext();
       const page = await ctx.newPage();
       await page.goto(link.properties.action_link, { waitUntil: "domcontentloaded" });
+      const gated = await passGate(page);
       await page.waitForURL((u) => u.pathname === "/game-centre" || u.pathname.startsWith("/login"), { timeout: 20_000 }).catch(() => {});
       const landed = new URL(page.url()).pathname;
       const signedIn = (await page.locator("text=Sign out").count()) > 0;
-      console.log(`Implicit-flow invite landed on ${landed}, signed in: ${signedIn}`);
+      console.log(`Implicit-flow invite landed on ${landed} (password gate: ${gated}), signed in: ${signedIn}`);
+      if (!gated) failures.push("implicit invite skipped the /set-password gate");
       if (landed !== "/game-centre" || !signedIn) failures.push(`implicit invite landed on ${landed} (signed in: ${signedIn})`);
       await ctx.close();
     }
@@ -79,6 +93,7 @@ async function main() {
   const ctx2 = await browser.newContext();
   const page2 = await ctx2.newPage();
   await page2.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await page2.click('button[role="tab"]:has-text("Email link")');
   const t1 = Date.now();
   await page2.fill('input[name="email"][type="email"] >> nth=0', FIXTURES.member.email);
   await page2.click('button:has-text("Email me a sign-in link")');
@@ -110,6 +125,7 @@ async function main() {
   const ctx3 = await browser.newContext();
   const page3 = await ctx3.newPage();
   await page3.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await page3.click('button[role="tab"]:has-text("Email link")');
   const t2 = Date.now();
   await page3.fill('input[name="email"][type="email"] >> nth=0', "stranger@local.test");
   await page3.click('button:has-text("Email me a sign-in link")');

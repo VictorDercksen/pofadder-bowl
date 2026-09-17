@@ -56,17 +56,25 @@ export async function claimSleeperIdentity(input: { sleeperUserId: string | null
 
 const passwordSchema = z.object({ password: z.string().min(8, "Use at least 8 characters.").max(200) });
 
-/** Set or change the account password so the member can sign in without waiting for an email link. */
+/**
+ * Set or change the account password. Every member must hold one (the /set-password gate in
+ * getLeagueContext), so after the first email link nobody waits for another.
+ * `user_metadata.has_password` mirrors the fact into the JWT for the pre-migration gate check;
+ * the session is refreshed so the very next request carries the new claims.
+ */
 export async function setPassword(input: { password: string }): Promise<ActionResult> {
   const parsed = passwordSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Use at least 8 characters." };
   const ctx = await getLeagueContextRaw();
-  const { error } = await ctx.supabase.auth.updateUser({ password: parsed.data.password });
+  const { error } = await ctx.supabase.auth.updateUser({ password: parsed.data.password, data: { has_password: true } });
   if (error) {
     if (/weak|pwned|leaked|easy to guess/i.test(error.message)) return { ok: false, message: "That password is too easy to guess. Try a longer one." };
     if (/same password/i.test(error.message)) return { ok: false, message: "That is already your password." };
     return { ok: false, message: "Could not set the password. Sign in again with an email link and retry." };
   }
+  // Reissue the access token so the has_password claim is visible before the hourly refresh.
+  await ctx.supabase.auth.refreshSession().catch(() => undefined);
+  revalidatePath("/", "layout");
   return { ok: true, message: "Password set. Next time, sign in with your email and password." };
 }
 

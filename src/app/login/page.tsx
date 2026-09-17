@@ -41,7 +41,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           </div>
           {reason === "session" ? (
             <div className="pb-status" role="status">
-              Your session has expired or you are not signed in. Request a fresh sign-in link below.
+              Your session has expired or you are not signed in. Sign in with your password below.
             </div>
           ) : null}
           {reason === "invalid" ? (
@@ -52,7 +52,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           <LoginForm next={next} />
           {(await isLocalStack()) ? <LocalPasswordForm next={next} /> : null}
           <p className="pb-small" style={{ marginTop: 14 }}>
-            Invite-only. Sign-in links go to the email address the commissioner invited; set a password once you are in and you will not need another link. Sleeper is the league host but does not offer sign-in for third-party apps, so you confirm your Sleeper team after you sign in.
+            Invite-only. Your invite link signs you in once and asks you to set a password; from then on it is email and password from any device. Sleeper is the league host but does not offer sign-in for third-party apps, so you confirm your Sleeper team after you sign in.
           </p>
           <p className="pb-small" style={{ marginTop: 10 }}>
             Just looking? <Link href="/demo">Open the labelled demo</Link> or <Link href="/teaser">see the teaser</Link>.
