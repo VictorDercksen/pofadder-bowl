@@ -1,10 +1,11 @@
 name: Supabase migrations
 
-# Applies pending files in supabase/migrations/ to the hosted project whenever a migration
-# lands on main, so the schema no longer waits for a laptop `npm run db:push`.
-# The CLI only applies migrations missing from supabase_migrations.schema_migrations, so a
-# rerun is a no-op. Vercel deploys the app in parallel; migrations must therefore stay
-# backward compatible with the previous deploy (the app's RPC fallbacks cover the gap).
+# Manual fallback for applying supabase/migrations/ to the hosted project. The automatic path
+# is Supabase's own GitHub integration (dashboard → Project Settings → Integrations), which
+# pushes migrations when they land on main; this workflow exists for when that is unavailable
+# or a push must be repeated. Run it from the Actions tab. The CLI only applies migrations
+# missing from supabase_migrations.schema_migrations, so a rerun is a no-op. Vercel deploys
+# the app in parallel; migrations must stay backward compatible with the previous deploy.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_ACCESS_TOKEN  personal access token (Supabase account → Access Tokens)
@@ -12,11 +13,6 @@ name: Supabase migrations
 #   SUPABASE_DB_PASSWORD   the database password (Project Settings → Database)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/migrations/**"
-      - ".github/workflows/supabase-migrate.yml"
   workflow_dispatch:
     inputs:
       dry_run:

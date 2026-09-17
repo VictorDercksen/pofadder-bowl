@@ -42,3 +42,9 @@ Not chosen: Supabase's dashboard GitHub integration (needs the paid Branching ad
 ## Still open
 
 - Carried forward: SMTP, invite Theo as commissioner, Sleeper bracket snapshot, self-review guard, `memberships.invited_email` visibility.
+
+## Addendum (same day): Supabase GitHub integration connected
+
+Victor connected the repo through the Supabase dashboard (Project Settings → Integrations → GitHub). That integration pushes `supabase/migrations/` on merges to `main` by itself, so the workflow above was changed to **manual only** (`workflow_dispatch`) to avoid two pushers racing on the same migration. README and CLAUDE.md updated to match.
+
+Check after the first merge: Database → Migrations in the dashboard lists `20260917000900_password_gate`. If it does not (the integration is part of Branching, which may be plan-gated), add the three secrets and run the workflow from the Actions tab.

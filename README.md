@@ -86,7 +86,7 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
 
 ## Schema deploys (GitHub Actions)
 
-`.github/workflows/supabase-migrate.yml` runs `supabase db push` against the hosted project whenever a file under `supabase/migrations/` lands on `main` (and on demand from the Actions tab, with a dry-run option). It needs three repository secrets under **Settings → Secrets and variables → Actions**: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
+Supabase's GitHub integration (dashboard → Project Settings → Integrations) pushes `supabase/migrations/` to the hosted project when they land on `main`. `.github/workflows/supabase-migrate.yml` is the manual fallback: run it from the Actions tab (dry-run option) to apply or repeat a push. It needs three repository secrets under **Settings → Secrets and variables → Actions**: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
 
 ## Notes on supplied data
 
