@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { metadataHasPassword, resolveHasPassword } from "./password-gate";
+import { claimsHaveSetPassword, isReauthenticationError, isSamePasswordError, metadataHasPassword, resolveHasPassword } from "./password-gate";
 
 describe("resolveHasPassword", () => {
   it("trusts the RPC answer whenever it gives one", () => {
@@ -20,5 +20,32 @@ describe("resolveHasPassword", () => {
       expect(metadataHasPassword(bad), JSON.stringify(bad)).toBe(false);
     }
     expect(metadataHasPassword({ has_password: true })).toBe(true);
+  });
+});
+
+describe("claimsHaveSetPassword", () => {
+  it("accepts the metadata flag or a password entry in amr", () => {
+    expect(claimsHaveSetPassword({ user_metadata: { has_password: true } })).toBe(true);
+    expect(claimsHaveSetPassword({ amr: [{ method: "password", timestamp: 1 }] })).toBe(true);
+    expect(claimsHaveSetPassword({ amr: ["password"] })).toBe(true);
+  });
+  it("rejects otp-only sessions and missing claims", () => {
+    expect(claimsHaveSetPassword({ amr: [{ method: "otp", timestamp: 1 }], user_metadata: {} })).toBe(false);
+    expect(claimsHaveSetPassword({ amr: "password" })).toBe(false);
+    expect(claimsHaveSetPassword(null)).toBe(false);
+    expect(claimsHaveSetPassword({})).toBe(false);
+  });
+});
+
+describe("GoTrue replies", () => {
+  it("recognises the same-password refusal by code or wording", () => {
+    expect(isSamePasswordError({ code: "same_password", message: "x" })).toBe(true);
+    expect(isSamePasswordError({ message: "New password should be different from the old password." })).toBe(true);
+    expect(isSamePasswordError({ code: "weak_password", message: "Password is too weak" })).toBe(false);
+  });
+  it("recognises the reauthentication requirement", () => {
+    expect(isReauthenticationError({ code: "reauthentication_needed", message: "x" })).toBe(true);
+    expect(isReauthenticationError({ message: "Password update requires reauthentication" })).toBe(true);
+    expect(isReauthenticationError({ message: "Password is too weak" })).toBe(false);
   });
 });

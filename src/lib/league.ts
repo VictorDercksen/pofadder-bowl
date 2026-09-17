@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
 import type { Database, Tables } from "@/lib/database.types";
 import { MEMBER_VIEW_COOKIE, resolveAccess, type Role } from "@/lib/roles";
-import { metadataHasPassword, resolveHasPassword, SET_PASSWORD_PATH } from "@/lib/password-gate";
+import { claimsHaveSetPassword, metadataHasPassword, resolveHasPassword, SET_PASSWORD_PATH } from "@/lib/password-gate";
 
 export type { Role } from "@/lib/roles";
 export { describeRole, MEMBER_VIEW_COOKIE } from "@/lib/roles";
@@ -53,7 +53,7 @@ export const getVerifiedUser = cache(async (): Promise<{ supabase: SupabaseClien
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (error || !claims?.sub) return { supabase, user: null, claimsHasPassword: false };
-  return { supabase, user: { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null }, claimsHasPassword: metadataHasPassword(claims.user_metadata) };
+  return { supabase, user: { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null }, claimsHasPassword: claimsHaveSetPassword(claims) };
 });
 
 /**
@@ -152,9 +152,17 @@ export const getLeagueContextRaw = cache(async (): Promise<LeagueContext> => {
   const first = await loadContext(supabase);
   const loaded = first === "missing" ? await loadContextLegacy(supabase, user) : first;
 
+  let hasPassword = resolveHasPassword(loaded.hasPassword, claimsHasPassword);
+  if (loaded.hasPassword === undefined && !hasPassword) {
+    // Pre-migration window only: the JWT may predate the flag (a refresh that did not land),
+    // so ask the Auth server for the live metadata before gating. Never runs once the RPC answers.
+    const { data } = await supabase.auth.getUser();
+    hasPassword = metadataHasPassword(data.user?.user_metadata);
+  }
+
   const memberView = (await cookies()).get(MEMBER_VIEW_COOKIE)?.value === "1";
   const access = resolveAccess({ isAdmin: loaded.membership.is_admin, isCommissioner: loaded.membership.is_commissioner, isParticipant: loaded.event.participant_user_id === user.id }, memberView);
-  return { supabase, user, ...loaded, hasPassword: resolveHasPassword(loaded.hasPassword, claimsHasPassword), ...access };
+  return { supabase, user, ...loaded, hasPassword, ...access };
 });
 
 export function homeFor(ctx: Pick<LeagueContext, "role">): string {

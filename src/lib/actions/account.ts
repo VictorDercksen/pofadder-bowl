@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getLeagueContext, getLeagueContextRaw } from "@/lib/league";
 import { KITS } from "@/lib/nfl";
 import type { ActionResult } from "@/lib/actions/feed";
+import { isReauthenticationError, isSamePasswordError } from "@/lib/password-gate";
 
 const profileSchema = z.object({
   displayName: z.string().trim().min(1).max(40),
@@ -68,9 +69,18 @@ export async function setPassword(input: { password: string }): Promise<ActionRe
   const ctx = await getLeagueContextRaw();
   const { error } = await ctx.supabase.auth.updateUser({ password: parsed.data.password, data: { has_password: true } });
   if (error) {
-    if (/weak|pwned|leaked|easy to guess/i.test(error.message)) return { ok: false, message: "That password is too easy to guess. Try a longer one." };
-    if (/same password/i.test(error.message)) return { ok: false, message: "That is already your password." };
-    return { ok: false, message: "Could not set the password. Sign in again with an email link and retry." };
+    if (isSamePasswordError(error)) {
+      // The account already holds exactly this password (set on an earlier build, before the
+      // metadata flag existed). Record the fact so the gate opens; nothing else to change.
+      const { error: flagError } = await ctx.supabase.auth.updateUser({ data: { has_password: true } });
+      if (flagError) return { ok: false, message: `That is already your password, but the account could not be updated (${flagError.message}).` };
+      await ctx.supabase.auth.refreshSession().catch(() => undefined);
+      revalidatePath("/", "layout");
+      return { ok: true, message: "That is already your password. Carry on." };
+    }
+    if (error.code === "weak_password" || /weak|pwned|leaked|easy to guess/i.test(error.message)) return { ok: false, message: "That password is too easy to guess. Try a longer one." };
+    if (isReauthenticationError(error)) return { ok: false, message: "The Auth server wants a recent sign-in before a password change. Sign out, sign in again with the email link, and set it straight away." };
+    return { ok: false, message: `Could not set the password (${error.message}).` };
   }
   // Reissue the access token so the has_password claim is visible before the hourly refresh.
   await ctx.supabase.auth.refreshSession().catch(() => undefined);

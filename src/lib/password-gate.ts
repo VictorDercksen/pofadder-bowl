@@ -20,5 +20,27 @@ export function metadataHasPassword(metadata: unknown): boolean {
   return (metadata as Record<string, unknown>).has_password === true;
 }
 
+/**
+ * True when the verified JWT itself proves a password exists: the metadata flag, or an `amr`
+ * entry saying this session was opened with a password (so one must exist).
+ */
+export function claimsHaveSetPassword(claims: { user_metadata?: unknown; amr?: unknown } | null | undefined): boolean {
+  if (!claims) return false;
+  if (metadataHasPassword(claims.user_metadata)) return true;
+  const amr = claims.amr;
+  if (!Array.isArray(amr)) return false;
+  return amr.some((e) => e === "password" || (e && typeof e === "object" && (e as { method?: unknown }).method === "password"));
+}
+
+/** GoTrue refuses to set a password equal to the current one; that reply proves one exists. */
+export function isSamePasswordError(error: { code?: string; message: string }): boolean {
+  return error.code === "same_password" || /same password|different from the old/i.test(error.message);
+}
+
+/** GoTrue with "secure password change" on wants a recent sign-in before a password change. */
+export function isReauthenticationError(error: { code?: string; message: string }): boolean {
+  return error.code === "reauthentication_needed" || /reauthenticat/i.test(error.message);
+}
+
 /** Where the gate sends an account without a password. */
 export const SET_PASSWORD_PATH = "/set-password";
