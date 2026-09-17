@@ -20,10 +20,9 @@ Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storag
 
 Sleeper hosts the league, but Sleeper’s API is public **read-only and offers no OAuth or sign-in** for third-party apps ([docs.sleeper.com](https://docs.sleeper.com)). It therefore cannot be the identity provider. The app uses **Supabase invite-only email sign-in** (magic links; public sign-up disabled) and uses Sleeper for what it can do:
 
-- Three ways in, all against the same invited account: the emailed magic link, the 6-digit code from that email (typed on `/login` when the link opens in the wrong browser; needs the custom template with `{{ .Token }}`), or a password the member sets once under **League access → Password**. Admins can email a fresh link or mint a one-time link to hand over from **Review → Members**.
+- Three ways in, all against the same invited account: a password (the default tab on `/login`), the emailed magic link, or the 6-digit code from that email (typed on `/login` when the link opens in the wrong browser; needs the custom template with `{{ .Token }}`). **Every member must hold a password**: the first link signs them in and `getLeagueContext` sends any account without one to `/set-password` before anything else, so the email link is only for the invite and for a forgotten password. It can be changed under **League access → Password**. Admins can email a fresh link or mint a one-time link to hand over from **Review → Members**.
 - A commissioner imports the Sleeper league’s managers (`SLEEPER_LEAGUE_ID`, default `1313900125680054272` = Show Us Your TD’s 2026).
 - Each member confirms their own Sleeper team from that list at sign-on (`/choose-sleeper`, before the kit picker) or later under **League access → Sleeper team**. A team can be held by one member; admins can override in **Review → Members**. The confirmed team name shows in the header next to the kit badge.
-- The game centre shows the sentenced season’s Sleeper losers bracket (live from the public API, cached an hour; `npx tsx scripts/fetch-sleeper-bracket.ts` snapshots it into `src/data/sleeper-losers-bracket.json` as a fallback).
 - Roles (participant, member, commissioner) and the event participant are set only by commissioners or the bootstrap script and are enforced by RLS and RPCs. There is no client-side role switch.
 
 ## Local development
@@ -84,6 +83,10 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
    ```
 4. **Vercel**: `vercel link`, add the environment variables above (Production + Preview), then `vercel deploy` or push to the connected GitHub repo. Node 24 is selected via `.node-version`. Private routes send `Cache-Control: private, no-store`.
 5. Invite members from **Review → Members**, set the participant role and “Make event participant”, import the Sleeper league and confirm links.
+
+## Schema deploys (GitHub Actions)
+
+Supabase's GitHub integration (dashboard → Project Settings → Integrations) pushes `supabase/migrations/` to the hosted project when they land on `main`. `.github/workflows/supabase-migrate.yml` is the manual fallback: run it from the Actions tab (dry-run option) to apply or repeat a push. It needs three repository secrets under **Settings → Secrets and variables → Actions**: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
 
 ## Notes on supplied data
 

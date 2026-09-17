@@ -82,7 +82,12 @@ export function SleeperClaim({ users, current }: { users: { id: string; label: s
   );
 }
 
-export function PasswordForm() {
+/**
+ * Set or change the password. With `afterSave` (the /set-password gate) a success navigates on;
+ * in League access it stays put and clears the fields.
+ */
+export function PasswordForm({ afterSave, label = "Save password" }: { afterSave?: string; label?: string } = {}) {
+  const router = useRouter();
   const [password, setPasswordValue] = useState("");
   const [again, setAgain] = useState("");
   const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
@@ -110,11 +115,15 @@ export function PasswordForm() {
               if (res.ok) {
                 setPasswordValue("");
                 setAgain("");
+                if (afterSave) {
+                  router.push(afterSave);
+                  router.refresh();
+                }
               }
             })
           }
         >
-          {pending ? "Saving…" : "Save password"}
+          {pending ? "Saving…" : label}
         </button>
       </div>
       {mismatch ? <p className="pb-small" style={{ marginTop: 8, color: "#b3392a" }}>The two entries differ.</p> : null}

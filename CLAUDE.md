@@ -16,7 +16,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Verify before committing: `npm run typecheck && npm run lint && npm test`. Run `npm run test:integration` when the local Supabase stack is available and the change touches SQL, RLS or actions.
 - Work on the assigned branch. Do not open a pull request unless asked. Do not push to `main` unless asked.
 - Never commit secrets. `.env*` is ignored except `.env.example`; keep env files LF (a stray `\r` once broke the league slug on Vercel).
-- From cloud sessions: no `vercel deploy`, no `supabase db push`. Schema changes go into `supabase/migrations/` and Victor pushes them from the laptop (`npm run db:push`).
+- From cloud sessions: no `vercel deploy`, no `supabase db push`. Schema changes go into `supabase/migrations/`; Supabase's GitHub integration pushes them when they land on `main`. Fallbacks: the manual `Supabase migrations` workflow (`.github/workflows/supabase-migrate.yml`, needs the three `SUPABASE_*` repository secrets) or `npm run db:push` from the laptop. Migrations must stay backward compatible with the previous deploy because Vercel builds in parallel.
 - Keep the Next.js managed block in `AGENTS.md`; `next dev` re-adds it if removed.
 - Do not put model names or session identifiers into code, commit messages or docs pushed to the repo.
 
@@ -58,7 +58,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Regenerate types after schema changes: `npx supabase gen types typescript --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` into `src/lib/database.types.ts`, stripping anything before `export type Json` (`--local` has hung).
 - Realtime: tables must be in the `supabase_realtime` publication (see `*_policies.sql`) and readable under RLS for the subscriber. Subscribe from a client component and call `router.refresh()`; keep a bounded visible-tab poll as fallback (`SidelineFeed`, `CheckinLive`).
 - Storage uploads use resumable TUS (`src/lib/uploads.ts`); hosted projects need `NEXT_PUBLIC_SUPABASE_RESUMABLE_URL` on the direct storage host.
-- Auth is invite-only magic links. `[auth] enable_signup=false` is invite-only; `[auth.email] enable_signup=false` would disable all email logins. The default mailer only delivers to Supabase org members; custom SMTP is required before inviting the league.
+- Auth is invite-only: the invite/magic link signs a member in once, then the `/set-password` gate in `getLeagueContext` (first gate, before Sleeper team and kit) forces a password; `/login` opens on the Password tab. `has_password` comes from the `league_context` RPC (`auth.users.encrypted_password`), with `user_metadata.has_password` as the pre-migration fallback (`src/lib/password-gate.ts`). `[auth] enable_signup=false` is invite-only; `[auth.email] enable_signup=false` would disable all email logins. The default mailer only delivers to Supabase org members; custom SMTP is required before inviting the league.
 
 ## Roles and the member view
 
@@ -66,7 +66,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Elevated accounts can switch to the league member view. The `pb-member-view` cookie makes `getLeagueContext` resolve the account as a plain member for every page and action. The switch only ever removes capabilities; RLS still knows the real role. UI: `MemberViewToggle`, banner in `src/app/(league)/layout.tsx`.
 - Guards: `requireAdmin`, `requireCommissioner`, `requireParticipant` redirect to `homeFor(ctx)`. The menu per role lives in `src/components/shell/nav.ts` and is unit tested.
 - `getLeagueContext` loads everything in one `league_context` RPC (falls back to per-table queries until the migration is applied) and applies the sign-on gates: `/choose-sleeper` once the Sleeper league is imported and the member has no confirmed team, then `/choose-team` for a kit. Gate pages use `getLeagueContextRaw`. `ctx.user` comes from the verified JWT claims (`id`, `email`), not a `getUser()` round trip.
-- Every private screen has an instant loading state (`src/app/(league)/loading.tsx`, the tumbling `Football`); slow third-party data (the Sleeper bracket) streams under `Suspense` so a page never waits on it. Functions run in `fra1` (`vercel.json`) next to the Frankfurt database.
+- Every private screen has an instant loading state (`src/app/(league)/loading.tsx`, the tumbling `Football`); slow third-party data should stream under `Suspense` so a page never waits on it. Functions run in `fra1` (`vercel.json`) next to the Frankfurt database.
 
 ## Zod 4
 

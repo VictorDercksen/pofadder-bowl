@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Shield } from "@/components/ui/Marks";
 import { SleeperPicker } from "@/components/sleeper/SleeperPicker";
 import { getLeagueContextRaw, homeFor } from "@/lib/league";
+import { SET_PASSWORD_PATH } from "@/lib/password-gate";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
 
 export const metadata = { title: "Confirm your Sleeper team" };
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 /** Sign-on step one: confirm which Sleeper manager you are. Step two is the franchise kit. */
 export default async function ChooseSleeperPage() {
   const ctx = await getLeagueContextRaw();
+  if (!ctx.hasPassword) redirect(SET_PASSWORD_PATH);
   const afterConfirm = ctx.profile.kit_team ? homeFor(ctx) : "/choose-team";
   if (ctx.membership.sleeper_user_id) redirect(afterConfirm);
   const [{ data: users }, { data: links }, { data: profiles }] = await Promise.all([

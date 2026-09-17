@@ -6,9 +6,9 @@ Follow-on to `handoff_2026-09-17_bingo-review-faab.md`. Infrastructure detail st
 
 | Item | Value |
 |---|---|
-| Branch | `claude/bingo-game-review-y6q9zh` (not merged) |
-| Production | Unaffected until merged. **Merging requires `npm run db:push` from the laptop** (new migration below) |
-| Schema | **One new migration**: `supabase/migrations/20260917000900_prop_board.sql`. Drops every bingo table, type and RPC; renames the `post_kind` enum value `bingo` to `prop`; adds `props`, `prop_picks`, three enums, three RPCs; rewrites `issue_certificate` (summary key `prop_winners` replaces `bingo_winners`). `seed.sql` now seeds ten props instead of 25 bingo squares |
+| Branch | `claude/bingo-game-review-y6q9zh`, merged into `main` with `origin/main` merged in first (stylesheet conflict resolved; bracket rules from main kept, prop rules appended) |
+| Production | Deploys from `main`. The Supabase GitHub integration applies `supabase/migrations/` on merge; **check Database → Migrations lists `20260917001000_prop_board`**, otherwise run the manual `Supabase migrations` workflow (see `handoff_2026-09-17_supabase-migrate-workflow.md`). Until the migration lands, `/props` shows the "could not load" notice; nothing else is affected |
+| Schema | **One new migration**: `supabase/migrations/20260917001000_prop_board.sql`. Drops every bingo table, type and RPC; renames the `post_kind` enum value `bingo` to `prop`; adds `props`, `prop_picks`, three enums, three RPCs; rewrites `issue_certificate` (summary key `prop_winners` replaces `bingo_winners`). `seed.sql` now seeds ten props instead of 25 bingo squares |
 | Types | `src/lib/database.types.ts` hand-edited to match (no local Supabase in the sandbox). Regenerate after `db:push` to be safe |
 | Env | Unchanged |
 | Tests | `npm run typecheck`, `npm run lint`, `npm test` (11 files, 60 tests) and `npx next build` pass |
@@ -33,7 +33,7 @@ Where it lives:
 | Board and live refresh | `src/components/props/PropBoard.tsx`, `PropLive.tsx` |
 | Pure helpers and tests | `src/lib/props.ts`, `src/lib/props.test.ts` |
 | Server actions | `src/lib/actions/props.ts` (`savePropPick`, `settleProp`) |
-| SQL | `supabase/migrations/20260917000900_prop_board.sql`, `supabase/seed.sql` |
+| SQL | `supabase/migrations/20260917001000_prop_board.sql`, `supabase/seed.sql` |
 | Demo | `/demo/props` (`DemoProps` in `DemoScreens.tsx`, picks in `DemoStore.tsx`, props from `league-programme.json`) |
 | Styles | `pb-prop*` rules at the end of `globals.css` (bingo rules removed) |
 
@@ -46,7 +46,7 @@ Touched to remove bingo: nav (`06 Prop board`), game centre and my-trip links, r
 - **RPCs and RLS exercised as fixture users** (member, commissioner, participant, outsider, anon): direct insert into `prop_picks` refused; side must fit the kind; picks editable before lock; outsider sees no props and cannot pick; only own pick visible before lock, both visible after; settle refused before lock, by a member, and with a result of the wrong kind; settle, replay, void, leaderboard tallies, feed posts, re-settle re-scores, `issue_certificate` summary carries `prop_winners` and no `bingo_winners`; anon cannot execute the new functions.
 - Not verified: `npm run test:integration` against the real local stack (no Docker here); Realtime delivery for `props`; the board in a browser against a backend.
 
-## Suggested checks on production (after `db:push`)
+## Suggested checks on production (after the migration is applied)
 
 1. `/props` as a plain member: ten props, pick a side, change it, reload and it sticks; other members' picks are not in the page source before departure.
 2. `/props` as Victor: no settle buttons before 19:15 on 23 Sept; after, Settle Over/Under/Void per prop. Settling posts to the feed and updates standings for an open member tab without a reload.
