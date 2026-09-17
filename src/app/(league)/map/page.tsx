@@ -44,15 +44,8 @@ export default async function MapPage() {
           </div>
         </div>
         <div>
-          {ctx.isParticipant && settings ? (
-            <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} />
-          ) : (
-            <div className="pb-panel">
-              <h3>Spectator view</h3>
-              <p className="pb-small">Only the participant’s device shares positions. Your location is never requested.</p>
-            </div>
-          )}
-          <div className="pb-panel" style={{ marginTop: 18 }}>
+          {ctx.isParticipant && settings ? <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} /> : null}
+          <div className="pb-panel" style={ctx.isParticipant && settings ? { marginTop: 18 } : undefined}>
             <h3>Check-in history{checkins.length ? ` · ${checkins.length}` : ""}</h3>
             {checkins.length === 0 ? <p className="pb-small">Nothing yet. Check-ins appear here with capture time, receive time and accuracy.</p> : null}
             {checkins.slice(0, 12).map((c) => (

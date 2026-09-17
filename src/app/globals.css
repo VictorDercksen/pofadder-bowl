@@ -62,7 +62,7 @@ a{color:inherit}
 .pb .pb-quarters{display:flex;gap:5px;margin-top:17px}
 .pb .pb-quarters span{border-top:3px solid #667c63;padding-top:7px;flex:1;font-size:10px;color:#bccbb5}
 .pb .pb-quarters .active{border-color:var(--pb-gold);color:var(--pb-gold)}
-.pb .pb-map{position:relative;aspect-ratio:510/375;overflow:hidden;background:#e5e8df}
+.pb .pb-map{position:relative;isolation:isolate;z-index:0;aspect-ratio:510/375;overflow:hidden;background:#e5e8df}
 .pb .pb-map img{width:100%;height:100%;display:block;object-fit:cover}
 .pb .pb-map-pin{position:absolute;transform:translate(-50%,-50%);border:3px solid var(--pb-panel);width:17px;height:17px;border-radius:50%;background:var(--pb-green);box-shadow:0 0 0 1px var(--pb-green)}
 .pb .pb-map-pin.current{background:var(--pb-orange);box-shadow:0 0 0 9px #d8643624;border-color:#fff9e9}
@@ -264,7 +264,8 @@ a{color:inherit}
 
 
 /* --- App additions (not in the mockup) ------------------------------------ */
-.pb .pb-live-map{position:relative;aspect-ratio:510/375;overflow:hidden;background:#e5e8df;min-height:240px}
+/* isolation keeps Leaflet's internal z-indexes (panes 400, controls 1000) inside the map so the sticky header (50) and the drawer (60/61) paint above it. */
+.pb .pb-live-map{position:relative;isolation:isolate;z-index:0;aspect-ratio:510/375;overflow:hidden;background:#e5e8df;min-height:240px}
 .pb .pb-live-map .leaflet-container{width:100%;height:100%;font:inherit}
 .pb .pb-map-fallback-label{position:absolute;left:8px;top:8px;background:#fff8e9;border:1px solid var(--pb-line);padding:4px 8px;font-size:10px;letter-spacing:1px;z-index:2}
 .pb .pb-badge-teams img{width:31px;height:31px;object-fit:contain;filter:drop-shadow(0 1px 0 #fff)}
