@@ -446,3 +446,13 @@ a{color:inherit}
 .pb .pb-press.kit small{color:#e6e0d0}
 .pb .pb-press.kit .pb-press-sponsors{position:relative}
 .pb .pb-press.kit .pb-kit-watermark{position:absolute;right:-40px;top:-50px;width:170px;height:170px;opacity:.12}
+/* --- Teaser countdown ---------------------------------------------------------------- */
+.pb .pb-timer{margin-top:18px;background:linear-gradient(180deg,#183b2f,#10291f);border:1px solid #2a513e;border-bottom:4px solid var(--pb-gold);border-radius:10px;padding:18px 18px 14px;text-align:center;position:relative;isolation:isolate;overflow:hidden}
+.pb .pb-timer:after{content:"";position:absolute;z-index:-1;inset:0;opacity:.18;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(20% - 1px),#e1e8ce 20%)}
+.pb .pb-timer-label{font-size:10px;letter-spacing:1.8px;color:var(--pb-gold);font-weight:600}
+.pb .pb-timer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px auto 10px;max-width:520px}
+.pb .pb-timer-cell{background:#0f261c;border:1px solid #6f825c;border-radius:8px;padding:10px 4px}
+.pb .pb-timer-cell strong{display:block;font:900 clamp(34px,9vw,56px)/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--pb-gold);font-variant-numeric:tabular-nums}
+.pb .pb-timer-cell small{display:block;font-size:9px;letter-spacing:1.6px;color:#c9d5c5;margin-top:4px}
+.pb .pb-timer-done{font:900 44px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--pb-gold);margin:14px 0}
+.pb .pb-timer-foot{font-size:10px;letter-spacing:1.4px;color:#c9d5c5}

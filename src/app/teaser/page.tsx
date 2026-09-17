@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { EVENT_META } from "@/lib/programme";
-import { SharePanel } from "@/components/teaser/SharePanel";
+import { KickoffTimer } from "@/components/teaser/KickoffTimer";
 
 export const metadata = {
   title: "Teaser",
@@ -28,10 +28,10 @@ export default function TeaserPage() {
           priority
           sizes="(max-width: 920px) 100vw, 920px"
         />
-        <SharePanel />
+        <KickoffTimer departureIso={EVENT_META.departure} homeArrivalIso={EVENT_META.homeArrival} />
         <div className="pb-actions">
-          <Link className="pb-primary" href="/login" style={{ background: "var(--pb-gold)", color: "var(--pb-green)", borderColor: "var(--pb-gold)" }}>League sign-in</Link>
-          <Link className="pb-secondary" href="/demo">Interactive demo</Link>
+          <Link className="pb-primary" href="/login" style={{ background: "var(--pb-gold)", color: "var(--pb-green)", borderColor: "var(--pb-gold)", boxShadow: "0 2px 0 #9a7a34" }}>League sign-in</Link>
+          <Link className="pb-secondary" href="/demo" style={{ background: "transparent", color: "#f4f0e6", borderColor: "#f4f0e6", boxShadow: "none" }}>Interactive demo</Link>
         </div>
         <p className="pb-small" style={{ color: "#9fb09b", marginTop: 20 }}>
           Unofficial fantasy league. Not affiliated with or sponsored by the NFL. Team marks belong to their owners.
