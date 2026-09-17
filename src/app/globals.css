@@ -438,7 +438,7 @@ a{color:inherit}
 .pb .pb-drawer-identity .pb-team-logo{width:52px;height:52px;background:#f5efe3;border-radius:50%;padding:6px;flex-shrink:0}
 .pb .pb-drawer-identity b{display:block;font:700 18px/1.1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pb .pb-drawer-identity small{display:block;font-size:11px;color:#c9d5c5;letter-spacing:.6px;margin-top:3px}
-@media(max-width:850px){.pb .pb-menu-btn{display:inline-flex}.pb .pb-sidebar{display:none}.pb .pb-top{gap:10px}.pb .pb-brand{font-size:19px}.pb .pb-brand small{display:none}.pb .pb-account{display:none}}
+@media(max-width:850px){.pb .pb-menu-btn{display:inline-flex}.pb .pb-sidebar{display:none}.pb .pb-top{gap:10px;position:sticky;top:0;z-index:50;background:var(--pb-paper)}.pb .pb-brand{font-size:19px}.pb .pb-brand small{display:none}.pb .pb-account{display:none}}
 @media(max-width:580px){.pb .pb-top{padding:12px 14px}.pb .pb-brand .pb-nfl-mark{display:none}.pb .pb-demo{display:none}}
 
 .pb .pb-press.kit{background:radial-gradient(circle at 5px 5px,#ffffff05 2px,transparent 2px) 0 0/24px 24px,linear-gradient(180deg,var(--kit) 0,var(--kit-deep) 100%);border-bottom:5px solid var(--kit-accent);position:relative;overflow:hidden;border-radius:10px}
