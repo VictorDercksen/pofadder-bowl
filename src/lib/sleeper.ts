@@ -1,4 +1,6 @@
 import "server-only";
+import snapshot from "@/data/sleeper-losers-bracket.json";
+import { buildBracket, parseBracketRows, parseRosters, type Bracket, type Manager } from "@/lib/bracket";
 
 /**
  * Sleeper public API (read-only, no authentication available). Docs: https://docs.sleeper.com
@@ -41,4 +43,73 @@ export async function fetchSleeperLeagueUsers(leagueId: string): Promise<Sleeper
 export function sleeperAvatarUrl(avatar: string | null, thumb = true): string | null {
   if (!avatar || !/^[a-f0-9]{16,64}$/i.test(avatar)) return null;
   return `https://sleepercdn.com/avatars/${thumb ? "thumbs/" : ""}${avatar}`;
+}
+
+type SleeperLeague = { league_id: string; name: string; season: string | null; previous_league_id: string | null };
+
+/** Cached read (Next data cache, one hour). The bracket is history; nothing here changes by the minute. */
+async function getCached(path: string): Promise<unknown> {
+  const res = await fetch(`${BASE}${path}`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error(`${path} failed (${res.status})`);
+  return res.json();
+}
+
+function asLeague(raw: unknown): SleeperLeague | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const o = raw as Record<string, unknown>;
+  const id = typeof o.league_id === "string" ? o.league_id : null;
+  if (!id) return null;
+  return { league_id: id, name: typeof o.name === "string" ? o.name.slice(0, 80) : "Sleeper league", season: typeof o.season === "string" ? o.season : null, previous_league_id: typeof o.previous_league_id === "string" ? o.previous_league_id : null };
+}
+
+/** Walks previous_league_id back from the configured league to the given season (max 8 hops). */
+export async function resolveSeasonLeague(startId: string, season: string): Promise<SleeperLeague | null> {
+  let id: string | null = startId;
+  for (let hop = 0; id && hop < 8; hop++) {
+    if (!/^\d{5,30}$/.test(id)) return null;
+    const league = asLeague(await getCached(`/league/${id}`));
+    if (!league) return null;
+    if (league.season === season) return league;
+    id = league.previous_league_id;
+  }
+  return null;
+}
+
+function toManagers(raw: unknown): Manager[] {
+  if (!Array.isArray(raw)) return [];
+  const text = (v: unknown, max: number): string | null => (typeof v === "string" && v.length > 0 ? v.slice(0, max) : null);
+  return raw.slice(0, 200).flatMap((u) => {
+    if (typeof u !== "object" || u === null) return [];
+    const o = u as Record<string, unknown>;
+    const id = typeof o.user_id === "string" || typeof o.user_id === "number" ? String(o.user_id) : "";
+    if (!/^\d{1,30}$/.test(id)) return [];
+    const meta = typeof o.metadata === "object" && o.metadata !== null ? (o.metadata as Record<string, unknown>) : null;
+    return [{ user_id: id, display_name: text(o.display_name, 60) ?? text(o.username, 60) ?? "Sleeper user", username: text(o.username, 60), team_name: text(meta?.team_name, 80), avatar: text(o.avatar, 64) }];
+  });
+}
+
+export type LosersBracketData = { season: string; leagueName: string; bracket: Bracket; source: "live" | "snapshot" };
+
+/**
+ * The sentenced season's losers bracket: live from Sleeper (cached an hour), else the committed
+ * snapshot (scripts/fetch-sleeper-bracket.ts), else null so the caller shows the standings.
+ */
+export async function loadLosersBracket(startLeagueId: string | null, season: string, sentencedUsername?: string | null): Promise<LosersBracketData | null> {
+  if (startLeagueId) {
+    try {
+      const league = await resolveSeasonLeague(startLeagueId, season);
+      if (league) {
+        const [rowsRaw, rostersRaw, usersRaw] = await Promise.all([getCached(`/league/${league.league_id}/losers_bracket`), getCached(`/league/${league.league_id}/rosters`), getCached(`/league/${league.league_id}/users`)]);
+        const rows = parseBracketRows(rowsRaw);
+        if (rows.length) return { season, leagueName: league.name, bracket: buildBracket(rows, parseRosters(rostersRaw), toManagers(usersRaw), sentencedUsername), source: "live" };
+      }
+    } catch {
+      // Fall through to the snapshot.
+    }
+  }
+  const rows = parseBracketRows(snapshot.bracket);
+  if (snapshot.season === season && rows.length) {
+    return { season, leagueName: snapshot.leagueName ?? "Sleeper league", bracket: buildBracket(rows, parseRosters(snapshot.rosters), toManagers(snapshot.users), sentencedUsername), source: "snapshot" };
+  }
+  return null;
 }

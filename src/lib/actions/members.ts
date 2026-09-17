@@ -30,11 +30,11 @@ export async function inviteMember(input: { email: string; displayName?: string;
   let userId: string | undefined;
   const invite = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: parsed.data.displayName ? { display_name: parsed.data.displayName } : undefined });
   if (invite.error) {
-    // Already registered: look the user up and (re)create the membership; send a magic link instead.
+    // Already registered: look the user up and (re)create the membership; email a magic link instead.
     const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
     userId = list?.users.find((u) => u.email?.toLowerCase() === email)?.id;
     if (!userId) return { ok: false, message: `Invite failed: ${invite.error.message}` };
-    await admin.auth.admin.generateLink({ type: "magiclink", email, options: { redirectTo } }).catch(() => null);
+    await admin.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirectTo } }).catch(() => null);
   } else userId = invite.data.user?.id;
   if (!userId) return { ok: false, message: "Invite failed." };
 
@@ -102,4 +102,39 @@ export async function confirmSleeperLink(input: { userId: string; sleeperUserId:
   revalidatePath("/review/members");
   revalidatePath("/account");
   return { ok: true, message: parsed.data.confirmed ? "Sleeper link confirmed." : "Sleeper link updated." };
+}
+
+export type SignInLinkResult = ActionResult & { link?: string };
+
+/**
+ * Get a member back in without a new invite. "email" sends a fresh magic link (needs working
+ * SMTP); "link" mints one for the admin to hand over by WhatsApp. Either replaces the
+ * member's previous unused link.
+ */
+export async function sendSignInLink(input: { userId: string; mode: "email" | "link" }): Promise<SignInLinkResult> {
+  const parsed = z.object({ userId: z.string().uuid(), mode: z.enum(["email", "link"]) }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Invalid member." };
+  const ctx = await getLeagueContext();
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
+  const { data: membership } = await ctx.supabase.from("memberships").select("user_id").eq("league_id", ctx.league.id).eq("user_id", parsed.data.userId).maybeSingle();
+  if (!membership) return { ok: false, message: "That account is not in this league." };
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { ok: false, message: "Sign-in links need SUPABASE_SECRET_KEY on the server." };
+  }
+  const { data: found, error: lookupError } = await admin.auth.admin.getUserById(parsed.data.userId);
+  const email = found?.user?.email?.toLowerCase();
+  if (lookupError || !email) return { ok: false, message: "No email on that account." };
+  const redirectTo = `${publicEnv.appOrigin}/auth/confirm?next=/home`;
+  if (parsed.data.mode === "email") {
+    const { error } = await admin.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirectTo } });
+    if (error) return { ok: false, message: /rate|too many/i.test(error.message) ? "Rate limited by the mailer. Try again in a minute." : `Could not send: ${error.message}` };
+    return { ok: true, message: `Sign-in link emailed to ${email}. It replaces any earlier unused link.` };
+  }
+  const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email, options: { redirectTo } });
+  const link = data?.properties?.action_link;
+  if (error || !link) return { ok: false, message: `Could not create a link: ${error?.message ?? "no link returned"}` };
+  return { ok: true, message: `One-time sign-in link for ${email}. Hand it over privately; it works once and replaces any earlier unused link.`, link };
 }

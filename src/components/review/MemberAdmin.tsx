@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { TeamLogo } from "@/components/ui/Marks";
-import { confirmSleeperLink, importSleeperLeague, inviteMember, setEventParticipant, setMemberRole } from "@/lib/actions/members";
+import { confirmSleeperLink, importSleeperLeague, inviteMember, sendSignInLink, setEventParticipant, setMemberRole } from "@/lib/actions/members";
 
 type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
 
@@ -70,7 +70,16 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
   const [status, setStatus] = useState(membership.status);
   const [sleeper, setSleeper] = useState(membership.sleeper_user_id ?? "");
   const [note, setNote] = useState<Note>(null);
+  const [link, setLink] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function signInLink(mode: "email" | "link") {
+    startTransition(async () => {
+      const res = await sendSignInLink({ userId: membership.user_id, mode });
+      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      setLink(res.ok && res.link ? res.link : null);
+    });
+  }
 
   function save() {
     startTransition(async () => {
@@ -134,6 +143,19 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
             </button>
           ) : null}
         </div>
+        {membership.status !== "removed" ? (
+          <div className="pb-inline-list">
+            <span className="pb-small">Sign-in:</span>
+            <button className="pb-text-action" type="button" disabled={pending} onClick={() => signInLink("email")}>Email a new link</button>
+            <button className="pb-text-action" type="button" disabled={pending} onClick={() => signInLink("link")}>Copy a link to hand over</button>
+          </div>
+        ) : null}
+        {link ? (
+          <label className="pb-field" style={{ marginTop: 8 }}>
+            One-time sign-in link (works once)
+            <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+          </label>
+        ) : null}
         {sleeperUsers.length ? (
           <div className="pb-inline-list">
             <label>
