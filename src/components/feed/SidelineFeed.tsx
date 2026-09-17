@@ -120,13 +120,15 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
               number={post.kit_number}
               heading={post.heading}
               message={post.body}
-              timestamp={`${formatTime(post.created_at, timezone)} · ${KIND_LABEL[post.kind] ?? post.kind}`}
+              time={formatTime(post.created_at, timezone)}
+              kind={KIND_LABEL[post.kind] ?? post.kind}
               captain={post.kind === "decision" || post.kind === "checkin"}
               reaction={
                 <button className="pb-reaction" type="button" aria-pressed={post.reacted} onClick={() => react(post)} aria-label={`${post.reacted ? "Remove" : "Add"} no-sympathy reaction`}>
                   😂 {post.reaction_count} · No sympathy
                 </button>
               }
+              actions={canComment ? <a className="pb-post-action" href="#sideline-comment">Reply</a> : null}
             />
           ))}
         </div>
@@ -135,7 +137,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
         <div className="pb-comment-box">
           <label className="pb-field">
             Add to the commentary
-            <input value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} placeholder="Show absolutely no sympathy…" onKeyDown={(e) => e.key === "Enter" && submitComment()} />
+            <input id="sideline-comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} placeholder="Show absolutely no sympathy…" onKeyDown={(e) => e.key === "Enter" && submitComment()} />
           </label>
           <div className="pb-actions">
             <button className="pb-secondary" type="button" onClick={submitComment} disabled={pending}>

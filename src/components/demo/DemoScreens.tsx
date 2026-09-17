@@ -37,12 +37,12 @@ function Feed() {
   const { state, dispatch } = useDemo();
   return (
     <div className="pb-jersey-feed">
-      <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="Victor checked in" message="Pofadder. Still here. Still questioning my draft." timestamp={`${state.checkin} · Check-in`} reaction={<button className="pb-reaction" type="button" aria-pressed={state.reaction} onClick={() => dispatch({ type: "react" })}>😂 {state.reaction ? 9 : 8} · No sympathy</button>} />
-      <JerseyCard team="kc" displayName="COMMISH" number={1} heading="Points on the board" message="14 km run approved. That’s 25 points and one very questionable holiday." timestamp="09:02 · Challenge #02" />
-      <JerseyCard team="cin" displayName="THE LEAGUE" number={9} heading="Trade offer incoming" message="Have you tried trading your return ticket for a running back?" timestamp="08:54 · Sample league comment" />
-      {state.submitted ? <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="New proof submitted" message="Three locals. One difficult explanation." timestamp={`Just now · ${state.review}`} /> : null}
+      <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="Victor checked in" message="Pofadder. Still here. Still questioning my draft." time={state.checkin} kind="Check-in" reaction={<button className="pb-reaction" type="button" aria-pressed={state.reaction} onClick={() => dispatch({ type: "react" })}>😂 {state.reaction ? 9 : 8} · No sympathy</button>} actions={<a className="pb-post-action" href="#demo-comment">Reply</a>} />
+      <JerseyCard team="kc" displayName="COMMISH" number={1} heading="Points on the board" message="14 km run approved. That’s 25 points and one very questionable holiday." time="09:02" kind="Challenge #02" />
+      <JerseyCard team="cin" displayName="THE LEAGUE" number={9} heading="Trade offer incoming" message="Have you tried trading your return ticket for a running back?" time="08:54" kind="League comment" />
+      {state.submitted ? <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="New proof submitted" message="Three locals. One difficult explanation." time="Just now" kind={state.review} /> : null}
       {state.comments.map((c, i) => (
-        <JerseyCard key={i} team="nyg" displayName="DERCKSEN" number={26} heading="From your locker" message={c} timestamp="Just now · Demo comment" />
+        <JerseyCard key={i} team="nyg" displayName="DERCKSEN" number={26} heading="From your locker" message={c} time="Just now" kind="Demo comment" />
       ))}
     </div>
   );
@@ -124,7 +124,7 @@ export function DemoCentre() {
         <div className="pb-comment-box">
           <label className="pb-field">
             Add to the commentary
-            <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Show absolutely no sympathy…" />
+            <input id="demo-comment" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Show absolutely no sympathy…" />
           </label>
           <div className="pb-actions">
             <button className="pb-secondary" type="button" onClick={() => { dispatch({ type: "comment", text: comment }); setComment(""); }}>Post comment</button>

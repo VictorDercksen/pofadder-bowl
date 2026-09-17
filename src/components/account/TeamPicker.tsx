@@ -78,7 +78,7 @@ export function TeamPicker({ claimed, initialNumber, current, afterClaim = "/hom
       <div>
         <div className="pb-kicker">PREVIEW</div>
         <div className="pb-jersey-feed">
-          <JerseyCard team={team ?? "nfl"} displayName={name} number={number} heading={team ? "Locked in." : "Your kit, your card."} message={team ? "Every post, call and bingo incident you make wears this kit." : "Choose a franchise to see your sideline card."} timestamp="Preview · not posted" captain={false} />
+          <JerseyCard team={team ?? "nfl"} displayName={name} number={number} heading={team ? "Locked in." : "Your kit, your card."} message={team ? "Every post, call and bingo incident you make wears this kit." : "Choose a franchise to see your sideline card."} time="Not posted" kind="Preview" captain={false} />
         </div>
       </div>
     </div>
