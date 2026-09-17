@@ -469,3 +469,78 @@ a{color:inherit}
 .pb .pb-member-banner .pb-text-action{color:#8e421e}
 .pb .pb-drawer-foot .pb-view-toggle .pb-text-action{color:var(--pb-gold)}
 @media(max-width:580px){.pb .pb-role-badge .pb-view-toggle{display:none}}
+
+/* --- Jersey posts v3: forum layouts (message first) ------------------------------ */
+/* shared forum post block */
+.pb .pb-post{display:flex;flex-direction:column;min-width:0;color:var(--pb-ink)}
+.pb .pb-post-byline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--pb-muted);margin-bottom:8px}
+.pb .pb-post-avatar{width:22px;height:22px;object-fit:contain}
+.pb .pb-post-author{font:700 14px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--pb-ink)}
+.pb .pb-post-number{font:700 12px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:.5px}
+.pb .pb-post-kind{font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border:1px solid var(--pb-line);background:#e6ebdf;color:#3d563e;line-height:1}
+.pb .pb-post-time{margin-left:auto;font-size:11px;white-space:nowrap}
+.pb .pb-post-heading{display:block;font:700 20px/1.1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:.3px}
+.pb .pb-post-body{font-size:17px;line-height:1.55;margin:8px 0 12px;overflow-wrap:anywhere;white-space:pre-line}
+.pb .pb-post-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--pb-line);margin-top:auto}
+.pb .pb-post-foot .pb-reaction{margin:0;min-height:32px;font-size:11px;line-height:1.25;padding:5px 10px;background:var(--pb-paper);color:var(--pb-ink);border-color:var(--pb-line)}
+.pb .pb-post-foot .pb-reaction[aria-pressed=true]{background:#f5ca7a;color:#392b11;border-color:#e0b25a}
+.pb .pb-post-action{background:transparent;border:0;color:var(--pb-muted);font-size:12px;padding:5px 0;text-decoration:none;cursor:pointer}
+.pb .pb-post-action:hover{color:var(--pb-orange);text-decoration:underline;text-underline-offset:4px}
+.pb .pb-post-action.right{margin-left:auto}
+
+/* A: full jersey frame, cream post on the torso */
+.pb .pb-jersey--post .pb-jersey-chest{margin-bottom:12px;align-items:center}
+.pb .pb-jersey--post .pb-jersey-chest-left{flex-direction:row;align-items:center;gap:12px}
+.pb .pb-jersey--post .pb-kit-number{font-size:clamp(34px,5vw,44px);margin:0;letter-spacing:-1px;text-shadow:1px 1px 0 var(--kit-accent),2px 2px 0 #0004}
+.pb .pb-jersey--post .pb-post{background:var(--pb-panel);border:1px solid #ffffffa8;box-shadow:inset 0 0 0 3px var(--kit-deep),0 2px 0 #0003;padding:14px 16px 12px}
+.pb .pb-jersey--post .pb-post-foot{border-color:var(--pb-line)}
+.pb .pb-jersey--post .pb-jersey-content{padding-bottom:22px}
+.pb .pb-jersey--post .pb-jersey-label{margin-top:12px}
+
+/* B: compact jersey header, post hangs below */
+.pb .pb-jersey--yoke{min-height:0;filter:none;display:flex;flex-direction:column}
+.pb .pb-jersey--yoke .pb-jersey-top{position:relative;isolation:isolate;min-height:150px;filter:drop-shadow(0 6px 6px #183b2f22)}
+.pb .pb-jersey--yoke .pb-jersey-top .pb-jersey-content{padding:7% 16% 14px}
+.pb .pb-jersey--yoke .pb-jersey-chest{margin:0;align-items:center}
+.pb .pb-jersey--yoke .pb-jersey-chest-left{flex-direction:row;align-items:center;gap:14px}
+.pb .pb-jersey--yoke .pb-kit-number{font-size:clamp(46px,7vw,64px);margin:0;letter-spacing:-1px}
+.pb .pb-jersey--yoke .pb-post{margin:0 13%;background:var(--pb-panel);border:1px solid var(--pb-line);border-top:0;border-left:5px solid var(--kit);padding:14px 18px 12px}
+.pb .pb-jersey--yoke .pb-post-kind{background:color-mix(in srgb,var(--kit) 14%,#fffcf5);border-color:color-mix(in srgb,var(--kit) 40%,#fffcf5);color:var(--pb-ink)}
+
+/* C: forum row with a small jersey as the avatar */
+.pb .pb-jersey-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:start;background:var(--pb-panel);border:1px solid var(--pb-line);border-left:5px solid var(--kit);padding:16px 18px 14px 14px;color:var(--pb-ink)}
+.pb .pb-jersey-row:focus-visible{outline:3px solid var(--pb-orange);outline-offset:4px}
+.pb .pb-jersey--mini{min-height:0;height:118px;filter:drop-shadow(0 4px 4px #183b2f33)}
+.pb .pb-jersey--mini .pb-jersey-content{padding:16% 14% 6px;align-items:center;justify-content:center;height:100%;gap:4px}
+.pb .pb-jersey--mini .pb-kit-number{font-size:40px;margin:6px 0 0;letter-spacing:-1px;text-shadow:1px 1px 0 var(--kit-accent),2px 2px 0 #0004;line-height:1}
+.pb .pb-jersey--mini .pb-nameplate{font-size:9px;letter-spacing:1px;padding:2px 5px;max-width:100%}
+.pb .pb-jersey--mini .pb-jersey-cuff{top:38%;height:11%}
+.pb .pb-jersey--mini .pb-jersey-hem{height:6px}
+.pb .pb-jersey-row .pb-post-kind{background:color-mix(in srgb,var(--kit) 14%,#fffcf5);border-color:color-mix(in srgb,var(--kit) 40%,#fffcf5);color:var(--pb-ink)}
+
+/* D: classic jersey, message re-weighted */
+.pb .pb-jersey--torso .pb-jersey-message{background:#00000030;border:1px solid #ffffff40;border-top:1px dashed #ffffff65;padding:12px 14px 10px;margin-top:4px}
+.pb .pb-jersey--torso .pb-jersey-kind{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--kit-accent);font-weight:600;margin-bottom:4px}
+.pb .pb-jersey--torso .pb-jersey-message>b{font-size:18px;text-transform:uppercase;letter-spacing:.3px}
+.pb .pb-jersey--torso .pb-jersey-message p{font-size:17px;line-height:1.5;margin:8px 0 12px;text-shadow:0 1px 0 #0004}
+.pb .pb-jersey--torso .pb-jersey-foot{border-top:1px solid #ffffff33;padding-top:10px}
+.pb .pb-jersey--torso .pb-jersey-time{font:700 12px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.2px;text-transform:uppercase;opacity:.9}
+.pb .pb-jersey-foot-actions{display:flex;align-items:center;gap:10px}
+.pb .pb-jersey--torso .pb-post-action{color:var(--kit-text);opacity:.85}
+.pb .pb-jersey--torso .pb-post-action:hover{color:var(--kit-accent);opacity:1}
+
+@media(max-width:580px){
+.pb .pb-post-body{font-size:16px}
+.pb .pb-jersey--post .pb-post{padding:12px 12px 10px}
+.pb .pb-jersey--post .pb-kit-number{font-size:32px}
+.pb .pb-jersey--yoke .pb-jersey-top{min-height:120px}
+.pb .pb-jersey--yoke .pb-jersey-top .pb-jersey-content{padding:9% 15.5% 10px}
+.pb .pb-jersey--yoke .pb-kit-number{font-size:40px}
+.pb .pb-jersey--yoke .pb-post{margin:0 6%;padding:12px 14px 10px}
+.pb .pb-jersey-row{grid-template-columns:96px minmax(0,1fr);gap:12px;padding:12px 12px 10px 10px}
+.pb .pb-jersey--mini{height:90px}
+.pb .pb-jersey--mini .pb-kit-number{font-size:30px}
+.pb .pb-jersey--mini .pb-nameplate{font-size:8px;letter-spacing:.6px}
+.pb .pb-jersey--torso .pb-jersey-message p{font-size:15px}
+.pb .pb-jersey--torso .pb-jersey-message{padding:10px 10px 8px}
+}
