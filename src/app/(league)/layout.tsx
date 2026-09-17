@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LeagueLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getLeagueContext();
-  const roleLabel = ctx.role === "commissioner" ? "COMMISSIONER" : ctx.role === "participant" ? "PARTICIPANT" : "LEAGUE MEMBER";
+  const roleLabel = ctx.role === "admin" ? "ADMIN" : ctx.role === "commissioner" ? "COMMISSIONER" : ctx.role === "participant" ? "PARTICIPANT" : "LEAGUE MEMBER";
   return (
     <AppShell
       role={ctx.role}

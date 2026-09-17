@@ -14,7 +14,7 @@ export default async function AccountPage() {
     ctx.supabase.rpc("claimed_kits"),
   ]);
   const linked = (sleeperUsers ?? []).find((u) => u.sleeper_user_id === ctx.membership.sleeper_user_id);
-  const roleLabel = ctx.role === "commissioner" ? "Commissioner" : ctx.role === "participant" ? "Participant" : "League member";
+  const roleLabel = ctx.role === "admin" ? "Admin" : ctx.role === "commissioner" ? "Commissioner" : ctx.role === "participant" ? "Participant" : "League member";
 
   return (
     <>
@@ -25,14 +25,14 @@ export default async function AccountPage() {
             <h3>Account</h3>
             <p className="pb-small" style={{ marginTop: 8 }}>
               Signed in as <b>{ctx.user.email}</b> · role <b>{roleLabel}</b>
-              {ctx.isCommissioner && ctx.isParticipant ? " (also the participant)" : ""} · member since {formatDateTime(ctx.membership.created_at, ctx.event.timezone)}
+              {ctx.isAdmin ? " (admin also referees as commissioner)" : ""}{ctx.isParticipant && ctx.role !== "participant" ? " · also the participant" : ""} · member since {formatDateTime(ctx.membership.created_at, ctx.event.timezone)}
             </p>
             <p className="pb-small">Roles are set by a commissioner and enforced by the database. There is no role switch here.</p>
             <div className="pb-actions">
               <form action="/auth/signout" method="post">
                 <button className="pb-secondary" type="submit">Sign out</button>
               </form>
-              {ctx.isCommissioner ? <Link className="pb-secondary" href="/review/members">Members &amp; invites ↗</Link> : null}
+              {ctx.isAdmin ? <Link className="pb-secondary" href="/review/members">League admin ↗</Link> : null}
             </div>
           </div>
           <div className="pb-panel" style={{ marginTop: 18 }}>

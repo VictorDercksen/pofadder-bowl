@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { InviteForm, MemberRow, SleeperImport } from "@/components/review/MemberAdmin";
-import { requireCommissioner } from "@/lib/league";
+import { requireAdmin } from "@/lib/league";
 import { formatDateTime } from "@/lib/time";
 
 export const metadata = { title: "Members & invites" };
 
 export default async function MembersPage() {
-  const ctx = await requireCommissioner();
+  const ctx = await requireAdmin();
   const [{ data: memberships }, { data: profiles }, { data: sleeperUsers }] = await Promise.all([
     ctx.supabase.from("memberships").select("*").eq("league_id", ctx.league.id).order("created_at"),
     ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number"),
@@ -18,7 +18,7 @@ export default async function MembersPage() {
 
   return (
     <>
-      <TitleRow kicker="COMMISSIONER’S VIEW" title="The roster." blurb="Invite-only. Roles live in the database and are enforced by RLS." tag="MEMBERS & INVITES" identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
+      <TitleRow kicker="LEAGUE ADMIN" title="The roster." blurb="Invite-only. Roles live in the database and are enforced by RLS. Only admins can invite or change roles; commissioners referee." tag="ADMIN ONLY" identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
       <p className="pb-small" style={{ marginBottom: 12 }}>
         <Link href="/review" className="pb-text-action">← Back to review</Link>
       </p>
@@ -31,7 +31,7 @@ export default async function MembersPage() {
           {(memberships ?? []).map((m) => (
             <MemberRow
               key={m.id}
-              membership={{ user_id: m.user_id, role: m.role, is_commissioner: m.is_commissioner, status: m.status, invited_email: m.invited_email, sleeper_user_id: m.sleeper_user_id, sleeper_confirmed: m.sleeper_confirmed, created: formatDateTime(m.created_at, ctx.event.timezone) }}
+              membership={{ user_id: m.user_id, role: m.role, is_commissioner: m.is_commissioner, is_admin: m.is_admin, status: m.status, invited_email: m.invited_email, sleeper_user_id: m.sleeper_user_id, sleeper_confirmed: m.sleeper_confirmed, created: formatDateTime(m.created_at, ctx.event.timezone) }}
               profile={byId.get(m.user_id) ?? null}
               isSelf={m.user_id === ctx.user.id}
               isEventParticipant={m.user_id === participantId}

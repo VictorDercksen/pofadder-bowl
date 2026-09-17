@@ -30,7 +30,7 @@ export async function updatePredictionRules(input: { runPoints: number; mealPoin
   const parsed = z.object({ runPoints: z.number().int().min(0).max(100), mealPoints: z.number().int().min(0).max(100), complaintsPoints: z.number().int().min(0).max(100) }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Points must be whole numbers between 0 and 100." };
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
   if (Date.now() >= Date.parse(ctx.event.prediction_lock_at)) return { ok: false, message: "Rules are frozen once predictions lock." };
   const { error } = await ctx.supabase.from("prediction_rules").upsert({ event_id: ctx.event.id, run_points: parsed.data.runPoints, meal_points: parsed.data.mealPoints, complaints_points: parsed.data.complaintsPoints, updated_at: new Date().toISOString() }, { onConflict: "event_id" });
   if (error) return { ok: false, message: error.message };

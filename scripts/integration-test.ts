@@ -71,7 +71,7 @@ async function main() {
     const { data } = await member.from("challenges").select("id");
     assert.equal(data?.length, 10);
     assert.equal((await member.rpc("my_event_role", { p_event: event.id })).data, "member");
-    assert.equal((await participant.rpc("my_event_role", { p_event: event.id })).data, "participant");
+    assert.equal((await participant.rpc("my_event_role", { p_event: event.id })).data, "admin");
     assert.equal((await commissioner.rpc("my_event_role", { p_event: event.id })).data, "commissioner");
   });
   await test("member cannot self-promote membership", async () => {
@@ -80,9 +80,20 @@ async function main() {
     const { data: m } = await admin.from("memberships").select("is_commissioner").eq("user_id", ids.member).single();
     assert.equal(m?.is_commissioner, false);
   });
-  await test("member cannot call commissioner RPCs", async () => {
+  await test("only admins administer roles; commissioners cannot", async () => {
     const { error } = await member.rpc("set_member_role", { p_league: league.id, p_user: ids.member, p_role: "member", p_is_commissioner: true, p_status: "active" });
     assert.ok(error, "set_member_role should fail for member");
+    const { error: ce } = await commissioner.rpc("set_member_role", { p_league: league.id, p_user: ids.member, p_role: "member", p_is_commissioner: true, p_status: "active" });
+    assert.ok(ce && /admin/.test(ce.message), "commissioner must not change roles");
+    const { error: cp } = await commissioner.rpc("set_event_participant", { p_event: event.id, p_user: ids.member });
+    assert.ok(cp, "commissioner must not set the participant");
+    const { error: ae } = await participant.rpc("set_member_role", { p_league: league.id, p_user: ids.member, p_role: "member", p_is_commissioner: false, p_status: "active" });
+    assert.ok(!ae, ae?.message);
+    const { error: self } = await participant.rpc("set_member_role", { p_league: league.id, p_user: ids.participant, p_role: "participant", p_is_commissioner: true, p_status: "active", p_is_admin: false });
+    assert.ok(self && /own admin/.test(self.message), "admin cannot remove own admin access");
+    const { error: rules } = await commissioner.from("prediction_rules").update({ run_points: 99 }).eq("event_id", event.id);
+    const { data: r } = await admin.from("prediction_rules").select("run_points").eq("event_id", event.id).single();
+    assert.ok(rules || r?.run_points === 10, "commissioner must not edit prediction rules");
   });
   await test("member cannot create evidence submissions", async () => {
     const { data: ch } = await member.from("challenges").select("id").eq("sequence", 1).single();

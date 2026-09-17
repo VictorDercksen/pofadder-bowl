@@ -8,7 +8,7 @@ import { adminClient, ensureUser, env, leagueAndEvent } from "./lib";
 
 export const FIXTURE_PASSWORD = "pofadder-local-2026";
 export const FIXTURES = {
-  participant: { email: "victor@local.test", name: "Victor Dercksen" },
+  participant: { email: "victor@local.test", name: "Victor Dercksen" }, // also league admin
   commissioner: { email: "commish@local.test", name: "The Commish" },
   member: { email: "member@local.test", name: "League Member" },
   outsider: { email: "outsider@local.test", name: "Outsider" },
@@ -28,9 +28,9 @@ export async function seedFixtures() {
   }
   await admin.from("memberships").delete().eq("league_id", league.id).eq("user_id", ids.outsider);
   const rows = [
-    { league_id: league.id, user_id: ids.participant, role: "participant" as const, is_commissioner: false, status: "active" as const, invited_email: FIXTURES.participant.email },
-    { league_id: league.id, user_id: ids.commissioner, role: "member" as const, is_commissioner: true, status: "active" as const, invited_email: FIXTURES.commissioner.email },
-    { league_id: league.id, user_id: ids.member, role: "member" as const, is_commissioner: false, status: "active" as const, invited_email: FIXTURES.member.email },
+    { league_id: league.id, user_id: ids.participant, role: "participant" as const, is_commissioner: false, is_admin: true, status: "active" as const, invited_email: FIXTURES.participant.email },
+    { league_id: league.id, user_id: ids.commissioner, role: "member" as const, is_commissioner: true, is_admin: false, status: "active" as const, invited_email: FIXTURES.commissioner.email },
+    { league_id: league.id, user_id: ids.member, role: "member" as const, is_commissioner: false, is_admin: false, status: "active" as const, invited_email: FIXTURES.member.email },
   ];
   const { error } = await admin.from("memberships").upsert(rows, { onConflict: "league_id,user_id" });
   if (error) throw error;

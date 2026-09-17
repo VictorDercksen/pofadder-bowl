@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
 import type { Database, Tables } from "@/lib/database.types";
 
-export type Role = "participant" | "member" | "commissioner";
+export type Role = "participant" | "member" | "commissioner" | "admin";
 
 export type LeagueContext = {
   supabase: SupabaseClient<Database>;
@@ -15,8 +15,11 @@ export type LeagueContext = {
   league: Tables<"leagues">;
   event: Tables<"events">;
   membership: Tables<"memberships">;
-  /** Effective role: commissioner > participant > member. */
+  /** Effective role: admin > commissioner > participant > member. */
   role: Role;
+  /** App administration: invites, roles, participant, Sleeper links, event settings. */
+  isAdmin: boolean;
+  /** Refereeing: review, penalties, results, bingo confirmations, certificate. Admins are commissioners too. */
   isCommissioner: boolean;
   isParticipant: boolean;
 };
@@ -62,19 +65,26 @@ export const getLeagueContextRaw = cache(async (): Promise<LeagueContext> => {
   if (!membership) redirect("/no-access");
   if (!event) redirect("/setup?reason=event");
 
-  const isCommissioner = membership.is_commissioner;
+  const isAdmin = membership.is_admin;
+  const isCommissioner = membership.is_commissioner || isAdmin;
   const isParticipant = event.participant_user_id === user.id;
-  const role: Role = isCommissioner ? "commissioner" : isParticipant ? "participant" : "member";
-  return { supabase, user, profile, league, event, membership, role, isCommissioner, isParticipant };
+  const role: Role = isAdmin ? "admin" : isCommissioner ? "commissioner" : isParticipant ? "participant" : "member";
+  return { supabase, user, profile, league, event, membership, role, isAdmin, isCommissioner, isParticipant };
 });
 
 export function homeFor(ctx: Pick<LeagueContext, "role">): string {
-  return ctx.role === "commissioner" ? "/review" : ctx.role === "participant" ? "/my-trip" : "/game-centre";
+  return ctx.role === "admin" || ctx.role === "commissioner" ? "/review" : ctx.role === "participant" ? "/my-trip" : "/game-centre";
 }
 
 export async function requireCommissioner(): Promise<LeagueContext> {
   const ctx = await getLeagueContext();
   if (!ctx.isCommissioner) redirect(homeFor(ctx));
+  return ctx;
+}
+
+export async function requireAdmin(): Promise<LeagueContext> {
+  const ctx = await getLeagueContext();
+  if (!ctx.isAdmin) redirect(homeFor(ctx));
   return ctx;
 }
 

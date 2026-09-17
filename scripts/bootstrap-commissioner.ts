@@ -1,5 +1,5 @@
 /**
- * Trusted admin step: makes an email address the first commissioner of the configured league.
+ * Trusted admin step: makes an email address the league ADMIN (and commissioner) of the configured league.
  *
  *   npm run bootstrap:commissioner -- --email you@example.com [--name "Display Name"] [--participant]
  *
@@ -30,11 +30,11 @@ async function main() {
   } else console.log(`User ${email} already exists.`);
 
   const { error } = await admin.from("memberships").upsert(
-    { league_id: league.id, user_id: userId, role: makeParticipant ? "participant" : "member", is_commissioner: true, status: "active", invited_email: email },
+    { league_id: league.id, user_id: userId, role: makeParticipant ? "participant" : "member", is_commissioner: true, is_admin: true, status: "active", invited_email: email },
     { onConflict: "league_id,user_id" },
   );
   if (error) throw error;
-  console.log(`${email} is now an active commissioner of "${league.name}".`);
+  console.log(`${email} is now the active admin (and commissioner) of "${league.name}".`);
 
   if (makeParticipant) {
     const { error: e2 } = await admin.from("events").update({ participant_user_id: userId }).eq("id", event.id);

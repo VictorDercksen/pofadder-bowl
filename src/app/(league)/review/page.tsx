@@ -39,7 +39,7 @@ export default async function ReviewPage() {
                 Awaiting review
                 {queue.length ? <span className="pb-badge-count">{queue.length}</span> : null}
               </h3>
-              <Link className="pb-text-action" href="/review/members">Members &amp; invites ↗</Link>
+              {ctx.isAdmin ? <Link className="pb-text-action" href="/review/members">Members &amp; invites ↗</Link> : <span className="pb-small">Roster changes: admin only</span>}
             </div>
             {queue.length === 0 ? <p className="pb-small">Nothing waiting. Submitted proof lands here with its version number.</p> : null}
             {queue.map((s) => {

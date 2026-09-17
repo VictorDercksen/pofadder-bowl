@@ -767,6 +767,7 @@ export type Database = {
           id: string
           invited_by: string | null
           invited_email: string | null
+          is_admin: boolean
           is_commissioner: boolean
           league_id: string
           role: Database["public"]["Enums"]["membership_role"]
@@ -781,6 +782,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           invited_email?: string | null
+          is_admin?: boolean
           is_commissioner?: boolean
           league_id: string
           role?: Database["public"]["Enums"]["membership_role"]
@@ -795,6 +797,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           invited_email?: string | null
+          is_admin?: boolean
           is_commissioner?: boolean
           league_id?: string
           role?: Database["public"]["Enums"]["membership_role"]
@@ -1341,6 +1344,7 @@ export type Database = {
           id: string
           invited_by: string | null
           invited_email: string | null
+          is_admin: boolean
           is_commissioner: boolean
           league_id: string
           role: Database["public"]["Enums"]["membership_role"]
@@ -1377,6 +1381,7 @@ export type Database = {
           id: string
           invited_by: string | null
           invited_email: string | null
+          is_admin: boolean
           is_commissioner: boolean
           league_id: string
           role: Database["public"]["Enums"]["membership_role"]
@@ -1477,7 +1482,9 @@ export type Database = {
       }
       my_event_role: { Args: { p_event: string }; Returns: string }
       pb_event_league: { Args: { p_event: string }; Returns: string }
+      pb_is_admin: { Args: { p_league: string }; Returns: boolean }
       pb_is_commissioner: { Args: { p_league: string }; Returns: boolean }
+      pb_is_event_admin: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_commissioner: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_member: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_participant: { Args: { p_event: string }; Returns: boolean }
@@ -1620,6 +1627,7 @@ export type Database = {
       }
       set_member_role: {
         Args: {
+          p_is_admin?: boolean
           p_is_commissioner: boolean
           p_league: string
           p_role: Database["public"]["Enums"]["membership_role"]
@@ -1631,6 +1639,7 @@ export type Database = {
           id: string
           invited_by: string | null
           invited_email: string | null
+          is_admin: boolean
           is_commissioner: boolean
           league_id: string
           role: Database["public"]["Enums"]["membership_role"]

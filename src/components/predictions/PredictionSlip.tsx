@@ -76,7 +76,7 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
   const [pending, startTransition] = useTransition();
   return (
     <div style={{ marginTop: 16 }}>
-      <h3>Commissioner: rules</h3>
+      <h3>Admin: rules</h3>
       <p className="pb-small">Configurable until predictions lock.</p>
       <div className="pb-inline-fields" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
         <label className="pb-field">

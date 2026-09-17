@@ -62,10 +62,11 @@ export function InviteForm() {
   );
 }
 
-export function MemberRow({ membership, profile, isSelf, isEventParticipant, sleeperUsers }: { membership: { user_id: string; role: "member" | "participant"; is_commissioner: boolean; status: "invited" | "active" | "removed"; invited_email: string | null; sleeper_user_id: string | null; sleeper_confirmed: boolean; created: string }; profile: { display_name: string; kit_team: string | null; kit_number: number } | null; isSelf: boolean; isEventParticipant: boolean; sleeperUsers: { id: string; label: string }[] }) {
+export function MemberRow({ membership, profile, isSelf, isEventParticipant, sleeperUsers }: { membership: { user_id: string; role: "member" | "participant"; is_commissioner: boolean; is_admin: boolean; status: "invited" | "active" | "removed"; invited_email: string | null; sleeper_user_id: string | null; sleeper_confirmed: boolean; created: string }; profile: { display_name: string; kit_team: string | null; kit_number: number } | null; isSelf: boolean; isEventParticipant: boolean; sleeperUsers: { id: string; label: string }[] }) {
   const router = useRouter();
   const [role, setRole] = useState(membership.role);
   const [commish, setCommish] = useState(membership.is_commissioner);
+  const [adminFlag, setAdminFlag] = useState(membership.is_admin);
   const [status, setStatus] = useState(membership.status);
   const [sleeper, setSleeper] = useState(membership.sleeper_user_id ?? "");
   const [note, setNote] = useState<Note>(null);
@@ -73,7 +74,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
 
   function save() {
     startTransition(async () => {
-      const res = await setMemberRole({ userId: membership.user_id, role, isCommissioner: commish, status });
+      const res = await setMemberRole({ userId: membership.user_id, role, isCommissioner: commish, isAdmin: adminFlag, status });
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
@@ -87,6 +88,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
           {profile?.display_name ?? membership.invited_email ?? membership.user_id}
           {isSelf ? " (you)" : ""}
           {isEventParticipant ? <span className="pb-tag orange" style={{ marginLeft: 6 }}>EVENT PARTICIPANT</span> : null}
+          {membership.is_admin ? <span className="pb-tag" style={{ marginLeft: 6 }}>ADMIN</span> : null}
         </strong>
         <p>
           {membership.invited_email ?? ""} · {membership.status} · added {membership.created}
@@ -102,6 +104,9 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
           </label>
           <label>
             <input type="checkbox" checked={commish} disabled={isSelf} onChange={(e) => setCommish(e.target.checked)} /> commissioner
+          </label>
+          <label>
+            <input type="checkbox" checked={adminFlag} disabled={isSelf} onChange={(e) => setAdminFlag(e.target.checked)} /> admin
           </label>
           <label>
             Status{" "}

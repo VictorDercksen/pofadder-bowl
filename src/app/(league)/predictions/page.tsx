@@ -107,7 +107,7 @@ export default async function PredictionsPage() {
               ))}
             </div>
           ) : null}
-          {ctx.isCommissioner && !locked ? <RulesEditor rules={{ run_points: r.run_points, meal_points: r.meal_points, complaints_points: r.complaints_points }} /> : null}
+          {ctx.isAdmin && !locked ? <RulesEditor rules={{ run_points: r.run_points, meal_points: r.meal_points, complaints_points: r.complaints_points }} /> : null}
         </div>
       </div>
     </>

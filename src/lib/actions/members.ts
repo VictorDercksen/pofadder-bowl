@@ -11,13 +11,13 @@ import type { ActionResult } from "@/lib/actions/feed";
 /**
  * Invite a league member by email. Uses the service-role admin API (server only) to
  * create/invite the auth user, then creates an 'invited' membership row. Only an active
- * commissioner can call this; the membership becomes active on the invitee's first sign-in.
+ * admin can call this; the membership becomes active on the invitee's first sign-in.
  */
 export async function inviteMember(input: { email: string; displayName?: string; role: "member" | "participant"; isCommissioner: boolean }): Promise<ActionResult> {
   const parsed = z.object({ email: z.string().trim().email().max(200), displayName: z.string().trim().max(40).optional(), role: z.enum(["member", "participant"]), isCommissioner: z.boolean() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Enter a valid email address." };
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
 
   let admin;
   try {
@@ -49,12 +49,12 @@ export async function inviteMember(input: { email: string; displayName?: string;
   return { ok: true, message: invite.error ? `${email} already had an account; membership created and a sign-in link sent.` : `Invitation emailed to ${email}.` };
 }
 
-export async function setMemberRole(input: { userId: string; role: "member" | "participant"; isCommissioner: boolean; status: "invited" | "active" | "removed" }): Promise<ActionResult> {
-  const parsed = z.object({ userId: z.string().uuid(), role: z.enum(["member", "participant"]), isCommissioner: z.boolean(), status: z.enum(["invited", "active", "removed"]) }).safeParse(input);
+export async function setMemberRole(input: { userId: string; role: "member" | "participant"; isCommissioner: boolean; isAdmin?: boolean; status: "invited" | "active" | "removed" }): Promise<ActionResult> {
+  const parsed = z.object({ userId: z.string().uuid(), role: z.enum(["member", "participant"]), isCommissioner: z.boolean(), isAdmin: z.boolean().optional(), status: z.enum(["invited", "active", "removed"]) }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid member update." };
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
-  const { error } = await ctx.supabase.rpc("set_member_role", { p_league: ctx.league.id, p_user: parsed.data.userId, p_role: parsed.data.role, p_is_commissioner: parsed.data.isCommissioner, p_status: parsed.data.status });
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
+  const { error } = await ctx.supabase.rpc("set_member_role", { p_league: ctx.league.id, p_user: parsed.data.userId, p_role: parsed.data.role, p_is_commissioner: parsed.data.isCommissioner, p_status: parsed.data.status, p_is_admin: parsed.data.isAdmin });
   if (error) return { ok: false, message: error.message };
   revalidatePath("/review/members");
   revalidatePath("/", "layout");
@@ -65,7 +65,7 @@ export async function setEventParticipant(input: { userId: string | null }): Pro
   const parsed = z.object({ userId: z.string().uuid().nullable() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid user." };
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
   const { error } = await ctx.supabase.rpc("set_event_participant", { p_event: ctx.event.id, p_user: parsed.data.userId ?? undefined });
   if (error) return { ok: false, message: error.message.includes("active participant") ? "Set that member’s role to participant (and active) first." : error.message };
   revalidatePath("/review/members");
@@ -75,7 +75,7 @@ export async function setEventParticipant(input: { userId: string | null }): Pro
 
 export async function importSleeperLeague(): Promise<ActionResult> {
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
   const leagueId = ctx.league.sleeper_league_id ?? sleeperLeagueId();
   if (!leagueId) return { ok: false, message: "No Sleeper league id configured (SLEEPER_LEAGUE_ID)." };
   let users;
@@ -96,7 +96,7 @@ export async function confirmSleeperLink(input: { userId: string; sleeperUserId:
   const parsed = z.object({ userId: z.string().uuid(), sleeperUserId: z.string().regex(/^\d{5,30}$/).nullable(), confirmed: z.boolean() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid link." };
   const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!ctx.isAdmin) return { ok: false, message: "Admin role required." };
   const { error } = await ctx.supabase.rpc("confirm_sleeper_link", { p_league: ctx.league.id, p_user: parsed.data.userId, p_sleeper_user_id: parsed.data.sleeperUserId ?? undefined, p_confirmed: parsed.data.confirmed });
   if (error) return { ok: false, message: error.message };
   revalidatePath("/review/members");
