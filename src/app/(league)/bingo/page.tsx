@@ -43,7 +43,7 @@ export default async function BingoPage() {
 
   return (
     <>
-      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag={myLines.length ? `BINGO · ${myLines.length} LINE${myLines.length === 1 ? "" : "S"}` : "PERSONAL BINGO CARD"} team={ctx.profile.kit_team} />
+      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. First confirmed line wins 5 FAAB in Sleeper." tag={myLines.length ? `BINGO · ${myLines.length} LINE${myLines.length === 1 ? "" : "S"}` : "PERSONAL BINGO CARD"} team={ctx.profile.kit_team} />
       <div className="pb-split">
         <KitPanel team={ctx.profile.kit_team} name={`${ctx.profile.display_name}’s card`} kicker={`${teamName(ctx.profile.kit_team ?? "nfl").toUpperCase()} · ${marked}/25 MARKED`}>
           <BingoBoard
@@ -81,6 +81,11 @@ export default async function BingoPage() {
               {(incidents ?? []).filter((i) => i.status === "confirmed").length} confirmed · {(incidents ?? []).filter((i) => i.status === "proposed").length} proposed
               {ctx.isCommissioner ? " · confirm or reject on the card." : " · commissioners confirm incidents."}
             </p>
+          </div>
+          <div className="pb-next">
+            <div className="pb-kicker">THE STAKES</div>
+            <h3>5 FAAB in Sleeper.</h3>
+            <p>The first card to complete a line takes 5 FAAB, added to the winner’s Sleeper waiver budget by the commissioner after the trip. Lines completed on the same incident share it. The prediction winner takes the other 5.</p>
           </div>
         </div>
       </div>

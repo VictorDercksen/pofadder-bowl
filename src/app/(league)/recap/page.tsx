@@ -31,7 +31,9 @@ export default async function RecapPage() {
   const phase = eventPhase(ctx.event);
   const issued = cert?.status === "issued";
   const firstLine = (wins ?? []).find((w) => w.line_key !== "full_house");
-  const bingoWinners = Array.from(new Set((wins ?? []).filter((w) => w.line_key !== "full_house").map((w) => w.user_id))).map((id) => names.get(id) ?? "member");
+  // The prize goes to the first completed line; cards that complete a line on the same incident share it.
+  const lineWins = (wins ?? []).filter((w) => w.line_key !== "full_house");
+  const bingoWinners = firstLine ? Array.from(new Set(lineWins.filter((w) => w.achieved_at === firstLine.achieved_at).map((w) => w.user_id))).map((id) => names.get(id) ?? "member") : [];
   const predTotals = new Map<string, number>();
   for (const a of awards ?? []) predTotals.set(a.user_id, (predTotals.get(a.user_id) ?? 0) + a.points);
   const predWinners = [...predTotals.entries()].sort((a, b) => b[1] - a[1]);
@@ -114,7 +116,7 @@ export default async function RecapPage() {
           <div className="pb-rank">
             <span className="pb-ranking-num">★</span>
             <div>
-              Bingo winner{bingoWinners.length === 1 ? "" : "s"}
+              Bingo winner{bingoWinners.length === 1 ? "" : "s"} · 5 FAAB in Sleeper
               <br />
               <b>{bingoWinners.length ? bingoWinners.join(", ") : "No confirmed line yet"}</b>
               {firstLine ? <small className="pb-small"> · first line {formatDateTime(firstLine.achieved_at, tz)}</small> : null}
@@ -123,7 +125,7 @@ export default async function RecapPage() {
           <div className="pb-rank">
             <span className="pb-ranking-num">★</span>
             <div>
-              Prediction winner{topPred.length === 1 ? "" : "s"}
+              Prediction winner{topPred.length === 1 ? "" : "s"} · 5 FAAB in Sleeper
               <br />
               <b>{topPred.length ? topPred.join(", ") : results?.resolved_at ? "No awards" : "Not resolved yet"}</b>
             </div>

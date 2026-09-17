@@ -453,7 +453,7 @@ export function DemoBingo() {
   const winning = winningCells(state.bingo);
   return (
     <>
-      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag="PERSONAL BINGO CARD" team="cin" />
+      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. First confirmed line wins 5 FAAB in Sleeper." tag="PERSONAL BINGO CARD" team="cin" />
       <div className="pb-split">
         <div className="pb-panel">
           <div className="pb-panel-top">
@@ -544,7 +544,7 @@ export function DemoPredictions() {
   }
   return (
     <>
-      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag="LOCKS AT 19:15" team="gb" />
+      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock at departure. The top slip wins 5 FAAB in Sleeper." tag="LOCKS AT 19:15" team="gb" />
       <div className="pb-split">
         <div className="pb-panel">
           <h2>The prediction slip</h2>
@@ -590,7 +590,7 @@ export function DemoPredictions() {
           ))}
           <div className="pb-next">
             <h3>Equal guesses share the glory.</h3>
-            <p>Tied winners receive the same points. Results appear at the final whistle.</p>
+            <p>Tied winners receive the same points. The top slip takes 5 FAAB in Sleeper. Results appear at the final whistle.</p>
           </div>
         </div>
       </div>
