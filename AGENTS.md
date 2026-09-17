@@ -1,3 +1,9 @@
+# Agent instructions
+
+Project instructions for every coding agent live in `CLAUDE.md` at the repo root: workflow rules (read the newest `handoff/` file first, write a handoff before every commit, verification commands), stack practices for Next.js 16, Supabase, Zod 4 and Leaflet, and where things live. Read `CLAUDE.md` in full before working.
+
+The block below is managed by Next.js and points at the version-matched framework docs. Leave it in place.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
