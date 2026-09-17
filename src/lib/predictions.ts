@@ -17,7 +17,7 @@ export function resolvePredictions(predictions: Prediction[], result: OfficialRe
 
   if (result.run_seconds != null) {
     const target = result.run_seconds;
-    const best = Math.min(...predictions.map((p) => Math.abs(p.run_seconds - target)));
+    const best = closest(predictions.map((p) => Math.abs(p.run_seconds - target)));
     for (const p of predictions) if (Math.abs(p.run_seconds - target) === best) awards.push({ user_id: p.user_id, category: "run", points: rules.run_points });
   }
   if (result.meal_rating != null) {
@@ -25,15 +25,26 @@ export function resolvePredictions(predictions: Prediction[], result: OfficialRe
   }
   if (result.complaint_count != null) {
     const target = result.complaint_count;
-    const best = Math.min(...predictions.map((p) => Math.abs(p.complaint_count - target)));
+    const best = closest(predictions.map((p) => Math.abs(p.complaint_count - target)));
     for (const p of predictions) if (Math.abs(p.complaint_count - target) === best) awards.push({ user_id: p.user_id, category: "complaints", points: rules.complaints_points });
   }
   return awards;
 }
 
-export function isLocked(lockAtIso: string, now: Date = new Date()): boolean {
-  return now.getTime() >= Date.parse(lockAtIso);
+/** Smallest finite distance, so one corrupt row cannot turn every comparison into NaN. */
+function closest(distances: number[]): number {
+  const finite = distances.filter(Number.isFinite);
+  return finite.length ? Math.min(...finite) : Number.NaN;
 }
+
+/** Fails closed: an unparseable lock instant reads as locked (the RPC enforces the real lock). */
+export function isLocked(lockAtIso: string, now: Date = new Date()): boolean {
+  const lock = Date.parse(lockAtIso);
+  return !Number.isFinite(lock) || now.getTime() >= lock;
+}
+
+/** Matches the predictions.run_seconds check constraint (0 .. 8 h). */
+export const MAX_RUN_SECONDS = 8 * 3600;
 
 export function validatePrediction(input: { hours: number; minutes: number; mealRating: number; complaints: number }): string | null {
   const { hours, minutes, mealRating, complaints } = input;
@@ -42,5 +53,6 @@ export function validatePrediction(input: { hours: number; minutes: number; meal
   if (!Number.isInteger(mealRating) || mealRating < 1 || mealRating > 10) return "Meal rating must be 1 to 10.";
   if (!Number.isInteger(complaints) || complaints < 0 || complaints > 999) return "Complaints must be between 0 and 999.";
   if (hours === 0 && minutes === 0) return "A finish time of zero is optimistic even for Victor.";
+  if (hours * 3600 + minutes * 60 > MAX_RUN_SECONDS) return "Keep the finish time at 8 hours or under.";
   return null;
 }

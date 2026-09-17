@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
+import { formatDateTime } from "@/lib/time";
 
 type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
 
@@ -41,7 +42,7 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
   );
 }
 
-export function ResultsForm({ results }: { results: Tables<"official_results"> | null }) {
+export function ResultsForm({ results, timezone }: { results: Tables<"official_results"> | null; timezone: string }) {
   const router = useRouter();
   const [note, setNote] = useState<Note>(null);
   const [pending, startTransition] = useTransition();
@@ -114,13 +115,13 @@ export function ResultsForm({ results }: { results: Tables<"official_results"> |
           Resolve predictions
         </button>
       </div>
-      {results?.resolved_at ? <p className="pb-inline-status">Last resolved {new Date(results.resolved_at).toLocaleString()}. Resolving again recomputes awards.</p> : null}
+      {results?.resolved_at ? <p className="pb-inline-status">Last resolved {formatDateTime(results.resolved_at, timezone)}. Resolving again recomputes awards.</p> : null}
       <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
 
-export function CertificateIssue({ certificate, approved, max }: { certificate: Tables<"certificates"> | null; approved: number; max: number }) {
+export function CertificateIssue({ certificate, approved, max, timezone }: { certificate: Tables<"certificates"> | null; approved: number; max: number; timezone: string }) {
   const router = useRouter();
   const [note, setNote] = useState<Note>(null);
   const [isPublic, setIsPublic] = useState(certificate?.is_public ?? false);
@@ -129,7 +130,7 @@ export function CertificateIssue({ certificate, approved, max }: { certificate: 
     <div style={{ marginTop: 18 }}>
       <h3>Certificate of sentence served</h3>
       <p className="pb-small">
-        Status: <b>{certificate?.status === "issued" ? `issued ${certificate.issued_at ? new Date(certificate.issued_at).toLocaleString() : ""}` : "pending"}</b> · current score {approved}/{max}. Issuing snapshots the approved state; it never inherits demo values.
+        Status: <b>{certificate?.status === "issued" ? `issued ${certificate.issued_at ? formatDateTime(certificate.issued_at, timezone) : ""}` : "pending"}</b> · current score {approved}/{max}. Issuing snapshots the approved state; it never inherits demo values.
       </p>
       <label className="pb-check-row">
         <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />

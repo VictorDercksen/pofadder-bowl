@@ -28,3 +28,18 @@ describe("checkinPath", () => {
     expect(checkinPath([])).toEqual([]);
   });
 });
+
+describe("checkinPath tie-breaks", () => {
+  it("keeps a same-second burst in arrival order instead of reversing it", () => {
+    const path = checkinPath([
+      { id: "c", latitude: -29.3, longitude: 19.3, captured_at: "2026-09-24T04:00:00Z", received_at: "2026-09-24T04:00:02Z" },
+      { id: "b", latitude: -29.2, longitude: 19.2, captured_at: "2026-09-24T04:00:00Z", received_at: "2026-09-24T04:00:01Z" },
+      { id: "a", latitude: -29.1, longitude: 19.1, captured_at: "2026-09-24T04:00:00Z", received_at: "2026-09-24T04:00:00Z" },
+    ]);
+    expect(path).toEqual([
+      [-29.1, 19.1],
+      [-29.2, 19.2],
+      [-29.3, 19.3],
+    ]);
+  });
+});

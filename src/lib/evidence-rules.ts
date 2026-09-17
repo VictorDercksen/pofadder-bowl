@@ -21,17 +21,25 @@ const AUDIO = ["audio/webm", "audio/mp4", "audio/mpeg"];
 const DOC = ["application/pdf", "text/plain"];
 const GPS_EXT = [".gpx", ".tcx", ".fit", ".csv", ".kml", ".json"];
 
+/** Bare lowercase media type: MediaRecorder reports `video/webm;codecs=vp9,opus`, some pickers report mixed case. */
+export function normaliseMime(mimeType: string): string {
+  return (mimeType ?? "").split(";")[0].trim().toLowerCase();
+}
+
 export function classify(mimeType: string, fileName: string): { kind: EvidenceKind; mime: string } | null {
+  const mt = normaliseMime(mimeType);
   const lower = fileName.toLowerCase();
   const ext = lower.slice(lower.lastIndexOf("."));
-  if (GPS_EXT.includes(ext)) {
+  const knownMedia = IMAGE.includes(mt) || VIDEO.includes(mt) || AUDIO.includes(mt) || mt === "application/pdf";
+  // Watch exports are recognised by extension, but a real photo/clip/PDF type wins over a misleading name.
+  if (GPS_EXT.includes(ext) && !knownMedia) {
     const mime = ext === ".gpx" ? "application/gpx+xml" : ext === ".tcx" ? "application/vnd.garmin.tcx+xml" : ext === ".csv" ? "text/csv" : "application/octet-stream";
     return { kind: "gps", mime };
   }
-  if (IMAGE.includes(mimeType)) return { kind: "photo", mime: mimeType };
-  if (VIDEO.includes(mimeType)) return { kind: "video", mime: mimeType };
-  if (AUDIO.includes(mimeType)) return { kind: "audio", mime: mimeType };
-  if (DOC.includes(mimeType)) return { kind: "document", mime: mimeType };
+  if (IMAGE.includes(mt)) return { kind: "photo", mime: mt };
+  if (VIDEO.includes(mt)) return { kind: "video", mime: mt };
+  if (AUDIO.includes(mt)) return { kind: "audio", mime: mt };
+  if (DOC.includes(mt)) return { kind: "document", mime: mt };
   if (ext === ".zip") return { kind: "document", mime: "application/zip" };
   return null;
 }
@@ -39,7 +47,7 @@ export function classify(mimeType: string, fileName: string): { kind: EvidenceKi
 export function validateFile(mimeType: string, fileName: string, byteSize: number): { ok: true; kind: EvidenceKind; mime: string } | { ok: false; reason: string } {
   const c = classify(mimeType, fileName);
   if (!c) return { ok: false, reason: `Unsupported file type (${mimeType || "unknown"}). Use photos, MP4/MOV clips, PDFs or watch exports (GPX/TCX/FIT).` };
-  if (byteSize <= 0) return { ok: false, reason: "The file is empty." };
+  if (!Number.isFinite(byteSize) || byteSize <= 0) return { ok: false, reason: "The file is empty." };
   const limit = LIMITS[c.kind];
   if (byteSize > limit.maxBytes) return { ok: false, reason: `${limit.label}. This file is ${(byteSize / MB).toFixed(1)} MB.` };
   return { ok: true, kind: c.kind, mime: c.mime };
@@ -52,6 +60,6 @@ export function safeExtension(fileName: string): string {
 
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
-  if (n < MB) return `${(n / 1024).toFixed(0)} KB`;
+  if (n < 1000 * 1024) return `${(n / 1024).toFixed(0)} KB`;
   return `${(n / MB).toFixed(1)} MB`;
 }

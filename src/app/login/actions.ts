@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
+import { safeInternalPath } from "@/lib/paths";
 
 export type SignInState = { status: "idle" | "sent" | "error"; message?: string };
 
@@ -12,7 +13,7 @@ const schema = z.object({ email: z.string().trim().email().max(200), next: z.str
 export async function requestSignInLink(_prev: SignInState, formData: FormData): Promise<SignInState> {
   const parsed = schema.safeParse({ email: formData.get("email"), next: formData.get("next") });
   if (!parsed.success) return { status: "error", message: "Enter a valid email address." };
-  const next = parsed.data.next && parsed.data.next.startsWith("/") ? parsed.data.next : "/";
+  const next = safeInternalPath(parsed.data.next, "/");
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email.toLowerCase(),

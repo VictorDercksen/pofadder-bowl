@@ -22,7 +22,7 @@ export async function updateProfile(input: z.input<typeof profileSchema>): Promi
 }
 
 const kitSchema = z.object({
-  kitTeam: z.string().refine((c) => c in KITS && c !== "nfl", "Unknown franchise"),
+  kitTeam: z.string().refine((c) => Object.hasOwn(KITS, c) && c !== "nfl", "Unknown franchise"),
   kitNumber: z.number().int().min(0).max(99),
 });
 

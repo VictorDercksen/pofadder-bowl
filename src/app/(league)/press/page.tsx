@@ -19,7 +19,9 @@ export default async function PressPage() {
     ctx.event.participant_user_id ? ctx.supabase.from("profiles").select("display_name, kit_team, kit_number").eq("id", ctx.event.participant_user_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const list = (prompts ?? []).map((p) => {
-    const latest = subs.find((s) => s.press_prompt_id === p.id) ?? null;
+    const found = subs.find((s) => s.press_prompt_id === p.id) ?? null;
+    // An unsubmitted draft is the participant's business: members and the member view only learn that it exists.
+    const latest = found && found.status === "draft" && !ctx.isParticipant && !ctx.isCommissioner ? null : found;
     return { ...p, open: now >= Date.parse(p.opens_at) && (!p.closes_at || now < Date.parse(p.closes_at)), latest: latest ? { id: latest.id, version: latest.version, status: latest.status, caption: latest.caption, files: latest.files } : null };
   });
   const midday = list.filter((p) => p.slot === "midday");

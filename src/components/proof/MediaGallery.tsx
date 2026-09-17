@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { signedMediaUrl } from "@/lib/actions/evidence";
 import { nowMs } from "@/lib/time";
 
@@ -24,11 +24,15 @@ export function MediaGallery({ files }: { files: GalleryFile[] }) {
       }
       setError(null);
       setOpen((prev) => ({ ...prev, [file.id]: { url: res.url, expires: nowMs() + 290_000 } }));
-      if (file.kind === "document" || file.kind === "gps") window.open(res.url, "_blank", "noopener,noreferrer");
     });
   }
 
-  const now = nowMs();
+  // Signed links live five minutes; re-check freshness so an expired preview is not left on screen.
+  const [now, setNow] = useState(() => nowMs());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(nowMs()), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
   return (
     <div>
       {files.map((file) => {
@@ -48,9 +52,16 @@ export function MediaGallery({ files }: { files: GalleryFile[] }) {
               <span>
                 {file.name} · {file.kind}
               </span>
-              <button className="pb-play" type="button" disabled={pending} onClick={() => load(file)}>
-                {file.kind === "document" || file.kind === "gps" ? "⤓ Download (signed link)" : fresh ? "↻ Refresh link" : "▷ Load preview"}
-              </button>
+              {(file.kind === "document" || file.kind === "gps") && fresh ? (
+                // A real link keeps the download inside the user's click, so popup blockers leave it alone.
+                <a className="pb-play" href={entry.url} download={file.name} target="_blank" rel="noopener noreferrer">
+                  ⤓ Download {file.name}
+                </a>
+              ) : (
+                <button className="pb-play" type="button" disabled={pending} onClick={() => load(file)}>
+                  {file.kind === "document" || file.kind === "gps" ? "⤓ Get download link" : fresh ? "↻ Refresh link" : "▷ Load preview"}
+                </button>
+              )}
             </div>
           </div>
         );

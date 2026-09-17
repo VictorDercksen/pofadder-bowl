@@ -45,6 +45,7 @@ export function LiveMap({
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const fittedKey = useRef<string | null>(null);
+  const renderedKey = useRef<string | null>(null);
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
@@ -54,6 +55,7 @@ export function LiveMap({
     mapRef.current = map;
     layerRef.current = L.layerGroup().addTo(map);
     fittedKey.current = null;
+    renderedKey.current = null;
     return () => {
       map.remove();
       mapRef.current = null;
@@ -65,18 +67,23 @@ export function LiveMap({
     const map = mapRef.current;
     const layer = layerRef.current;
     if (!map || !layer) return;
-    layer.clearLayers();
 
-    if (path.length > 1) {
-      // Soft casing under the route so it stays readable over roads, then the route itself.
-      L.polyline(path, { color: "#fffcf5", weight: 7, opacity: 0.9, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
-      L.polyline(path, { color: ROUTE_COLOUR, weight: 3.5, opacity: 0.95, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
-    }
-    for (const pin of pins) {
-      L.marker([pin.latitude, pin.longitude], { icon: icon(pin.kind), title: pin.label, keyboard: true, zIndexOffset: pin.kind === "current" ? 1000 : 0 }).bindPopup(pin.label).addTo(layer);
+    // Server refreshes hand over fresh arrays every time; only redraw when what they describe changed.
+    const key = [...path.map((p) => p.join(",")), ...pins.map((p) => `${p.id}:${p.latitude},${p.longitude}`), focus ? `${focus.latitude},${focus.longitude}` : ""].join("|");
+    const renderKey = `${key}#${pins.map((p) => `${p.kind}:${p.label}`).join("|")}`;
+    if (renderedKey.current !== renderKey) {
+      renderedKey.current = renderKey;
+      layer.clearLayers();
+      if (path.length > 1) {
+        // Soft casing under the route so it stays readable over roads, then the route itself.
+        L.polyline(path, { color: "#fffcf5", weight: 7, opacity: 0.9, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
+        L.polyline(path, { color: ROUTE_COLOUR, weight: 3.5, opacity: 0.95, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
+      }
+      for (const pin of pins) {
+        L.marker([pin.latitude, pin.longitude], { icon: icon(pin.kind), title: pin.label, keyboard: true, zIndexOffset: pin.kind === "current" ? 1000 : 0 }).bindPopup(pin.label).addTo(layer);
+      }
     }
 
-    const key = [...path.map((p) => p.join(",")), ...pins.map((p) => p.id), focus ? `${focus.latitude},${focus.longitude}` : ""].join("|");
     if (fittedKey.current === key) return;
     fittedKey.current = key;
     const checkinPoints: [number, number][] = [...path, ...pins.filter((p) => p.kind !== "place").map((p) => [p.latitude, p.longitude] as [number, number])];

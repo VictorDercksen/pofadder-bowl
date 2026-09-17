@@ -46,3 +46,21 @@ describe("prediction locking", () => {
     expect(validatePrediction({ hours: 0, minutes: 0, mealRating: 5, complaints: 1 })).toMatch(/zero/);
   });
 });
+
+describe("prediction edge cases", () => {
+  it("caps the finish time at the database limit of 8 hours", () => {
+    expect(validatePrediction({ hours: 8, minutes: 0, mealRating: 5, complaints: 1 })).toBeNull();
+    expect(validatePrediction({ hours: 8, minutes: 1, mealRating: 5, complaints: 1 })).toMatch(/8 hours/);
+  });
+  it("treats an unparseable lock instant as locked", () => {
+    expect(isLocked("", new Date("2026-09-01T00:00:00Z"))).toBe(true);
+  });
+  it("ignores a corrupt row when finding the closest guess", () => {
+    const preds = [
+      { user_id: "a", run_seconds: Number.NaN, meal_rating: 8, complaint_count: 12 },
+      { user_id: "b", run_seconds: 6000, meal_rating: 7, complaint_count: 20 },
+    ];
+    const awards = resolvePredictions(preds, { run_seconds: 5900, meal_rating: null, complaint_count: null });
+    expect(awards).toEqual([{ user_id: "b", category: "run", points: 10 }]);
+  });
+});

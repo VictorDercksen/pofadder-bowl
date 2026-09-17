@@ -9,12 +9,15 @@ const checkinSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   accuracy: z.number().min(0).max(100_000).nullable(),
-  capturedAt: z.string().datetime(),
+  capturedAt: z.iso.datetime(),
   clientId: z.string().min(8).max(80),
 });
 
 /** Participant-only. The RPC re-checks role, consent and de-duplicates by client id. */
-export async function recordCheckin(input: z.input<typeof checkinSchema>): Promise<ActionResult & { id?: string }> {
+/** `duplicate` is set when the client id was already recorded (same GPS fix sent twice): nothing new was written. */
+export type CheckinResult = ActionResult & { id?: string; duplicate?: boolean };
+
+export async function recordCheckin(input: z.input<typeof checkinSchema>): Promise<CheckinResult> {
   const parsed = checkinSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid position payload." };
   const ctx = await getLeagueContext();
@@ -27,10 +30,18 @@ export async function recordCheckin(input: z.input<typeof checkinSchema>): Promi
     p_captured_at: parsed.data.capturedAt,
     p_client_id: parsed.data.clientId,
   });
-  if (error) return { ok: false, message: error.message.includes("paused") ? "Sharing is paused. Resume sharing before checking in." : "Check-in failed. Try again." };
+  if (error) {
+    if (error.message.includes("paused")) return { ok: false, message: "Sharing is paused. Resume sharing before checking in." };
+    if (error.message.includes("window")) return { ok: false, message: "The position's timestamp is outside the accepted window. Check the phone's clock and try again." };
+    return { ok: false, message: "Check-in failed. Try again." };
+  }
+  // The RPC de-duplicates by client id and hands back the existing row for a replay.
+  const duplicate = Boolean(data?.received_at) && Date.now() - Date.parse(data.received_at) > 10_000;
+  if (duplicate) return { ok: true, duplicate: true, message: "Same GPS fix as the last check-in. Nothing new recorded; move or wait for a fresh fix.", id: data?.id };
   revalidatePath("/map");
   revalidatePath("/game-centre");
   revalidatePath("/my-trip");
+  revalidatePath("/recap");
   return { ok: true, message: "Check-in recorded.", id: data?.id };
 }
 
@@ -60,5 +71,7 @@ export async function removeCheckins(input: { ids?: string[] }): Promise<ActionR
   if (error) return { ok: false, message: "Could not remove check-ins." };
   revalidatePath("/map");
   revalidatePath("/game-centre");
+  revalidatePath("/my-trip");
+  revalidatePath("/recap");
   return { ok: true, message: `${data ?? 0} check-in(s) removed from the league view.` };
 }

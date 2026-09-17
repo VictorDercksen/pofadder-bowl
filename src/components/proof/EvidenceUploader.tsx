@@ -7,6 +7,7 @@ import { createDraft, deleteDraftFile, submitDraft, updateCaption } from "@/lib/
 import { formatBytes, validateFile } from "@/lib/evidence-rules";
 import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
 import { useOnline } from "@/lib/hooks";
+import { newId } from "@/lib/ids";
 
 export type ExistingFile = { id: string; original_name: string | null; kind: string; byte_size: number };
 export type ExistingSubmission = { id: string; version: number; status: string; caption: string; files: ExistingFile[] } | null;
@@ -44,18 +45,26 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   const online = useOnline();
   const [pending, startTransition] = useTransition();
   const [localSaved, setLocalSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const uploadingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Restore a local draft (files kept on this device).
+  // Restore a local draft (files kept on this device). Merges with anything added meanwhile
+  // and ignores a result that arrives after the effect was cleaned up.
   useEffect(() => {
+    let ignore = false;
     loadDraft(draftKey).then((d) => {
-      if (!d) return;
+      if (ignore || !d) return;
       if (!editable && d.files.every((f) => f.status === "uploaded")) return;
       setCaption((c) => c || d.caption);
       if (d.submissionId && editable) setSubmissionId((s) => s ?? d.submissionId);
-      setRows(d.files.filter((f) => f.status !== "uploaded").map((f) => ({ local: f, progress: 0 })));
+      const restored = d.files.filter((f) => f.status !== "uploaded").map((f) => ({ local: f, progress: 0 }));
+      setRows((prev) => [...prev, ...restored.filter((r) => !prev.some((p) => p.local.id === r.local.id))]);
       setLocalSaved(true);
     });
+    return () => {
+      ignore = true;
+    };
   }, [draftKey, editable]);
 
   const persist = useCallback(
@@ -89,7 +98,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
         setNote({ text: `${file.name}: ${v.reason}`, tone: "error" });
         continue;
       }
-      next.push({ local: { id: crypto.randomUUID(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued" }, progress: 0 });
+      next.push({ local: { id: newId(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued", lastModified: file.lastModified }, progress: 0 });
     }
     if (next.length === 0) return;
     const all = [...rows, ...next];
@@ -105,23 +114,37 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       setNote({ text: "Offline. Files stay in the local draft and can be uploaded when you reconnect.", tone: "warn" });
       return;
     }
-    const sid = await ensureSubmission();
-    if (!sid) return;
-    const queue = rows.filter((r) => r.local.status !== "uploaded");
-    if (queue.length === 0) return;
-    for (const row of queue) {
-      const file = new File([row.local.blob], row.local.name, { type: row.local.type });
-      const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0 } : r))));
-      setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
-      const res = await handle.done;
-      setRows((prev) => {
-        const updated = prev.map((r) => (r.local.id === row.local.id ? { ...r, handle: undefined, progress: res.ok ? 1 : r.progress, local: { ...r.local, status: res.ok ? ("uploaded" as const) : ("failed" as const), error: res.ok ? undefined : res.message } } : r));
-        persist(updated.filter((r) => r.local.status !== "uploaded"), caption, sid);
-        return updated;
-      });
-      if (!res.ok) setNote({ text: res.message, tone: "error" });
+    // One upload loop at a time: a second click (or Retry) must not send the same bytes twice.
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
+    setUploading(true);
+    try {
+      const sid = await ensureSubmission();
+      if (!sid) return;
+      const queue = rows.filter((r) => r.local.status !== "uploaded");
+      if (queue.length === 0) return;
+      const outcomes = new Map<string, { ok: boolean; message?: string }>();
+      const applyOutcome = (r: Row): Row => {
+        const o = outcomes.get(r.local.id);
+        if (!o) return r;
+        return { ...r, handle: undefined, progress: o.ok ? 1 : r.progress, local: { ...r.local, status: o.ok ? ("uploaded" as const) : ("failed" as const), error: o.ok ? undefined : o.message } };
+      };
+      for (const row of queue) {
+        // The same name, type, size and lastModified give tus a stable fingerprint, so an interrupted large upload resumes.
+        const file = new File([row.local.blob], row.local.name, { type: row.local.type, lastModified: row.local.lastModified ?? 0 });
+        const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0 } : r))));
+        setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
+        const res = await handle.done;
+        outcomes.set(row.local.id, { ok: res.ok, message: res.ok ? undefined : res.message });
+        setRows((prev) => prev.map(applyOutcome));
+        await persist(rows.map(applyOutcome).filter((r) => r.local.status !== "uploaded"), caption, sid);
+        if (!res.ok) setNote({ text: res.message, tone: "error" });
+      }
+      router.refresh();
+    } finally {
+      uploadingRef.current = false;
+      setUploading(false);
     }
-    router.refresh();
   }
 
   function cancel(row: Row) {
@@ -206,8 +229,8 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
                 <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => addFiles(e.target.files)} className="pb-sr-only" />
               </label>
               {rows.some((r) => r.local.status !== "uploaded") ? (
-                <button className="pb-primary" type="button" onClick={uploadAll} disabled={!online}>
-                  Upload {rows.filter((r) => r.local.status !== "uploaded").length} file(s)
+                <button className="pb-primary" type="button" onClick={uploadAll} disabled={!online || uploading}>
+                  {uploading ? "Uploading…" : `Upload ${rows.filter((r) => r.local.status !== "uploaded").length} file(s)`}
                 </button>
               ) : null}
             </div>
@@ -230,7 +253,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
               {row.handle ? (
                 <button className="pb-text-action" type="button" onClick={() => cancel(row)}>Cancel</button>
               ) : row.local.status === "failed" ? (
-                <button className="pb-text-action" type="button" onClick={uploadAll}>Retry</button>
+                <button className="pb-text-action" type="button" onClick={uploadAll} disabled={uploading}>Retry</button>
               ) : row.local.status !== "uploaded" ? (
                 <button className="pb-text-action" type="button" onClick={() => removeLocal(row)}>Remove</button>
               ) : null}
@@ -250,7 +273,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
                 <br />
                 <span className="pb-small">{f.kind} · {formatBytes(f.byte_size)} · in private storage</span>
               </div>
-              {current.status === "draft" ? (
+              {current.status === "draft" || current.status === "flagged" ? (
                 <button className="pb-text-action" type="button" onClick={() => removeUploaded(f.id)} disabled={pending}>Remove</button>
               ) : null}
             </div>

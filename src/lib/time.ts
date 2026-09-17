@@ -41,6 +41,8 @@ export function eventPhase(times: EventTimes, now: Date = new Date()): EventPhas
   const arr = Date.parse(times.away_arrival_at);
   const ret = Date.parse(times.return_departure_at);
   const home = Date.parse(times.home_arrival_at);
+  // An unparseable instant must not read as "sentence served": fail closed to pregame.
+  if (![dep, arr, ret, home].every(Number.isFinite)) return "pregame";
   const q3 = arr + 4.75 * 3600_000;
   const q4 = ret - 5 * 3600_000;
   if (t < dep) return "pregame";
@@ -55,29 +57,38 @@ export function quarterNumber(phase: EventPhase): number {
   return { pregame: 0, q1: 1, q2: 2, q3: 3, q4: 4, postgame: 4 }[phase];
 }
 
-export function formatTime(iso: string | Date, timezone: string): string {
+function toDate(iso: string | Date): Date | null {
   const d = typeof iso === "string" ? new Date(iso) : iso;
+  return Number.isFinite(d.getTime()) ? d : null;
+}
+
+export function formatTime(iso: string | Date, timezone: string): string {
+  const d = toDate(iso);
+  if (!d) return "—";
   return new Intl.DateTimeFormat("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone }).format(d);
 }
 
 export function formatDay(iso: string | Date, timezone: string): string {
-  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const d = toDate(iso);
+  if (!d) return "—";
   return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: timezone }).format(d);
 }
 
 export function formatDateTime(iso: string | Date, timezone: string): string {
+  if (!toDate(iso)) return "—";
   return `${formatDay(iso, timezone)} · ${formatTime(iso, timezone)} SAST`;
 }
 
 export function formatLongDate(iso: string | Date, timezone: string): string {
-  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const d = toDate(iso);
+  if (!d) return "—";
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: timezone }).format(d);
 }
 
 /** "11 h 55 m", "3 m", "0 m" or "" when the target has passed. */
 export function countdown(targetIso: string, now: Date = new Date()): string {
   const diff = Date.parse(targetIso) - now.getTime();
-  if (diff <= 0) return "";
+  if (!Number.isFinite(diff) || diff <= 0) return "";
   const totalMinutes = Math.floor(diff / 60_000);
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
@@ -89,7 +100,9 @@ export function countdown(targetIso: string, now: Date = new Date()): string {
 
 /** Age of a timestamp in words, e.g. "4 min ago", "2 h ago". */
 export function ageLabel(iso: string, now: Date = new Date()): string {
-  const diff = Math.max(0, now.getTime() - Date.parse(iso));
+  const parsed = Date.parse(iso);
+  if (!Number.isFinite(parsed)) return "unknown";
+  const diff = Math.max(0, now.getTime() - parsed);
   const minutes = Math.floor(diff / 60_000);
   if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes} min ago`;
@@ -98,14 +111,18 @@ export function ageLabel(iso: string, now: Date = new Date()): string {
   return `${Math.floor(hours / 24)} d ago`;
 }
 
+/** Unparseable timestamps count as stale rather than fresh. */
 export function isStale(iso: string, maxAgeMinutes = 30, now: Date = new Date()): boolean {
-  return now.getTime() - Date.parse(iso) > maxAgeMinutes * 60_000;
+  const parsed = Date.parse(iso);
+  if (!Number.isFinite(parsed)) return true;
+  return now.getTime() - parsed > maxAgeMinutes * 60_000;
 }
 
 export function secondsToClock(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
+  const total = Number.isFinite(seconds) ? Math.max(0, Math.round(seconds)) : 0;
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
 }
 

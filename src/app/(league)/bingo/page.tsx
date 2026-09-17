@@ -32,7 +32,11 @@ export default async function BingoPage() {
     );
   }
 
-  const confirmedPositions = new Set((incidents ?? []).filter((i) => i.status === "confirmed").map((i) => squares.find((s) => s.id === i.square_id)?.position).filter((p): p is number => p != null));
+  // The free square counts as marked, exactly as decide_bingo_incident and bingo_leaderboard treat it.
+  const confirmedPositions = new Set([
+    ...squares.filter((s) => s.is_free).map((s) => s.position),
+    ...(incidents ?? []).filter((i) => i.status === "confirmed").map((i) => squares.find((s) => s.id === i.square_id)?.position).filter((p): p is number => p != null),
+  ]);
   const proposedSquareIds = new Set((incidents ?? []).filter((i) => i.status === "proposed").map((i) => i.square_id));
   const myLines = (wins ?? []).filter((w) => w.line_key !== "full_house");
   const marked = [...confirmedPositions].filter((p) => card.layout.includes(p)).length;

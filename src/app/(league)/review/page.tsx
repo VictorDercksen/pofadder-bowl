@@ -19,7 +19,7 @@ export default async function ReviewPage() {
     ctx.supabase.from("official_results").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("bingo_incidents").select("*, square:bingo_squares(text)").eq("event_id", ctx.event.id).eq("status", "proposed"),
-    ctx.supabase.from("review_decisions").select("*").order("created_at", { ascending: false }).limit(8),
+    ctx.supabase.from("review_decisions").select("*, submission:evidence_submissions!inner(event_id)").eq("submission.event_id", ctx.event.id).order("created_at", { ascending: false }).limit(8),
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
   const byChallenge = new Map((challenges ?? []).map((c) => [c.id, c]));
@@ -135,8 +135,8 @@ export default async function ReviewPage() {
             );
           })}
           <PenaltyList penalties={penalties ?? []} />
-          <ResultsForm results={results ?? null} />
-          <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} />
+          <ResultsForm results={results ?? null} timezone={tz} />
+          <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} timezone={tz} />
         </div>
       </div>
     </>

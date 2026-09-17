@@ -9,6 +9,8 @@ type Settings = { sharing_enabled: boolean; auto_update: boolean };
 
 const MIN_INTERVAL_MS = 5 * 60_000; // auto check-ins at most every 5 minutes
 const WEAK_ACCURACY_M = 250;
+/** Last automatic attempt (success or failure), shared across mounts so navigating between screens does not re-poll GPS. */
+let lastAutoAttempt = 0;
 
 /**
  * Participant-only location controls. Renders only when the server confirmed the
@@ -21,7 +23,6 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
-  const lastAuto = useRef(0);
   const inFlight = useRef(false);
 
   const capture = useCallback(
@@ -39,19 +40,21 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
         return;
       }
       if (inFlight.current) return;
-      if (!manual && Date.now() - lastAuto.current < MIN_INTERVAL_MS) return;
+      if (!manual && Date.now() - lastAutoAttempt < MIN_INTERVAL_MS) return;
+      if (!manual) lastAutoAttempt = Date.now();
       inFlight.current = true;
       setBusy(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          lastAuto.current = Date.now();
           const capturedAt = new Date(pos.timestamp).toISOString();
           const clientId = `${Math.round(pos.timestamp / 1000)}-${pos.coords.latitude.toFixed(5)}-${pos.coords.longitude.toFixed(5)}`;
           const weak = pos.coords.accuracy > WEAK_ACCURACY_M;
           startTransition(async () => {
             try {
               const res = await recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId });
-              if (res.ok) {
+              if (res.ok && res.duplicate) {
+                setNote({ text: res.message ?? "Nothing new recorded.", tone: "warn" });
+              } else if (res.ok) {
                 setNote({ text: weak ? `Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, tone: weak ? "warn" : "ok" });
                 router.refresh();
               } else setNote({ text: res.message, tone: "error" });
@@ -75,7 +78,8 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
                 : "Timed out waiting for a GPS fix. Try again.";
           setNote({ text, tone: "error" });
         },
-        { enableHighAccuracy: true, timeout: 20_000, maximumAge: 60_000 },
+        // A manual press must produce a fresh fix; a cached one repeats the client id and is dropped as a duplicate.
+        { enableHighAccuracy: true, timeout: 20_000, maximumAge: manual ? 0 : 60_000 },
       );
     },
     [router, settings.sharing_enabled],
