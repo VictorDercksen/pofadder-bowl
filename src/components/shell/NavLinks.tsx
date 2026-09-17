@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavItem = { n: string; label: string; href: string; roles?: string[] };
+import type { NavItem } from "@/components/shell/nav";
+
+export type { NavItem } from "@/components/shell/nav";
 
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();

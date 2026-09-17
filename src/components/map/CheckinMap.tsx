@@ -18,11 +18,13 @@ const LiveMap = dynamic(() => import("./LiveMap").then((m) => m.LiveMap), {
 });
 
 /**
- * Leaflet map with a configurable licensed tile provider. When no tile URL is
- * configured, shows the supplied static regional preview, explicitly labelled as a
- * fallback (town-centre reference pins only, never device check-ins).
+ * Leaflet map on the configured tile provider (OpenStreetMap unless overridden), with
+ * the check-in path drawn as a line. When tiles are explicitly disabled
+ * (NEXT_PUBLIC_MAP_TILE_URL=static) the supplied regional preview is shown instead,
+ * clearly labelled, with town-centre reference pins only; check-ins are then listed
+ * rather than plotted.
  */
-export function CheckinMap({ pins, focus }: { pins: MapPin[]; focus?: { latitude: number; longitude: number } }) {
+export function CheckinMap({ pins, path = [], focus }: { pins: MapPin[]; path?: [number, number][]; focus?: { latitude: number; longitude: number } }) {
   if (!publicEnv.mapTileUrl) {
     return (
       <div>
@@ -43,10 +45,13 @@ export function CheckinMap({ pins, focus }: { pins: MapPin[]; focus?: { latitude
       </div>
     );
   }
+  const checkinCount = pins.filter((p) => p.kind !== "place").length;
   return (
     <div>
-      <LiveMap pins={pins} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={publicEnv.mapTileAttribution || "Map data © OpenStreetMap contributors"} fallbackCenter={[TOWN_PINS.pofadder.latitude, TOWN_PINS.pofadder.longitude]} />
-      <div className="pb-map-source">Live map · attribution shown on the map · Town pins are references, not check-ins.</div>
+      <LiveMap pins={pins} path={path} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={publicEnv.mapTileAttribution} fallbackLatitude={TOWN_PINS.pofadder.latitude} fallbackLongitude={TOWN_PINS.pofadder.longitude} />
+      <div className="pb-map-source">
+        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the route through ${path.length} check-ins, oldest to newest.` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} Grey pins are itinerary venues, not check-ins.
+      </div>
     </div>
   );
 }

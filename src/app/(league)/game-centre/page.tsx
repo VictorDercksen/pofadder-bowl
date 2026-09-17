@@ -6,6 +6,7 @@ import { CheckinMap } from "@/components/map/CheckinMap";
 import { SidelineFeed } from "@/components/feed/SidelineFeed";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadFeed } from "@/lib/feed";
+import { checkinPath } from "@/lib/checkin-path";
 import { loadCheckins, participantName } from "@/lib/checkins";
 import { nextItinerary } from "@/lib/itinerary";
 import { ageLabel, eventPhase, formatDay, formatTime, isStale, PHASE_HEADINGS, QUARTER_LABELS, quarterNumber } from "@/lib/time";
@@ -18,7 +19,7 @@ export default async function GameCentrePage() {
   const phase = eventPhase(ctx.event, now);
   const [score, checkins, name, next, feedResult] = await Promise.all([
     getEventScore(ctx),
-    loadCheckins(ctx, 5),
+    loadCheckins(ctx),
     participantName(ctx),
     nextItinerary(ctx, now),
     loadFeed(ctx).then((posts) => ({ posts, error: null as string | null })).catch((e: Error) => ({ posts: [], error: e.message })),
@@ -56,7 +57,7 @@ export default async function GameCentrePage() {
 
       <div className="pb-centre-top">
         <div className="pb-panel pb-plain-map">
-          <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+          <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
               <b>{latest ? `Last check-in · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>

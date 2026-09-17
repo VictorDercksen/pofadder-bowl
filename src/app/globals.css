@@ -456,3 +456,13 @@ a{color:inherit}
 .pb .pb-timer-cell small{display:block;font-size:9px;letter-spacing:1.6px;color:#c9d5c5;margin-top:4px}
 .pb .pb-timer-done{font:900 44px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--pb-gold);margin:14px 0}
 .pb .pb-timer-foot{font-size:10px;letter-spacing:1.4px;color:#c9d5c5}
+
+/* Member view toggle (admin / commissioner / participant preview of the league's screens) */
+.pb .pb-role-badge{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.pb .pb-demo.on{background:var(--pb-orange);border-color:var(--pb-orange);color:#fff8e9}
+.pb .pb-view-toggle{display:inline-flex;margin:0}
+.pb .pb-view-toggle .pb-text-action{white-space:nowrap}
+.pb .pb-member-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pb .pb-member-banner .pb-text-action{color:#8e421e}
+.pb .pb-drawer-foot .pb-view-toggle .pb-text-action{color:var(--pb-gold)}
+@media(max-width:580px){.pb .pb-role-badge .pb-view-toggle{display:none}}

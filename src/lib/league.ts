@@ -1,12 +1,15 @@
 import "server-only";
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
 import type { Database, Tables } from "@/lib/database.types";
+import { MEMBER_VIEW_COOKIE, resolveAccess, type Role } from "@/lib/roles";
 
-export type Role = "participant" | "member" | "commissioner" | "admin";
+export type { Role } from "@/lib/roles";
+export { describeRole, MEMBER_VIEW_COOKIE } from "@/lib/roles";
 
 export type LeagueContext = {
   supabase: SupabaseClient<Database>;
@@ -22,6 +25,10 @@ export type LeagueContext = {
   /** Refereeing: review, penalties, results, bingo confirmations, certificate. Admins are commissioners too. */
   isCommissioner: boolean;
   isParticipant: boolean;
+  /** True when the account holds more than plain membership (admin, commissioner or participant). */
+  canViewAsMember: boolean;
+  /** True when an elevated account has switched to the league member view (cookie). Every flag above is then false. */
+  viewingAsMember: boolean;
 };
 
 /** Verified user (or null). Uses getClaims() so the JWT is validated, not just read from the cookie. */
@@ -65,11 +72,9 @@ export const getLeagueContextRaw = cache(async (): Promise<LeagueContext> => {
   if (!membership) redirect("/no-access");
   if (!event) redirect("/setup?reason=event");
 
-  const isAdmin = membership.is_admin;
-  const isCommissioner = membership.is_commissioner || isAdmin;
-  const isParticipant = event.participant_user_id === user.id;
-  const role: Role = isAdmin ? "admin" : isCommissioner ? "commissioner" : isParticipant ? "participant" : "member";
-  return { supabase, user, profile, league, event, membership, role, isAdmin, isCommissioner, isParticipant };
+  const memberView = (await cookies()).get(MEMBER_VIEW_COOKIE)?.value === "1";
+  const access = resolveAccess({ isAdmin: membership.is_admin, isCommissioner: membership.is_commissioner, isParticipant: event.participant_user_id === user.id }, memberView);
+  return { supabase, user, profile, league, event, membership, ...access };
 });
 
 export function homeFor(ctx: Pick<LeagueContext, "role">): string {

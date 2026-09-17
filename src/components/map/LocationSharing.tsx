@@ -49,13 +49,19 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
           const clientId = `${Math.round(pos.timestamp / 1000)}-${pos.coords.latitude.toFixed(5)}-${pos.coords.longitude.toFixed(5)}`;
           const weak = pos.coords.accuracy > WEAK_ACCURACY_M;
           startTransition(async () => {
-            const res = await recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId });
-            inFlight.current = false;
-            setBusy(false);
-            if (res.ok) {
-              setNote({ text: weak ? `Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `Check-in saved (±${Math.round(pos.coords.accuracy)} m).`, tone: weak ? "warn" : "ok" });
-              router.refresh();
-            } else setNote({ text: res.message, tone: "error" });
+            try {
+              const res = await recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId });
+              if (res.ok) {
+                setNote({ text: weak ? `Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, tone: weak ? "warn" : "ok" });
+                router.refresh();
+              } else setNote({ text: res.message, tone: "error" });
+            } catch {
+              // Network dropped mid-request (common on the N7): leave the button usable for a retry.
+              setNote({ text: "The check-in did not reach the league. Check your signal and try again.", tone: "error" });
+            } finally {
+              inFlight.current = false;
+              setBusy(false);
+            }
           });
         },
         (err) => {

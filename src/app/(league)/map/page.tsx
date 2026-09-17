@@ -1,7 +1,9 @@
 import { TitleRow } from "@/components/ui/TitleRow";
 import { CheckinMap, type MapPin } from "@/components/map/CheckinMap";
+import { CheckinLive } from "@/components/map/CheckinLive";
 import { LocationSharing } from "@/components/map/LocationSharing";
 import { getLeagueContext } from "@/lib/league";
+import { checkinPath } from "@/lib/checkin-path";
 import { loadCheckins, loadLocationSettings, participantName } from "@/lib/checkins";
 import { ageLabel, formatDay, formatTime, isStale } from "@/lib/time";
 
@@ -13,10 +15,12 @@ export default async function MapPage() {
   const { data: places } = await ctx.supabase.from("itinerary_items").select("id, title, venue_text, latitude, longitude, location_verified").eq("event_id", ctx.event.id).eq("location_verified", true);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
+  // Oldest to newest: the line the league watches grow from Malmesbury to Pofadder and back.
+  const path = checkinPath(checkins);
 
   const pins: MapPin[] = [
     ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []),
-    ...checkins.slice(1, 20).map((c) => ({ id: c.id, latitude: c.latitude, longitude: c.longitude, label: `${formatDay(c.captured_at, tz)} ${formatTime(c.captured_at, tz)}`, kind: "history" as const })),
+    ...checkins.slice(1).map((c) => ({ id: c.id, latitude: c.latitude, longitude: c.longitude, label: `${formatDay(c.captured_at, tz)} ${formatTime(c.captured_at, tz)}`, kind: "history" as const })),
     ...(places ?? []).filter((p) => p.latitude != null && p.longitude != null).map((p) => ({ id: p.id, latitude: p.latitude as number, longitude: p.longitude as number, label: p.title, kind: "place" as const })),
   ];
 
@@ -25,7 +29,8 @@ export default async function MapPage() {
       <TitleRow kicker="CHECK-INS · LEAGUE ONLY" title={`Where’s ${name.split(" ")[0]}?`} blurb="A fresh check-in whenever the participant returns. A timestamp everyone can trust." tag={latest ? (isStale(latest.captured_at) ? "STALE CHECK-IN" : "RECENT CHECK-IN") : "NO CHECK-INS"} team="buf" />
       <div className="pb-split">
         <div className="pb-panel pb-plain-map">
-          <CheckinMap pins={pins} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+          <CheckinLive eventId={ctx.event.id} />
+          <CheckinMap pins={pins} path={path} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
               <b>{latest ? `${name} · ${latest.latitude.toFixed(4)}, ${latest.longitude.toFixed(4)}` : "No device check-in yet"}</b>
@@ -48,7 +53,7 @@ export default async function MapPage() {
             </div>
           )}
           <div className="pb-panel" style={{ marginTop: 18 }}>
-            <h3>Check-in history</h3>
+            <h3>Check-in history{checkins.length ? ` · ${checkins.length}` : ""}</h3>
             {checkins.length === 0 ? <p className="pb-small">Nothing yet. Check-ins appear here with capture time, receive time and accuracy.</p> : null}
             {checkins.slice(0, 12).map((c) => (
               <div className="pb-challenge" key={c.id}>
