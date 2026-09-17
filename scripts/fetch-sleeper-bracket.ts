@@ -19,7 +19,8 @@ async function get(path: string): Promise<unknown> {
 }
 
 async function main() {
-  type League = { league_id: string; season?: string; previous_league_id?: string | null; name?: string };
+  type League = { league_id: string; season?: string; previous_league_id?: string | null; name?: string; settings?: { playoff_week_start?: number } };
+  type Matchup = { roster_id: number; matchup_id: number | null; points: number | null };
   let id: string | null = start;
   let league: League | null = null;
   for (let hop = 0; id && hop < 8; hop++) {
@@ -33,9 +34,20 @@ async function main() {
   }
   if (!league) throw new Error(`No league for season ${season} in the chain from ${start}`);
   const [bracket, rosters, users] = await Promise.all([get(`/league/${league.league_id}/losers_bracket`), get(`/league/${league.league_id}/rosters`), get(`/league/${league.league_id}/users`)]);
-  const out = { season, leagueName: league.name ?? null, leagueId: league.league_id, fetchedAt: new Date().toISOString(), bracket, rosters, users };
+  // Scores per playoff week: round r of the bracket is played in week playoff_week_start + r - 1.
+  const playoffWeekStart = typeof league.settings?.playoff_week_start === "number" ? league.settings.playoff_week_start : null;
+  const rounds = Array.isArray(bracket) ? Math.max(0, ...(bracket as { r?: number }[]).map((b) => (typeof b.r === "number" ? b.r : 0))) : 0;
+  const matchups: Record<string, Matchup[]> = {};
+  if (playoffWeekStart && rounds) {
+    for (let r = 1; r <= rounds; r++) {
+      const week = playoffWeekStart + r - 1;
+      const raw = (await get(`/league/${league.league_id}/matchups/${week}`)) as Matchup[];
+      matchups[String(week)] = Array.isArray(raw) ? raw.map((m) => ({ roster_id: m.roster_id, matchup_id: m.matchup_id ?? null, points: m.points ?? null })) : [];
+    }
+  }
+  const out = { season, leagueName: league.name ?? null, leagueId: league.league_id, fetchedAt: new Date().toISOString(), playoffWeekStart, bracket, rosters, users, matchups };
   writeFileSync("src/data/sleeper-losers-bracket.json", JSON.stringify(out, null, 2) + "\n");
-  console.log(`Wrote ${(bracket as unknown[]).length} bracket rows for ${league.name} (${season}) to src/data/sleeper-losers-bracket.json`);
+  console.log(`Wrote ${(bracket as unknown[]).length} bracket rows and ${Object.keys(matchups).length} weeks of scores for ${league.name} (${season}) to src/data/sleeper-losers-bracket.json`);
 }
 
 main().catch((err) => {

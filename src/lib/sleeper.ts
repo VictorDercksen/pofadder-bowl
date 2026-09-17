@@ -1,6 +1,6 @@
 import "server-only";
 import snapshot from "@/data/sleeper-losers-bracket.json";
-import { buildBracket, parseBracketRows, parseRosters, type Bracket, type Manager } from "@/lib/bracket";
+import { buildBracket, parseBracketRows, parseRosters, parseWeekScores, type Bracket, type BracketRow, type Manager, type WeekScores } from "@/lib/bracket";
 
 /**
  * Sleeper public API (read-only, no authentication available). Docs: https://docs.sleeper.com
@@ -45,7 +45,7 @@ export function sleeperAvatarUrl(avatar: string | null, thumb = true): string | 
   return `https://sleepercdn.com/avatars/${thumb ? "thumbs/" : ""}${avatar}`;
 }
 
-type SleeperLeague = { league_id: string; name: string; season: string | null; previous_league_id: string | null };
+type SleeperLeague = { league_id: string; name: string; season: string | null; previous_league_id: string | null; playoffWeekStart: number | null };
 
 /** Cached read (Next data cache, one hour). The bracket is history; nothing here changes by the minute. */
 async function getCached(path: string): Promise<unknown> {
@@ -59,7 +59,15 @@ function asLeague(raw: unknown): SleeperLeague | null {
   const o = raw as Record<string, unknown>;
   const id = typeof o.league_id === "string" ? o.league_id : null;
   if (!id) return null;
-  return { league_id: id, name: typeof o.name === "string" ? o.name.slice(0, 80) : "Sleeper league", season: typeof o.season === "string" ? o.season : null, previous_league_id: typeof o.previous_league_id === "string" ? o.previous_league_id : null };
+  const settings = typeof o.settings === "object" && o.settings !== null ? (o.settings as Record<string, unknown>) : null;
+  const start = settings?.playoff_week_start;
+  return {
+    league_id: id,
+    name: typeof o.name === "string" ? o.name.slice(0, 80) : "Sleeper league",
+    season: typeof o.season === "string" ? o.season : null,
+    previous_league_id: typeof o.previous_league_id === "string" ? o.previous_league_id : null,
+    playoffWeekStart: typeof start === "number" && Number.isInteger(start) && start > 0 && start < 30 ? start : null,
+  };
 }
 
 /** Walks previous_league_id back from the configured league to the given season (max 8 hops). */
@@ -90,6 +98,19 @@ function toManagers(raw: unknown): Manager[] {
 
 export type LosersBracketData = { season: string; leagueName: string; bracket: Bracket; source: "live" | "snapshot" };
 
+/** The weeks the bracket was played in: playoff_week_start + round - 1 for every round present. */
+function bracketWeeks(rows: BracketRow[], playoffWeekStart: number | null): number[] {
+  if (playoffWeekStart == null) return [];
+  const rounds = Array.from(new Set(rows.map((r) => r.r)));
+  return rounds.map((r) => playoffWeekStart + r - 1);
+}
+
+/** Points per playoff week, fetched in parallel. A week that fails just shows no scores. */
+async function fetchWeekScores(leagueId: string, weeks: number[]): Promise<Map<number, WeekScores>> {
+  const entries = await Promise.all(weeks.map(async (week) => [week, parseWeekScores(await getCached(`/league/${leagueId}/matchups/${week}`).catch(() => null))] as const));
+  return new Map(entries);
+}
+
 /**
  * The sentenced season's losers bracket: live from Sleeper (cached an hour), else the committed
  * snapshot (scripts/fetch-sleeper-bracket.ts), else null so the caller shows the standings.
@@ -101,7 +122,10 @@ export async function loadLosersBracket(startLeagueId: string | null, season: st
       if (league) {
         const [rowsRaw, rostersRaw, usersRaw] = await Promise.all([getCached(`/league/${league.league_id}/losers_bracket`), getCached(`/league/${league.league_id}/rosters`), getCached(`/league/${league.league_id}/users`)]);
         const rows = parseBracketRows(rowsRaw);
-        if (rows.length) return { season, leagueName: league.name, bracket: buildBracket(rows, parseRosters(rostersRaw), toManagers(usersRaw), sentencedUsername), source: "live" };
+        if (rows.length) {
+          const scores = await fetchWeekScores(league.league_id, bracketWeeks(rows, league.playoffWeekStart));
+          return { season, leagueName: league.name, bracket: buildBracket(rows, parseRosters(rostersRaw), toManagers(usersRaw), sentencedUsername, { playoffWeekStart: league.playoffWeekStart, scores }), source: "live" };
+        }
       }
     } catch {
       // Fall through to the snapshot.
@@ -109,7 +133,8 @@ export async function loadLosersBracket(startLeagueId: string | null, season: st
   }
   const rows = parseBracketRows(snapshot.bracket);
   if (snapshot.season === season && rows.length) {
-    return { season, leagueName: snapshot.leagueName ?? "Sleeper league", bracket: buildBracket(rows, parseRosters(snapshot.rosters), toManagers(snapshot.users), sentencedUsername), source: "snapshot" };
+    const scores = new Map(Object.entries(snapshot.matchups ?? {}).map(([week, raw]) => [Number(week), parseWeekScores(raw)] as const));
+    return { season, leagueName: snapshot.leagueName ?? "Sleeper league", bracket: buildBracket(rows, parseRosters(snapshot.rosters), toManagers(snapshot.users), sentencedUsername, { playoffWeekStart: snapshot.playoffWeekStart ?? null, scores }), source: "snapshot" };
   }
   return null;
 }
