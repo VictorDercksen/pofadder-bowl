@@ -49,4 +49,5 @@ Improve the look of the identity block at the top of the mobile drawer (name, ki
 
 ## Open items
 
-- None from this change. Earlier open items (db push of `league_context`, type regeneration) still stand per the previous handoff.
+- None from this change. Merged into `main` on 2026-09-17.
+- `league_context` migration (`20260917000800_league_context.sql`): **pushed to the hosted project from the laptop on 2026-09-17**, so `getLeagueContext` now uses the RPC path in production. Only the type regeneration of `src/lib/database.types.ts` from the local stack remains open.
