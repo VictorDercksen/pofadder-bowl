@@ -6,11 +6,11 @@ Follow-on to `handoff_2026-09-17_merge-main.md`. Infrastructure detail still liv
 
 | Item | Value |
 |---|---|
-| Branch | `claude/adoring-brahmagupta-b3zk4a` (from `main`, not merged, no PR opened) |
+| Branch | `claude/adoring-brahmagupta-b3zk4a` (not merged into `main`, no PR opened). `origin/main` at `1c4efb0` (drawer identity, sideline paging, `league_context` pushed) was merged **into** this branch afterwards; the only conflict was both sides appending to the end of `globals.css`, resolved by keeping both blocks (main's drawer and paging rules, then the bracket rules) |
 | Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
-| Schema / env | Unchanged. `db:push` for `league_context` is still outstanding from the previous handoff |
+| Schema / env | Unchanged. Per `handoff_2026-09-17_sideline-paging.md` on main, `league_context` is now pushed to the hosted project |
 | Data | `src/data/sleeper-losers-bracket.json` re-fetched: now also carries `playoffWeekStart` (15) and `matchups` (points per roster for weeks 15–17) |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (11 files, 61 tests) and `npx next build` pass |
+| Tests | After the merge: `npm run typecheck`, `npm run lint`, `npm test` (12 files, 66 tests) and `npx next build` pass; the bracket was re-screenshotted on the merged tree at 1280 and 390 px with no change |
 
 ## What was asked
 
@@ -45,6 +45,6 @@ The game-centre losers bracket "doesn't look right" next to Sleeper's own render
 
 ## Still open
 
-1. `npm run db:push` from the laptop for `league_context` (carried forward), then regenerate `database.types.ts`.
+1. Regenerate `database.types.ts` from the local stack now that `league_context` is pushed (carried forward).
 2. If the Sleeper avatar CDN is ever unreachable the rows show a blank circle rather than initials (`next/image` has no error fallback without a client component). Cosmetic.
 3. Carried forward: custom SMTP, lock Sleeper link after confirmation, invite Theo as commissioner, self-review guard, `memberships.invited_email` visibility.
