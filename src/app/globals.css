@@ -21,7 +21,8 @@ a{color:inherit}
 .pb h2{font-size:28px;font-weight:700}
 .pb h3{font-size:22px;font-weight:700}
 .pb button{min-height:36px}
-.pb .pb-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;border-bottom:1px solid var(--pb-line)}
+.pb{--pb-top-h:81px}
+.pb .pb-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;border-bottom:1px solid var(--pb-line);position:sticky;top:0;z-index:50;background:var(--pb-paper)}
 .pb .pb-brand{display:flex;gap:11px;align-items:center;font:900 23px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif}
 .pb .pb-brand small{display:block;font:600 10px var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:1.6px;margin-top:5px;color:var(--pb-muted)}
 .pb .pb-shield{background:var(--pb-green);color:var(--pb-gold);padding:12px 9px;clip-path:polygon(0 0,100% 0,100% 77%,50% 100%,0 77%);font-size:23px}
@@ -30,6 +31,8 @@ a{color:inherit}
 .pb .pb-avatar{width:33px;height:33px;border-radius:50%;background:#dfdbc9;display:grid;place-items:center;font:700 16px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;flex-shrink:0}
 .pb .pb-shell{display:grid;grid-template-columns:158px minmax(0,1fr)}
 .pb .pb-sidebar{padding:23px 10px 18px 16px;border-right:1px solid var(--pb-line);background:#ebeade;display:flex;flex-direction:column;gap:4px}
+@media(min-width:851px){.pb .pb-top{height:var(--pb-top-h)}
+.pb .pb-sidebar{position:sticky;top:var(--pb-top-h);align-self:start;height:calc(100vh - var(--pb-top-h));overflow-y:auto}}
 .pb .pb-side-label{font-size:10px;letter-spacing:1.6px;color:var(--pb-muted);margin:0 9px 9px}
 .pb .pb-nav{display:flex;align-items:center;gap:9px;border:0;text-align:left;background:transparent;color:#4d5d4d;padding:9px 11px;width:100%;font-size:12px;border-radius:3px}
 .pb .pb-nav[aria-pressed=true],.pb .pb-nav[aria-current=page]{background:var(--pb-green);color:var(--pb-paper)}
@@ -438,7 +441,7 @@ a{color:inherit}
 .pb .pb-drawer-identity .pb-team-logo{width:52px;height:52px;background:#f5efe3;border-radius:50%;padding:6px;flex-shrink:0}
 .pb .pb-drawer-identity b{display:block;font:700 18px/1.1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pb .pb-drawer-identity small{display:block;font-size:11px;color:#c9d5c5;letter-spacing:.6px;margin-top:3px}
-@media(max-width:850px){.pb .pb-menu-btn{display:inline-flex}.pb .pb-sidebar{display:none}.pb .pb-top{gap:10px;position:sticky;top:0;z-index:50;background:var(--pb-paper)}.pb .pb-brand{font-size:19px}.pb .pb-brand small{display:none}.pb .pb-account{display:none}}
+@media(max-width:850px){.pb .pb-menu-btn{display:inline-flex}.pb .pb-sidebar{display:none}.pb .pb-top{gap:10px}.pb .pb-brand{font-size:19px}.pb .pb-brand small{display:none}.pb .pb-account{display:none}}
 @media(max-width:580px){.pb .pb-top{padding:12px 14px}.pb .pb-brand .pb-nfl-mark{display:none}.pb .pb-demo{display:none}}
 
 .pb .pb-press.kit{background:radial-gradient(circle at 5px 5px,#ffffff05 2px,transparent 2px) 0 0/24px 24px,linear-gradient(180deg,var(--kit) 0,var(--kit-deep) 100%);border-bottom:5px solid var(--kit-accent);position:relative;overflow:hidden;border-radius:10px}
