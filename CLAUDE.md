@@ -66,7 +66,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Elevated accounts can switch to the league member view. The `pb-member-view` cookie makes `getLeagueContext` resolve the account as a plain member for every page and action. The switch only ever removes capabilities; RLS still knows the real role. UI: `MemberViewToggle`, banner in `src/app/(league)/layout.tsx`.
 - Guards: `requireAdmin`, `requireCommissioner`, `requireParticipant` redirect to `homeFor(ctx)`. The menu per role lives in `src/components/shell/nav.ts` and is unit tested.
 - `getLeagueContext` loads everything in one `league_context` RPC (falls back to per-table queries until the migration is applied) and applies the sign-on gates: `/choose-sleeper` once the Sleeper league is imported and the member has no confirmed team, then `/choose-team` for a kit. Gate pages use `getLeagueContextRaw`. `ctx.user` comes from the verified JWT claims (`id`, `email`), not a `getUser()` round trip.
-- Every private screen has an instant loading state (`src/app/(league)/loading.tsx`, the tumbling `Football`); slow third-party data (the Sleeper bracket) streams under `Suspense` so a page never waits on it. Functions run in `fra1` (`vercel.json`) next to the Frankfurt database.
+- Every private screen has an instant loading state (`src/app/(league)/loading.tsx`, the tumbling `Football`); slow third-party data should stream under `Suspense` so a page never waits on it. Functions run in `fra1` (`vercel.json`) next to the Frankfurt database.
 
 ## Zod 4
 

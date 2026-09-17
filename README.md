@@ -23,7 +23,6 @@ Sleeper hosts the league, but Sleeper’s API is public **read-only and offers n
 - Three ways in, all against the same invited account: the emailed magic link, the 6-digit code from that email (typed on `/login` when the link opens in the wrong browser; needs the custom template with `{{ .Token }}`), or a password the member sets once under **League access → Password**. Admins can email a fresh link or mint a one-time link to hand over from **Review → Members**.
 - A commissioner imports the Sleeper league’s managers (`SLEEPER_LEAGUE_ID`, default `1313900125680054272` = Show Us Your TD’s 2026).
 - Each member confirms their own Sleeper team from that list at sign-on (`/choose-sleeper`, before the kit picker) or later under **League access → Sleeper team**. A team can be held by one member; admins can override in **Review → Members**. The confirmed team name shows in the header next to the kit badge.
-- The game centre shows the sentenced season’s Sleeper losers bracket (live from the public API, cached an hour; `npx tsx scripts/fetch-sleeper-bracket.ts` snapshots it into `src/data/sleeper-losers-bracket.json` as a fallback).
 - Roles (participant, member, commissioner) and the event participant are set only by commissioners or the bootstrap script and are enforced by RLS and RPCs. There is no client-side role switch.
 
 ## Local development

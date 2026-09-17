@@ -501,7 +501,7 @@ a{color:inherit}
 .pb .pb-code-form{margin-top:16px;padding-top:14px;border-top:1px dashed var(--pb-line)}
 .pb .pb-code-form input{font:700 24px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:6px;text-align:center}
 
-/* --- Sleeper-style surfaces: header chip, team cards, picker, losers bracket ------- */
+/* --- Sleeper-style surfaces: header chip, team cards, picker --------------------- */
 .pb{--sl-bg:#1b1e2b;--sl-card:#262a3b;--sl-card-2:#2f3447;--sl-line:#3a4055;--sl-text:#ffffff;--sl-muted:#9aa1b5;--sl-accent:#00ceb8;--sl-win:#2fb37a;--sl-loss:#e0484f}
 .pb .pb-sl-avatar{display:inline-grid;place-items:center;border-radius:50%;object-fit:cover;background:var(--sl-card-2);flex-shrink:0;overflow:hidden}
 .pb .pb-sl-avatar-fallback{color:var(--sl-text);font:700 12px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:.5px;background:linear-gradient(135deg,#3b4a7a,#243052);border:1px solid #4a5478}
@@ -525,9 +525,9 @@ a{color:inherit}
 .pb .pb-sl-card.selected{border-color:var(--sl-accent);box-shadow:0 0 0 2px var(--sl-accent) inset,0 0 18px #00ceb833}
 .pb .pb-sl-card.taken{opacity:.5}
 .pb .pb-sl-panel{background:var(--sl-bg);color:var(--sl-text);border-radius:14px;padding:18px;border:1px solid var(--sl-line);box-shadow:0 10px 30px #0006}
-.pb .pb-sl-panel-head,.pb .pb-sl-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.pb .pb-sl-panel-head b,.pb .pb-sl-head-text b{display:block;font:700 18px/1.1 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.2px}
-.pb .pb-sl-panel-head small,.pb .pb-sl-head-text small{display:block;font-size:11px;color:var(--sl-muted);margin-top:3px}
+.pb .pb-sl-panel-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pb .pb-sl-panel-head b{display:block;font:700 18px/1.1 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.2px}
+.pb .pb-sl-panel-head small{display:block;font-size:11px;color:var(--sl-muted);margin-top:3px}
 .pb .pb-sl-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--sl-accent);color:#0f2a27;font:900 20px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;flex-shrink:0}
 .pb .pb-sl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:16px}
 .pb .pb-sl-option{padding:0;border:0;background:transparent;border-radius:12px;min-height:0;color:inherit;text-align:left}
@@ -538,14 +538,8 @@ a{color:inherit}
 .pb .pb-sl-button{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 20px;background:var(--sl-accent);color:#0f2a27;font:700 13px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.2px;text-transform:uppercase;box-shadow:0 2px 0 #0a8f80}
 .pb .pb-sl-button:disabled{opacity:.5;box-shadow:none}
 .pb .pb-sl-panel .pb-status{background:#2f3447;color:var(--sl-text)}
-/* Losers bracket */
-.pb .pb-sl-bracket{margin-top:22px;min-width:0;max-width:100%;background:var(--sl-bg);color:var(--sl-text);border-radius:14px;border:1px solid var(--sl-line);padding:16px 16px 14px;box-shadow:0 10px 30px #0005}
-.pb .pb-sl-head-text{flex:1;min-width:180px}
-.pb .pb-sl-head-sentenced{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:#3a2419;border:1px solid var(--pb-orange)}
-.pb .pb-sl-head-sentenced b{display:block;font:700 12px/1.1 var(--font-barlow),Barlow,Arial,sans-serif}
-.pb .pb-sl-head-sentenced small{display:block;font-size:10px;color:#f2c9b2;letter-spacing:.6px;text-transform:uppercase}
 @media(max-width:850px){.pb .pb-sl-chip{max-width:190px}}
-@media(max-width:580px){.pb .pb-account .pb-sl-chip-text{display:none}.pb .pb-account .pb-sl-chip{padding:4px;gap:0}.pb .pb-sl-bracket{padding:12px;border-radius:10px}}
+@media(max-width:580px){.pb .pb-account .pb-sl-chip-text{display:none}.pb .pb-account .pb-sl-chip{padding:4px;gap:0}}
 
 /* Drawer identity: kit badge with the jersey number pinned to its corner, name, Sleeper team, role kicker */
 .pb .pb-drawer-identity{display:flex;align-items:center;gap:13px;min-width:0;text-decoration:none;color:inherit}
@@ -561,56 +555,3 @@ a{color:inherit}
 
 /* Sideline paging: "Earlier plays" under the jersey feed */
 .pb .pb-feed-more{display:flex;justify-content:center;align-items:center;min-height:38px;margin-top:6px}
-
-/* Toilet Bowl bracket: Sleeper's tree (rounds by week, byes first, connector lines, points) in the app's type */
-.pb .pb-sl-bracket{--tb-gap:28px;--tb-line:#4a5170;container-type:inline-size}
-.pb .pb-tb-scroll{margin-top:16px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:4px}
-.pb .pb-tb-grid{display:grid;grid-template-columns:repeat(var(--tb-cols,1),minmax(0,1fr));grid-template-rows:auto repeat(var(--tb-rows,1),minmax(0,1fr));column-gap:var(--tb-gap);min-width:calc(var(--tb-cols,1)*200px + (var(--tb-cols,1) - 1)*var(--tb-gap))}
-.pb .pb-tb-cols{display:grid;grid-template-columns:repeat(var(--tb-cols,1),minmax(0,1fr));column-gap:var(--tb-gap);min-width:calc(var(--tb-cols,1)*200px + (var(--tb-cols,1) - 1)*var(--tb-gap))}
-.pb .pb-tb-col{display:flex;flex-direction:column;gap:12px;justify-content:space-around;min-width:0}
-.pb .pb-tb-col .pb-tb-round-label{margin-bottom:0}
-.pb .pb-tb-round-label{display:flex;align-items:baseline;gap:8px;font:700 12px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.8px;color:var(--sl-text);text-transform:uppercase;padding:0 2px 10px;white-space:nowrap}
-.pb .pb-tb-round-label small{font:600 10px var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.4px;text-transform:none;color:var(--sl-muted)}
-.pb .pb-tb-cell{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;padding:6px 0}
-.pb .pb-tb-cell.in::before{content:"";position:absolute;left:calc(var(--tb-gap)/-2);top:25%;height:50%;width:calc(var(--tb-gap)/2);border:1px solid var(--tb-line);border-right:0;border-radius:8px 0 0 8px;pointer-events:none}
-.pb .pb-tb-cell.out::after{content:"";position:absolute;right:calc(var(--tb-gap)/-2);top:50%;width:calc(var(--tb-gap)/2);border-top:1px solid var(--tb-line);pointer-events:none}
-.pb .pb-tb-card{background:var(--sl-card);border:1px solid var(--sl-line);border-radius:12px;overflow:hidden;min-width:0;box-shadow:0 1px 0 #0003}
-.pb .pb-tb-card.final{border-color:#7a4a3a;box-shadow:0 0 0 1px #cc542b33,0 6px 18px #0005}
-.pb .pb-tb-card.bye{background:#20243200;border-style:dashed}
-.pb .pb-tb-card-label{display:flex;gap:6px;align-items:center;padding:6px 12px;font:700 10px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.4px;color:var(--sl-muted);text-transform:uppercase;border-bottom:1px solid var(--sl-line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pb .pb-tb-card-label span{color:var(--sl-accent)}
-.pb .pb-tb-card-label em{font-style:normal;color:var(--pb-gold);overflow:hidden;text-overflow:ellipsis}
-.pb .pb-tb-card.final .pb-tb-card-label{color:var(--sl-text);background:linear-gradient(90deg,#cc542b2e,transparent)}
-.pb .pb-tb-crown{font-style:normal;color:var(--pb-gold);font-size:13px;line-height:1}
-.pb .pb-tb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;min-width:0;border-left:3px solid transparent}
-.pb .pb-tb-row+.pb-tb-row{border-top:1px solid var(--sl-line)}
-.pb .pb-tb-row-text{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.1}
-.pb .pb-tb-row-text b{font:700 13px/1.15 var(--font-barlow),Barlow,Arial,sans-serif;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;color:var(--sl-text)}
-.pb .pb-tb-row-text small{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--sl-muted);margin-top:2px;min-width:0;white-space:nowrap}
-.pb .pb-tb-handle{overflow:hidden;text-overflow:ellipsis;min-width:0}
-.pb .pb-tb-row.tbd b{font-weight:600}
-.pb .pb-tb-row.loss .pb-tb-row-text b{color:#d3d7e3}
-.pb .pb-tb-row.sentenced{border-left-color:var(--pb-orange);background:linear-gradient(90deg,#cc542b2b,transparent 70%)}
-.pb .pb-tb-tag{font:700 9px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:#ffb28f;font-style:normal;flex-shrink:0}
-.pb .pb-tb-score{font:700 15px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:.3px;color:var(--sl-muted);font-variant-numeric:tabular-nums;flex-shrink:0}
-.pb .pb-tb-score.win{color:var(--sl-text);font-weight:900}
-.pb .pb-tb-score.loss{color:#c5cad9}
-.pb .pb-tb-result{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;font:900 11px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;flex-shrink:0}
-.pb .pb-tb-result.win{background:#0f4f47;color:var(--sl-accent)}
-.pb .pb-tb-result.loss{background:#4a2229;color:#ff8a90}
-.pb .pb-tb-bye{font:700 10px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.6px;color:var(--sl-muted);flex-shrink:0}
-.pb .pb-tb-seed{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--sl-card-2);font:900 13px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--sl-muted);flex-shrink:0}
-.pb .pb-tb-placement{margin-top:18px;padding-top:14px;border-top:1px solid var(--sl-line)}
-.pb .pb-tb-placement-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-/* Narrow panel (phone, or the sidebar eating the width): rounds stack top to bottom, no connectors */
-@container (max-width: 839px){
-  .pb .pb-sl-bracket{--tb-gap:20px}
-  .pb .pb-tb-scroll{overflow:visible}
-  .pb .pb-tb-grid,.pb .pb-tb-cols{display:block;min-width:0}
-  .pb .pb-tb-col{display:contents}
-  .pb .pb-tb-cell{padding:0 0 10px}
-  .pb .pb-tb-cell.in::before,.pb .pb-tb-cell.out::after{content:none}
-  .pb .pb-tb-round-label{padding:6px 2px 8px}
-  .pb .pb-tb-grid .pb-tb-round-label:not(:first-child),.pb .pb-tb-col+.pb-tb-col .pb-tb-round-label{margin-top:6px;border-top:1px dashed var(--sl-line);padding-top:12px}
-}
-@media(max-width:580px){.pb .pb-tb-placement-grid{grid-template-columns:1fr}}
