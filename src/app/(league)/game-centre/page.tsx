@@ -26,7 +26,7 @@ export default async function GameCentrePage() {
     loadCheckins(ctx),
     participantName(ctx),
     nextItinerary(ctx, now),
-    loadFeed(ctx).then((posts) => ({ posts, error: null as string | null })).catch((e: Error) => ({ posts: [], error: e.message })),
+    loadFeed(ctx).then((page) => ({ ...page, error: null as string | null })).catch((e: Error) => ({ posts: [], hasMore: false, error: e.message })),
   ]);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
@@ -104,7 +104,7 @@ export default async function GameCentrePage() {
           </div>
         </section>
       ) : (
-        <SidelineFeed initialPosts={feedResult.posts} eventId={ctx.event.id} timezone={tz} />
+        <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} eventId={ctx.event.id} timezone={tz} />
       )}
     </>
   );

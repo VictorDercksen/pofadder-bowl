@@ -577,3 +577,6 @@ a{color:inherit}
 .pb .pb-drawer-id-sub strong{color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .pb .pb-drawer-id-sub em{font-style:normal;color:#9fb09b}
 .pb .pb-drawer-id-text small{display:block;margin-top:8px;font:600 9px/1 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:1.6px;color:var(--pb-gold);text-transform:uppercase}
+
+/* Sideline paging: "Earlier plays" under the jersey feed */
+.pb .pb-feed-more{display:flex;justify-content:center;align-items:center;min-height:38px;margin-top:6px}
