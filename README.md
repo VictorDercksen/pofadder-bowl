@@ -1,6 +1,6 @@
 # Pofadder Bowl 2026 · Show Us Your TD’s
 
-Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 14 km and completes ten proof challenges worth 100 points while the league watches, reacts, plays Punishment Bingo and predicts the damage.
+Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 14 km and completes ten proof challenges worth 100 points while the league watches, reacts, plays the prop board and predicts the damage.
 
 Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storage, Realtime) and Leaflet, deployed to Vercel.
 
@@ -8,11 +8,11 @@ Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storag
 
 | Area | Where |
 |---|---|
-| Ten screens (game centre, my trip, map, proof locker, commissioner, bingo, predictions, press room, final whistle, league access) | `src/app/(league)/*` |
+| Ten screens (game centre, my trip, map, proof locker, commissioner, prop board, predictions, press room, final whistle, league access) | `src/app/(league)/*` |
 | Public teaser + share panel, invite-only sign-in, labelled demo | `src/app/teaser`, `src/app/login`, `src/app/demo` |
 | Design system ported from the approved mockup, `JerseyCard` and shell | `src/app/globals.css`, `src/components/ui`, `src/components/shell` |
 | Database schema, functions/RPCs, RLS, storage policies | `supabase/migrations/*.sql` |
-| Production seed (league, event, itinerary, challenges, bingo, prompts) | `supabase/seed.sql` |
+| Production seed (league, event, itinerary, challenges, props, prompts) | `supabase/seed.sql` |
 | Local fixtures, commissioner bootstrap, integration tests, screenshots | `scripts/*.ts` |
 | Supplied programme data, NFL team map, fonts, artwork | `src/data`, `src/fonts`, `public/brand`, `public/nfl`, `public/maps` |
 
@@ -48,10 +48,10 @@ Demo mode is always available at `/demo`: an in-memory replica of the mockup, vi
 ```bash
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint (React Compiler rules on)
-npm test                 # vitest: bingo lines, prediction scoring/locking, event phases, upload rules
+npm test                 # vitest: prop scoring, prediction scoring/locking, event phases, upload rules
 npm run test:integration # against the local stack: RLS across 4 accounts, storage policies,
                          # approval idempotency + concurrency, supersede transition,
-                         # prediction lock/reveal/resolution, bingo cards/wins, feed, certificate
+                         # prediction lock/reveal/resolution, prop picks/settlement, feed, certificate
 npm run test:auth-flow   # against the local stack + `next start -p 3001`: bootstrap invite email →
                          # Mailpit → signed-in /review; login-form magic link → /game-centre;
                          # sign-out; no email for uninvited addresses
@@ -62,13 +62,13 @@ npm run screenshots      # Playwright: every screen × 3 roles × 360/390/1280 p
 
 ## Data model (Supabase)
 
-`profiles`, `leagues`, `memberships` (role + `is_commissioner` + status), `sleeper_league_users`, `events` (all instants UTC, `timezone` = Africa/Johannesburg), `itinerary_items`, `challenges`, `penalties`, `press_prompts`, `evidence_submissions` (versioned: draft → submitted → approved | flagged | superseded), `evidence_files`, `review_decisions` (audit, unique idempotency key), `location_settings`, `checkins`, `activity_posts`, `reactions` (one per member per post), `bingo_squares`, `bingo_cards` (stable shuffled layout per member), `bingo_incidents`, `bingo_wins` (unique per line), `prediction_rules`, `predictions`, `official_results`, `prediction_awards`, `certificates`.
+`profiles`, `leagues`, `memberships` (role + `is_commissioner` + status), `sleeper_league_users`, `events` (all instants UTC, `timezone` = Africa/Johannesburg), `itinerary_items`, `challenges`, `penalties`, `press_prompts`, `evidence_submissions` (versioned: draft → submitted → approved | flagged | superseded), `evidence_files`, `review_decisions` (audit, unique idempotency key), `location_settings`, `checkins`, `activity_posts`, `reactions` (one per member per post), `props` (over/under and yes/no, per-prop lock, result), `prop_picks` (one side per member per prop), `prediction_rules`, `predictions`, `official_results`, `prediction_awards`, `certificates`.
 
 Key server-side behaviour (`20260916000200_functions.sql`):
 
 - `review_submission` — transactional, idempotent approval/flag/supersede with row locks and version check; approving a newer version records an explicit `superseded` decision for the previously approved one. Score is the `event_scores` view over approved state, never a counter.
 - `record_checkin` — participant only, requires sharing consent, deduplicates by client id; `remove_checkins` hides history.
-- `ensure_bingo_card`, `propose_bingo_incident`, `decide_bingo_incident` (commissioner; detects rows/columns/diagonals/full house for every card, first completion only), `bingo_leaderboard` (no layouts leak).
+- `upsert_prop_pick` — one side per prop, editable until the prop locks; other members’ picks are hidden until then. `settle_prop` (commissioner, locked props only, idempotent, posts to the feed; `void` scores nothing). `prop_leaderboard` scores active members: one point per correct pick.
 - `upsert_prediction` — rejects writes at/after `events.prediction_lock_at` (departure); `predictions_revealed` hides others until `prediction_reveal_at`; `resolve_predictions` awards closest/exact with shared ties.
 - `issue_certificate` / `set_certificate_consent` / `public_certificate` — certificate stays pending until a commissioner issues it; a public recap needs commissioner publication **and** participant consent.
 

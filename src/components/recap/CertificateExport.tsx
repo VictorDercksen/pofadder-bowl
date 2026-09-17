@@ -15,7 +15,7 @@ export type CertificateSummary = {
   runKm: number | null;
   runTime: string | null;
   checkins: number;
-  bingoWinners: string[];
+  propWinners: string[];
   predictionWinners: string[];
   issuedAt: string | null;
   eventName: string;
@@ -120,7 +120,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
 
   c.fillStyle = "#192e25";
   c.font = `400 26px ${barlow}, Arial, sans-serif`;
-  c.fillText(`Bingo: ${summary.bingoWinners.length ? summary.bingoWinners.join(", ") : "no confirmed line"}`, W / 2, 760);
+  c.fillText(`Prop board: ${summary.propWinners.length ? summary.propWinners.join(", ") : "not settled"}`, W / 2, 760);
   c.fillText(`Predictions: ${summary.predictionWinners.length ? summary.predictionWinners.join(", ") : "not resolved"}`, W / 2, 800);
   c.fillText(`${summary.checkins} timestamped check-in${summary.checkins === 1 ? "" : "s"}`, W / 2, 840);
 

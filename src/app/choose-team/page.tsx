@@ -18,7 +18,7 @@ export default async function ChooseTeamPage() {
           <div>
             <div className="pb-kicker">WELCOME TO THE LEAGUE, {ctx.profile.display_name.toUpperCase()}</div>
             <h1>Pick your franchise.</h1>
-            <p>Your team badge and kit colours travel with everything you do here: posts, bingo, predictions and calls. One franchise per member. Taken kits are locked.</p>
+            <p>Your team badge and kit colours travel with everything you do here: posts, props, predictions and calls. One franchise per member. Taken kits are locked.</p>
           </div>
           <div className="pb-title-identity">
             <Shield size={49} height={62} />

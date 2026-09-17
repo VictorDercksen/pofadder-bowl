@@ -1,6 +1,6 @@
 # Pofadder Bowl 2026 · project instructions
 
-Private fantasy-league punishment app ("Show Us Your TD's"). One participant travels Malmesbury → Pofadder → Malmesbury on 23–25 September 2026, runs 14 km and completes ten proof challenges while the league watches, reacts, plays Punishment Bingo and predicts results. Next.js 16 App Router on Vercel, Supabase (Postgres, Auth, Storage, Realtime), Leaflet map, hand-written CSS design system.
+Private fantasy-league punishment app ("Show Us Your TD's"). One participant travels Malmesbury → Pofadder → Malmesbury on 23–25 September 2026, runs 14 km and completes ten proof challenges while the league watches, reacts, plays the prop board and predicts results. Next.js 16 App Router on Vercel, Supabase (Postgres, Auth, Storage, Realtime), Leaflet map, hand-written CSS design system.
 
 `AGENTS.md` holds the Next.js managed block that points at the version-matched docs in `node_modules/next/dist/docs/`. Read that guide before touching framework APIs; it is the source of truth over training data.
 
@@ -54,7 +54,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Call `supabase.auth.getClaims()` early in a request to validate the JWT (it is verified, not merely decoded), then `getUser()` when the full user object is needed. `getVerifiedUser` in `src/lib/league.ts` does this once per request and is wrapped in React `cache`.
 - Refresh tokens are single use. The proxy refreshes once per navigation; concurrent parallel requests with an expired cookie can see `session: null`, so handle that gracefully rather than looping.
 - **RLS and RPCs are the enforcement layer; the UI only decides what to show.** Every table has RLS; privileged writes go through `security definer` functions in `supabase/migrations/*_functions.sql` that re-check `pb_is_event_participant`, `pb_is_event_commissioner`, `pb_is_event_member`. New capabilities need a policy or RPC, not a client-side check.
-- Migrations in `supabase/migrations/` are the schema's source of truth; `supabase/seed.sql` holds the production programme (league, event, itinerary, challenges, bingo, prompts). Add a new timestamped migration instead of editing an applied one.
+- Migrations in `supabase/migrations/` are the schema's source of truth; `supabase/seed.sql` holds the production programme (league, event, itinerary, challenges, props, prompts). Add a new timestamped migration instead of editing an applied one.
 - Regenerate types after schema changes: `npx supabase gen types typescript --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` into `src/lib/database.types.ts`, stripping anything before `export type Json` (`--local` has hung).
 - Realtime: tables must be in the `supabase_realtime` publication (see `*_policies.sql`) and readable under RLS for the subscriber. Subscribe from a client component and call `router.refresh()`; keep a bounded visible-tab poll as fallback (`SidelineFeed`, `CheckinLive`).
 - Storage uploads use resumable TUS (`src/lib/uploads.ts`); hosted projects need `NEXT_PUBLIC_SUPABASE_RESUMABLE_URL` on the direct storage host.
@@ -97,11 +97,11 @@ Prefer the top-level validators: `z.iso.datetime()`, `z.email()`, `z.uuid()`, `z
 
 | Area | Path |
 |---|---|
-| Private screens | `src/app/(league)/*` (game-centre, my-trip, map, proof, review, bingo, predictions, press, recap, account), `review/members`, `choose-team` |
+| Private screens | `src/app/(league)/*` (game-centre, my-trip, map, proof, review, props, predictions, press, recap, account), `review/members`, `choose-team` |
 | Public routes | `/teaser`, `/demo/*` (in-memory, never touches the backend), `/login`, `/recap/public/[league]/[event]` |
 | Server actions | `src/lib/actions/*.ts` |
 | Context, roles, guards | `src/lib/league.ts`, `src/lib/roles.ts` |
-| Data loaders | `src/lib/checkins.ts`, `evidence.ts`, `feed.ts`, `itinerary.ts`, `predictions.ts`, `bingo.ts` |
+| Data loaders | `src/lib/checkins.ts`, `evidence.ts`, `feed.ts`, `itinerary.ts`, `predictions.ts`, `props.ts` |
 | Shell and navigation | `src/components/shell/*` |
 | Map | `src/components/map/*`, `src/lib/checkin-path.ts` |
 | Schema, RPCs, RLS, storage | `supabase/migrations/*.sql`, `supabase/seed.sql`, `supabase/config.toml` |

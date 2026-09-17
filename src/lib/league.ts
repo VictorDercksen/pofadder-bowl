@@ -32,7 +32,7 @@ export type LeagueContext = {
   role: Role;
   /** App administration: invites, roles, participant, Sleeper links, event settings. */
   isAdmin: boolean;
-  /** Refereeing: review, penalties, results, bingo confirmations, certificate. Admins are commissioners too. */
+  /** Refereeing: review, penalties, results, prop settlement, certificate. Admins are commissioners too. */
   isCommissioner: boolean;
   isParticipant: boolean;
   /** True when the account holds more than plain membership (admin, commissioner or participant). */

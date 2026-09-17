@@ -81,7 +81,7 @@ export default async function GameCentrePage() {
           {ctx.isParticipant || ctx.isCommissioner ? (
             <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
           ) : (
-            <Link className="pb-primary orange" href="/bingo">Open Punishment Bingo ↗</Link>
+            <Link className="pb-primary orange" href="/props">Open the prop board ↗</Link>
           )}
           <div className="pb-next" style={{ marginTop: "auto" }}>
             <div className="pb-kicker">RETURN BUS · {formatTime(ctx.event.return_departure_at, tz)}</div>

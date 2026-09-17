@@ -15,7 +15,7 @@ const KIND_LABEL: Record<string, string> = {
   comment: "League comment",
   submission: "Proof submitted",
   decision: "Commissioner call",
-  bingo: "Bingo",
+  prop: "Prop board",
   prediction: "Predictions",
   system: "League",
 };

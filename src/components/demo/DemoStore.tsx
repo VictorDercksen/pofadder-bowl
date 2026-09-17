@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { BINGO_PHRASES, PRESS_QUESTIONS } from "@/lib/programme";
-import { shuffledLayout } from "@/lib/bingo";
+import { PRESS_QUESTIONS, PROPS } from "@/lib/programme";
+import type { PropSide } from "@/lib/props";
 
 /** In-memory demo state mirroring the approved mockup. Never persisted, never sent anywhere. */
 export type DemoState = {
@@ -18,8 +18,8 @@ export type DemoState = {
   prediction: { h: number; m: number; rating: string; complaints: number } | null;
   question: number;
   recorded: boolean;
-  bingo: Set<number>;
-  layout: number[];
+  /** Prop sequence -> chosen side. */
+  picks: Record<number, PropSide>;
   message: string;
 };
 
@@ -38,12 +38,11 @@ export type DemoAction =
   | { type: "question" }
   | { type: "record" }
   | { type: "answer" }
-  | { type: "bingo"; cell: number }
-  | { type: "incident" }
+  | { type: "pick"; sequence: number; side: PropSide }
   | { type: "notify"; text: string }
   | { type: "clear" };
 
-export const DEMO_BINGO_WORDS = BINGO_PHRASES.map((b) => b.text);
+export const DEMO_PROPS = PROPS;
 export const DEMO_QUESTIONS = PRESS_QUESTIONS;
 
 const initial: DemoState = {
@@ -59,8 +58,7 @@ const initial: DemoState = {
   prediction: null,
   question: 0,
   recorded: false,
-  bingo: new Set([0, 1, 2, 3, 12, 16, 23]),
-  layout: Array.from({ length: 25 }, (_, i) => i), // mockup order; the real app shuffles per member
+  picks: { 1: "over", 3: "yes", 5: "under" },
   message: "",
 };
 
@@ -105,24 +103,15 @@ function reducer(s: DemoState, a: DemoAction): DemoState {
       return { ...s, recorded: true, message: "Sample answer attached. No camera or microphone was accessed." };
     case "answer":
       return { ...s, message: "Sample press-room answer submitted for review." };
-    case "bingo": {
-      const next = new Set(s.bingo);
-      if (next.has(a.cell)) next.delete(a.cell);
-      else next.add(a.cell);
-      return { ...s, bingo: next };
-    }
-    case "incident": {
-      const next = new Set(s.bingo);
-      next.add(Math.max(0, s.layout.indexOf(1)));
-      return { ...s, bingo: next, message: "Incident confirmed in the demo. Matching bingo square marked." };
-    }
+    case "pick":
+      return { ...s, picks: { ...s.picks, [a.sequence]: a.side }, message: `Demo pick saved: prop ${a.sequence}, ${a.side}. In the league game picks lock at departure.` };
   }
 }
 
 const Ctx = createContext<{ state: DemoState; dispatch: (a: DemoAction) => void } | null>(null);
 
 export function DemoProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initial, (s) => ({ ...s, layout: shuffledLayout(2026).map((p, i) => (i === 12 ? 12 : p)) }));
+  const [state, dispatch] = useReducer(reducer, initial);
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

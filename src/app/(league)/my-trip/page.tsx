@@ -94,7 +94,7 @@ export default async function MyTripPage() {
           <div className="pb-phone-tabs">
             <Link href="/my-trip" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>My trip</Link>
             <Link href="/proof" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Proof</Link>
-            <Link href="/bingo" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Bingo</Link>
+            <Link href="/props" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Props</Link>
             <Link href="/game-centre" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Main feed</Link>
           </div>
         </div>

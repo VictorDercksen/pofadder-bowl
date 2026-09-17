@@ -95,7 +95,7 @@ export default async function PredictionsPage() {
           <div className="pb-next">
             <div className="pb-kicker">THE STAKES</div>
             <h3>5 FAAB in Sleeper.</h3>
-            <p>The highest-scoring slip takes 5 FAAB, added to the winner’s Sleeper waiver budget by the commissioner after the trip. A tie at the top shares it. The bingo winner takes the other 5. No cash stakes.</p>
+            <p>The highest-scoring slip takes 5 FAAB, added to the winner’s Sleeper waiver budget by the commissioner after the trip. A tie at the top shares it. The prop board winner takes the other 5. No cash stakes.</p>
           </div>
           {results?.resolved_at ? (
             <div style={{ marginTop: 16 }}>
