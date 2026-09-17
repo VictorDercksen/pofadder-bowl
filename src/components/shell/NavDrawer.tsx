@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import type { NavItem } from "@/components/shell/NavLinks";
+import { NavNumber, type NavItem } from "@/components/shell/NavLinks";
 
 /**
  * Mobile slide-out navigation (≤ 850 px). Opens from the left, traps focus, closes on
@@ -77,7 +77,7 @@ export function NavDrawer({ items, identity, footer }: { items: NavItem[]; ident
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link key={item.href} href={item.href} className="pb-drawer-link" aria-current={active ? "page" : undefined} onClick={() => setOpen(false)}>
-                <span className="pb-drawer-num">{item.n}</span>
+                <NavNumber n={item.n} className="pb-drawer-num" />
                 {item.label}
                 <span className="pb-drawer-chevron" aria-hidden="true">›</span>
               </Link>

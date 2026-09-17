@@ -40,15 +40,34 @@ export async function claimKit(input: z.input<typeof kitSchema>): Promise<Action
   return { ok: true, message: "Kit claimed. This franchise is yours for the league." };
 }
 
+/**
+ * Confirm which Sleeper manager this member is (picked from the imported league list at
+ * sign-on or in League access). The database keeps a Sleeper team to one member.
+ */
 export async function claimSleeperIdentity(input: { sleeperUserId: string | null }): Promise<ActionResult> {
   const parsed = z.object({ sleeperUserId: z.string().regex(/^\d{5,30}$/).nullable() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid Sleeper user." };
-  const ctx = await getLeagueContext();
+  const ctx = await getLeagueContextRaw();
   const { error } = await ctx.supabase.rpc("claim_sleeper_identity", { p_league: ctx.league.id, p_sleeper_user_id: parsed.data.sleeperUserId ?? undefined });
-  if (error) return { ok: false, message: error.message };
-  revalidatePath("/account");
-  revalidatePath("/review/members");
-  return { ok: true, message: parsed.data.sleeperUserId ? "Claimed. A commissioner will confirm the link." : "Sleeper link cleared." };
+  if (error) return { ok: false, message: error.code === "23505" || error.code === "22023" ? error.message : "Could not save your Sleeper team." };
+  revalidatePath("/", "layout");
+  return { ok: true, message: parsed.data.sleeperUserId ? "Confirmed. Your Sleeper team now rides in the header." : "Sleeper link cleared." };
+}
+
+const passwordSchema = z.object({ password: z.string().min(8, "Use at least 8 characters.").max(200) });
+
+/** Set or change the account password so the member can sign in without waiting for an email link. */
+export async function setPassword(input: { password: string }): Promise<ActionResult> {
+  const parsed = passwordSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Use at least 8 characters." };
+  const ctx = await getLeagueContextRaw();
+  const { error } = await ctx.supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) {
+    if (/weak|pwned|leaked|easy to guess/i.test(error.message)) return { ok: false, message: "That password is too easy to guess. Try a longer one." };
+    if (/same password/i.test(error.message)) return { ok: false, message: "That is already your password." };
+    return { ok: false, message: "Could not set the password. Sign in again with an email link and retry." };
+  }
+  return { ok: true, message: "Password set. Next time, sign in with your email and password." };
 }
 
 export async function setCertificateConsent(input: { consent: boolean }): Promise<ActionResult> {

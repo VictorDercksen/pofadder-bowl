@@ -1,30 +1,107 @@
 "use client";
 
-import { useActionState } from "react";
-import { requestSignInLink, type SignInState } from "./actions";
+import { useActionState, useState } from "react";
+import { Football } from "@/components/ui/Football";
+import { passwordSignIn, requestSignInLink, verifyEmailCode, type PasswordSignInState, type SignInState } from "./actions";
 
+/**
+ * Two ways in. The email link (or its 6-digit code) needs no memory; a password, set once in
+ * League access, means never waiting for an email again.
+ */
 export function LoginForm({ next }: { next: string }) {
+  const [mode, setMode] = useState<"link" | "password">("link");
+  return (
+    <div>
+      <div className="pb-login-tabs" role="tablist" aria-label="Sign-in method">
+        <button type="button" role="tab" aria-selected={mode === "link"} className={mode === "link" ? "on" : ""} onClick={() => setMode("link")}>
+          Email link
+        </button>
+        <button type="button" role="tab" aria-selected={mode === "password"} className={mode === "password" ? "on" : ""} onClick={() => setMode("password")}>
+          Password
+        </button>
+      </div>
+      {mode === "link" ? <LinkForm next={next} /> : <PasswordForm next={next} />}
+    </div>
+  );
+}
+
+function LinkForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(requestSignInLink, { status: "idle" });
+  const [codeState, codeAction, codePending] = useActionState<SignInState, FormData>(verifyEmailCode, { status: "idle" });
+  const sent = state.status === "sent";
+  return (
+    <div>
+      <form action={action}>
+        <input type="hidden" name="next" value={next} />
+        <label className="pb-field">
+          League email
+          <input name="email" type="email" required autoComplete="email" inputMode="email" placeholder="you@example.com" disabled={sent} />
+        </label>
+        <div className="pb-actions">
+          <button className="pb-primary" type="submit" disabled={pending || sent}>
+            {pending ? <Football size={16} /> : null}
+            {pending ? "Sending…" : sent ? "Link sent" : "Email me a sign-in link"}
+          </button>
+        </div>
+        {sent ? (
+          <div className="pb-status" role="status" aria-live="polite">
+            Check your inbox for a Pofadder Bowl sign-in link. It expires after a short while and works once.
+          </div>
+        ) : null}
+        {state.status === "error" ? (
+          <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
+            {state.message}
+          </div>
+        ) : null}
+      </form>
+      {sent ? (
+        <form action={codeAction} className="pb-code-form">
+          <input type="hidden" name="next" value={next} />
+          <input type="hidden" name="email" value={state.email ?? ""} />
+          <label className="pb-field">
+            Link not opening on this device? Type the 6-digit code from the email instead
+            <input name="token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={10} placeholder="123456" required />
+          </label>
+          <div className="pb-actions">
+            <button className="pb-secondary" type="submit" disabled={codePending}>
+              {codePending ? <Football size={16} /> : null}
+              {codePending ? "Checking…" : "Sign in with the code"}
+            </button>
+          </div>
+          {codeState.message ? (
+            <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
+              {codeState.message}
+            </div>
+          ) : null}
+        </form>
+      ) : null}
+    </div>
+  );
+}
+
+function PasswordForm({ next }: { next: string }) {
+  const [state, action, pending] = useActionState<PasswordSignInState, FormData>(passwordSignIn, {});
   return (
     <form action={action}>
       <input type="hidden" name="next" value={next} />
       <label className="pb-field">
         League email
-        <input name="email" type="email" required autoComplete="email" inputMode="email" placeholder="you@example.com" disabled={state.status === "sent"} />
+        <input name="email" type="email" required autoComplete="username" inputMode="email" placeholder="you@example.com" />
+      </label>
+      <label className="pb-field">
+        Password
+        <input name="password" type="password" required autoComplete="current-password" />
       </label>
       <div className="pb-actions">
-        <button className="pb-primary" type="submit" disabled={pending || state.status === "sent"}>
-          {pending ? "Sending…" : state.status === "sent" ? "Link sent" : "Email me a sign-in link"}
+        <button className="pb-primary" type="submit" disabled={pending}>
+          {pending ? <Football size={16} /> : null}
+          {pending ? "Signing in…" : "Sign in"}
         </button>
       </div>
-      {state.status === "sent" ? (
-        <div className="pb-status" role="status" aria-live="polite">
-          Check your inbox for a Pofadder Bowl sign-in link. It expires after a short while and works once.
-        </div>
-      ) : null}
-      {state.status === "error" ? (
+      <p className="pb-small" style={{ marginTop: 12 }}>No password yet? Sign in with the email link once, then set one under League access.</p>
+      {state.error ? (
         <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
-          {state.message}
+          {state.error}
         </div>
       ) : null}
     </form>

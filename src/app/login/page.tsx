@@ -52,7 +52,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           <LoginForm next={next} />
           {(await isLocalStack()) ? <LocalPasswordForm next={next} /> : null}
           <p className="pb-small" style={{ marginTop: 14 }}>
-            Invite-only. Sign-in links go to the email address the commissioner invited. Sleeper is the league host but does not offer sign-in for third-party apps, so your Sleeper identity is linked in your account after you sign in.
+            Invite-only. Sign-in links go to the email address the commissioner invited; set a password once you are in and you will not need another link. Sleeper is the league host but does not offer sign-in for third-party apps, so you confirm your Sleeper team after you sign in.
           </p>
           <p className="pb-small" style={{ marginTop: 10 }}>
             Just looking? <Link href="/demo">Open the labelled demo</Link> or <Link href="/teaser">see the teaser</Link>.

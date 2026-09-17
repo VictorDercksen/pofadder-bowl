@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Shield } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { Countdown } from "@/components/ui/Countdown";
 import { CheckinMap } from "@/components/map/CheckinMap";
 import { SidelineFeed } from "@/components/feed/SidelineFeed";
+import { LosersBracketPanel } from "@/components/sleeper/LosersBracket";
+import { LoadingPlay } from "@/components/ui/Football";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadFeed } from "@/lib/feed";
 import { checkinPath } from "@/lib/checkin-path";
+import { sleeperLeagueId } from "@/lib/env";
 import { loadCheckins, participantName } from "@/lib/checkins";
 import { nextItinerary } from "@/lib/itinerary";
 import { ageLabel, eventPhase, formatDay, formatTime, isStale, PHASE_HEADINGS, QUARTER_LABELS, quarterNumber } from "@/lib/time";
@@ -88,6 +92,10 @@ export default async function GameCentrePage() {
           </div>
         </div>
       </div>
+
+      <Suspense fallback={<LoadingPlay compact label="Pulling the losers bracket from Sleeper…" />}>
+        <LosersBracketPanel leagueId={ctx.league.sleeper_league_id ?? sleeperLeagueId() ?? null} />
+      </Suspense>
 
       {feedResult.error ? (
         <section className="pb-sideline">

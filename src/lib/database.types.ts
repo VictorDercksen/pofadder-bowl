@@ -1461,6 +1461,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      league_context: {
+        Args: { p_event_slug: string; p_league_slug: string }
+        Returns: Json
+      }
       issue_certificate: {
         Args: { p_event: string; p_is_public: boolean }
         Returns: {

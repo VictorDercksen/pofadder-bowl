@@ -2,8 +2,10 @@ import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
 import { MemberViewToggle } from "@/components/shell/MemberViewToggle";
 import { TeamLogo } from "@/components/ui/Marks";
+import { SleeperTeamChip } from "@/components/sleeper/SleeperTeam";
 import { describeRole, getLeagueContext } from "@/lib/league";
 import { teamName } from "@/lib/nfl";
+import { sleeperAvatarUrl } from "@/lib/sleeper";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,8 @@ export default async function LeagueLayout({ children }: { children: React.React
   const ctx = await getLeagueContext();
   const roleLabel = describeRole(ctx);
   const toggle = ctx.canViewAsMember ? <MemberViewToggle viewing={ctx.viewingAsMember} /> : null;
+  const sleeper = ctx.sleeper;
+  const chip = sleeper ? <SleeperTeamChip teamName={sleeper.teamName} displayName={sleeper.displayName} username={sleeper.username} avatarUrl={sleeperAvatarUrl(sleeper.avatar)} /> : null;
   return (
     <AppShell
       role={ctx.role}
@@ -25,10 +29,16 @@ export default async function LeagueLayout({ children }: { children: React.React
       }
       account={
         <>
-          <Link href="/account" style={{ display: "flex", gap: 9, alignItems: "center", textDecoration: "none" }} aria-label="Account and kit">
+          <Link href="/account" style={{ display: "flex", gap: 9, alignItems: "center", textDecoration: "none" }} aria-label="Account, kit and Sleeper team">
             <TeamLogo code={ctx.profile.kit_team} size={36} />
-            <span className="name">{ctx.profile.display_name}</span>
+            {chip ?? <span className="name">{ctx.profile.display_name}</span>}
           </Link>
+          {chip ? null : (
+            <Link href={ctx.sleeperImported ? "/choose-sleeper" : "/account"} className="pb-sl-chip pb-sl-chip-empty" title="No Sleeper team confirmed yet">
+              <span className="pb-sl-avatar pb-sl-avatar-fallback" style={{ width: 24, height: 24, fontSize: 11 }} aria-hidden="true">S</span>
+              <span className="pb-sl-chip-text"><b>No Sleeper team</b><small>{ctx.sleeperImported ? "Confirm yours" : "Awaiting import"}</small></span>
+            </Link>
+          )}
           <form action="/auth/signout" method="post">
             <button className="pb-text-action" type="submit">Sign out</button>
           </form>
@@ -42,6 +52,7 @@ export default async function LeagueLayout({ children }: { children: React.React
             <small>
               {ctx.profile.kit_team ? `${teamName(ctx.profile.kit_team)} · #${String(ctx.profile.kit_number).padStart(2, "0")}` : "No kit yet"} · {roleLabel}
             </small>
+            {chip ? <span className="pb-drawer-sleeper">{chip}</span> : null}
           </span>
         </Link>
       }
