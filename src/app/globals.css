@@ -431,10 +431,6 @@ a{color:inherit}
 .pb .pb-drawer-chevron{margin-left:auto;opacity:.5;font-size:20px;line-height:1}
 .pb .pb-drawer-foot{padding:12px 16px 20px;border-top:1px solid #ffffff22;font-size:11px;color:#bccbb5;display:flex;flex-direction:column;gap:8px}
 .pb .pb-drawer-foot .pb-text-action{color:var(--pb-gold)}
-.pb .pb-drawer-identity{display:flex;align-items:center;gap:12px;min-width:0}
-.pb .pb-drawer-identity .pb-team-logo{width:52px;height:52px;background:#f5efe3;border-radius:50%;padding:6px;flex-shrink:0}
-.pb .pb-drawer-identity b{display:block;font:700 18px/1.1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pb .pb-drawer-identity small{display:block;font-size:11px;color:#c9d5c5;letter-spacing:.6px;margin-top:3px}
 @media(max-width:850px){.pb .pb-menu-btn{display:inline-flex}.pb .pb-sidebar{display:none}.pb .pb-top{gap:10px}.pb .pb-brand{font-size:19px}.pb .pb-brand small{display:none}.pb .pb-account{display:none}}
 @media(max-width:580px){.pb .pb-top{padding:12px 14px}.pb .pb-brand .pb-nfl-mark{display:none}.pb .pb-demo{display:none}}
 
@@ -518,8 +514,6 @@ a{color:inherit}
 .pb .pb-sl-chip-empty b{color:#d3d7e3}
 .pb .pb-sl-chip-empty small{color:var(--sl-accent)}
 .pb .pb-account .pb-sl-chip{margin-left:2px}
-.pb .pb-drawer-sleeper{display:block;margin-top:8px}
-.pb .pb-drawer-sleeper .pb-sl-chip{max-width:100%}
 .pb .pb-sl-pill{display:inline-block;padding:3px 8px;border-radius:999px;font:700 10px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1.2px;text-transform:uppercase;background:var(--sl-card-2);color:var(--sl-muted);border:1px solid var(--sl-line);white-space:nowrap}
 .pb .pb-sl-pill.on{background:#0f4f47;color:var(--sl-accent);border-color:#146b60}
 .pb .pb-sl-pill.orange{background:var(--pb-orange);color:#fff8ef;border-color:var(--pb-orange)}
@@ -571,3 +565,15 @@ a{color:inherit}
 .pb .pb-sl-seed{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--sl-card-2);font:900 13px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--sl-muted);flex-shrink:0}
 @media(max-width:850px){.pb .pb-sl-chip{max-width:190px}}
 @media(max-width:580px){.pb .pb-account .pb-sl-chip-text{display:none}.pb .pb-account .pb-sl-chip{padding:4px;gap:0}.pb .pb-sl-bracket{padding:12px;border-radius:10px}.pb .pb-sl-round{min-width:214px;flex-basis:214px}}
+
+/* Drawer identity: kit badge with the jersey number pinned to its corner, name, Sleeper team, role kicker */
+.pb .pb-drawer-identity{display:flex;align-items:center;gap:13px;min-width:0;text-decoration:none;color:inherit}
+.pb .pb-drawer-mark{position:relative;flex-shrink:0}
+.pb .pb-drawer-mark .pb-team-logo{display:block;width:54px;height:54px;background:#f5efe3;border-radius:50%;padding:7px;box-sizing:border-box}
+.pb .pb-drawer-number{position:absolute;right:-6px;bottom:-4px;background:var(--pb-orange);color:#fff8ef;font:900 11px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:.5px;padding:4px 5px;border-radius:3px;border:2px solid var(--pb-green)}
+.pb .pb-drawer-id-text{min-width:0;display:flex;flex-direction:column}
+.pb .pb-drawer-id-text b{display:block;font:700 21px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb .pb-drawer-id-sub{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:12px;color:#c9d5c5;white-space:nowrap;overflow:hidden;min-width:0}
+.pb .pb-drawer-id-sub strong{color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.pb .pb-drawer-id-sub em{font-style:normal;color:#9fb09b}
+.pb .pb-drawer-id-text small{display:block;margin-top:8px;font:600 9px/1 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:1.6px;color:var(--pb-gold);text-transform:uppercase}
