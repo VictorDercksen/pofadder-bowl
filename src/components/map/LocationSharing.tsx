@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { recordCheckin, removeCheckins, updateLocationSettings } from "@/lib/actions/checkins";
 import { Status } from "@/components/ui/TitleRow";
+import { callAction } from "@/lib/actions-client";
 
 type Settings = { sharing_enabled: boolean; auto_update: boolean };
 
@@ -51,7 +52,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
           const weak = pos.coords.accuracy > WEAK_ACCURACY_M;
           startTransition(async () => {
             try {
-              const res = await recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId });
+              const res = await callAction(() => recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId }));
               if (res.ok && res.duplicate) {
                 setNote({ text: res.message ?? "Nothing new recorded.", tone: "warn" });
               } else if (res.ok) {
@@ -102,7 +103,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   function save(next: Settings) {
     setSettings(next);
     startTransition(async () => {
-      const res = await updateLocationSettings({ sharingEnabled: next.sharing_enabled, autoUpdate: next.auto_update });
+      const res = await callAction(() => updateLocationSettings({ sharingEnabled: next.sharing_enabled, autoUpdate: next.auto_update }));
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
@@ -111,7 +112,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   function clearHistory() {
     if (checkinIds.length === 0) return;
     startTransition(async () => {
-      const res = await removeCheckins({});
+      const res = await callAction(() => removeCheckins({}));
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });

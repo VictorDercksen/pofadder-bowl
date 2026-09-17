@@ -13,7 +13,7 @@ export function OriginStory() {
         {STANDINGS.map((div) => (
           <div className="pb-panel" key={div.division}>
             <h3>{div.division} division</h3>
-            <table className="pb-table">
+            <div className="pb-table-wrap"><table className="pb-table">
               <thead>
                 <tr>
                   <th>#</th>
@@ -40,7 +40,7 @@ export function OriginStory() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         ))}
       </div>
@@ -50,7 +50,7 @@ export function OriginStory() {
           <span className="pb-tag orange">SUPPLIED · UNVERIFIED</span>
         </div>
         <p className="pb-small">Chase-ing Mahomelessness, full lineup for the game that sent Victor to Pofadder. Actual points, projection underneath. {ROSTER.note}</p>
-        <table className="pb-table">
+        <div className="pb-table-wrap"><table className="pb-table">
           <thead>
             <tr>
               {ROSTER.columns.map((c) => (
@@ -69,7 +69,7 @@ export function OriginStory() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </section>
   );

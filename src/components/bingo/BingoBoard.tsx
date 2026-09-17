@@ -6,6 +6,7 @@ import { Status } from "@/components/ui/TitleRow";
 import { markedCellsFor, winningCells } from "@/lib/bingo";
 import { proposeIncident } from "@/lib/actions/bingo";
 import { decideIncident } from "@/lib/actions/review";
+import { callAction } from "@/lib/actions-client";
 
 export type Square = { id: string; position: number; text: string; is_free: boolean };
 export type Incident = { id: string; square_id: string; note: string | null; proposed_by: string; created_at: string };
@@ -28,7 +29,7 @@ export function BingoBoard({ layout, squares, confirmedPositions, proposedSquare
   function propose() {
     if (!selected) return;
     startTransition(async () => {
-      const res = await proposeIncident({ squareId: selected.id, note: note.trim() || undefined });
+      const res = await callAction(() => proposeIncident({ squareId: selected.id, note: note.trim() || undefined }));
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       if (res.ok) {
         setSelected(null);
@@ -40,7 +41,7 @@ export function BingoBoard({ layout, squares, confirmedPositions, proposedSquare
 
   function decide(id: string, confirm: boolean) {
     startTransition(async () => {
-      const res = await decideIncident({ incidentId: id, confirm });
+      const res = await callAction(() => decideIncident({ incidentId: id, confirm }));
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });

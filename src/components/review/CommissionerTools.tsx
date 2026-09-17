@@ -6,6 +6,7 @@ import { Status } from "@/components/ui/TitleRow";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime } from "@/lib/time";
+import { callAction } from "@/lib/actions-client";
 
 type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
 
@@ -25,7 +26,7 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
             disabled={pending}
             onChange={(e) =>
               startTransition(async () => {
-                const res = await setPenalty({ penaltyId: p.id, applied: e.target.checked });
+                const res = await callAction(() => setPenalty({ penaltyId: p.id, applied: e.target.checked }));
                 setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
                 router.refresh();
               })
@@ -87,12 +88,12 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await saveOfficialResults({
+              const res = await callAction(() => saveOfficialResults({
                 runSeconds: hasRun ? h * 3600 + m * 60 + s : null,
                 runDistanceKm: km === "" ? null : Number(km),
                 mealRating: meal === "" ? null : Number(meal),
                 complaintCount: complaints === "" ? null : Number(complaints),
-              });
+              }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })
@@ -106,7 +107,7 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
           disabled={pending || !results}
           onClick={() =>
             startTransition(async () => {
-              const res = await resolvePredictions();
+              const res = await callAction(() => resolvePredictions());
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })
@@ -143,7 +144,7 @@ export function CertificateIssue({ certificate, approved, max, timezone }: { cer
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await issueCertificate({ isPublic });
+              const res = await callAction(() => issueCertificate({ isPublic }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })

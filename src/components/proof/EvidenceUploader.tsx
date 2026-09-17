@@ -8,6 +8,7 @@ import { formatBytes, validateFile } from "@/lib/evidence-rules";
 import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
 import { useOnline } from "@/lib/hooks";
 import { newId } from "@/lib/ids";
+import { callAction } from "@/lib/actions-client";
 
 export type ExistingFile = { id: string; original_name: string | null; kind: string; byte_size: number };
 export type ExistingSubmission = { id: string; version: number; status: string; caption: string; files: ExistingFile[] } | null;
@@ -80,7 +81,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
 
   async function ensureSubmission(): Promise<string | null> {
     if (submissionId) return submissionId;
-    const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId, caption } : { pressPromptId: targetId, caption });
+    const res = await callAction(() => createDraft(targetKind === "challenge" ? { challengeId: targetId, caption } : { pressPromptId: targetId, caption }));
     if (!res.ok || !res.submissionId) {
       setNote({ text: res.ok ? "Could not create a draft." : res.message, tone: "error" });
       return null;
@@ -92,18 +93,23 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   function addFiles(list: FileList | File[] | null) {
     if (!list) return;
     const next: Row[] = [];
+    const skipped: string[] = [];
     for (const file of Array.from(list)) {
       const v = validateFile(file.type, file.name, file.size);
       if (!v.ok) {
-        setNote({ text: `${file.name}: ${v.reason}`, tone: "error" });
+        skipped.push(`${file.name}: ${v.reason}`);
         continue;
       }
       next.push({ local: { id: newId(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued", lastModified: file.lastModified }, progress: 0 });
     }
-    if (next.length === 0) return;
+    if (next.length === 0) {
+      if (skipped.length) setNote({ text: skipped.join(" · "), tone: "error" });
+      return;
+    }
     const all = [...rows, ...next];
     setRows(all);
-    persist(all, caption, submissionId).then((ok) => ok && setNote({ text: `${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, tone: "ok" }));
+    // A rejected file in a multi-file pick must not be hidden behind the success note.
+    persist(all, caption, submissionId).then((ok) => ok && setNote({ text: `${next.length} file(s) added to the local draft. Nothing has been uploaded yet.${skipped.length ? ` Skipped · ${skipped.join(" · ")}` : ""}`, tone: skipped.length ? "warn" : "ok" }));
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -141,6 +147,8 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
         if (!res.ok) setNote({ text: res.message, tone: "error" });
       }
       router.refresh();
+    } catch {
+      setNote({ text: "The upload did not reach the league. Check your signal and try again; the files are still in the local draft.", tone: "error" });
     } finally {
       uploadingRef.current = false;
       setUploading(false);
@@ -161,7 +169,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     startTransition(async () => {
       await persist(rows, caption, submissionId);
       if (submissionId) {
-        const res = await updateCaption({ submissionId, caption });
+        const res = await callAction(() => updateCaption({ submissionId, caption }));
         setNote({ text: res.ok ? "Caption saved to the draft." : res.message, tone: res.ok ? "ok" : "error" });
       } else setNote({ text: "Draft saved on this device.", tone: "ok" });
     });
@@ -183,8 +191,8 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       return;
     }
     startTransition(async () => {
-      if (caption !== (current?.caption ?? "")) await updateCaption({ submissionId, caption });
-      const res = await submitDraft({ submissionId });
+      if (caption !== (current?.caption ?? "")) await callAction(() => updateCaption({ submissionId, caption }));
+      const res = await callAction(() => submitDraft({ submissionId }));
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       if (res.ok) {
         await clearDraft(draftKey);
@@ -196,7 +204,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
 
   function removeUploaded(fileId: string) {
     startTransition(async () => {
-      const res = await deleteDraftFile({ fileId });
+      const res = await callAction(() => deleteDraftFile({ fileId }));
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
@@ -306,7 +314,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId } : { pressPromptId: targetId });
+                const res = await callAction(() => createDraft(targetKind === "challenge" ? { challengeId: targetId } : { pressPromptId: targetId }));
                 setNote({ text: res.ok ? `New version v${res.version} started.` : res.message, tone: res.ok ? "ok" : "error" });
                 router.refresh();
               })

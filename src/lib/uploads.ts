@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { resumableEndpoint } from "@/lib/env";
 import { RESUMABLE_THRESHOLD, TUS_CHUNK_SIZE } from "@/lib/evidence-rules";
 import { attachFile, prepareUpload } from "@/lib/actions/evidence";
+import { callAction } from "@/lib/actions-client";
 
 export type UploadProgress = { loaded: number; total: number };
 
@@ -19,7 +20,7 @@ export type UploadHandle = { abort: () => void; done: Promise<{ ok: true; fileId
 export function uploadEvidence(submissionId: string, file: File, onProgress: (p: UploadProgress) => void): UploadHandle {
   let abortFn = () => {};
   const done = (async () => {
-    const prep = await prepareUpload({ submissionId, fileName: file.name, mimeType: file.type, byteSize: file.size });
+    const prep = await callAction(() => prepareUpload({ submissionId, fileName: file.name, mimeType: file.type, byteSize: file.size }));
     if (!prep.ok) return prep;
     const supabase = createClient();
 
@@ -60,7 +61,7 @@ export function uploadEvidence(submissionId: string, file: File, onProgress: (p:
       if (!result.ok) return result;
     }
 
-    const attached = await attachFile({ submissionId, path: prep.path, mimeType: file.type || prep.mime, byteSize: file.size, originalName: file.name });
+    const attached = await callAction(() => attachFile({ submissionId, path: prep.path, mimeType: file.type || prep.mime, byteSize: file.size, originalName: file.name }));
     if (!attached.ok) return attached;
     return { ok: true as const, fileId: attached.fileId, path: prep.path };
   })();

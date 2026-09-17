@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { newId } from "@/lib/ids";
 import { Status } from "@/components/ui/TitleRow";
 import { reviewSubmission } from "@/lib/actions/review";
+import { callAction } from "@/lib/actions-client";
 
 /** Approve / flag / supersede with a per-page idempotency key so retries never double-award. */
 export function ReviewForm({ submissionId, version, status, points }: { submissionId: string; version: number; status: string; points: number }) {
@@ -22,7 +23,7 @@ export function ReviewForm({ submissionId, version, status, points }: { submissi
       return;
     }
     startTransition(async () => {
-      const res = await reviewSubmission({ submissionId, version, decision, idempotencyKey: `${keyBase.current}:${decision}:${version}`, reason: reason.trim() || undefined, note: note.trim() || undefined });
+      const res = await callAction(() => reviewSubmission({ submissionId, version, decision, idempotencyKey: `${keyBase.current}:${decision}:${version}`, reason: reason.trim() || undefined, note: note.trim() || undefined }));
       // The server replays an identical request for this key; a later, different decision needs a new one.
       keyBase.current = newId();
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });

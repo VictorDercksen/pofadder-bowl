@@ -6,6 +6,7 @@ import { Status } from "@/components/ui/TitleRow";
 import { savePrediction, updatePredictionRules } from "@/lib/actions/predictions";
 import { validatePrediction, type PredictionRules } from "@/lib/predictions";
 import { Countdown } from "@/components/ui/Countdown";
+import { callAction } from "@/lib/actions-client";
 
 export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; lockAt: string; existing: { run_seconds: number; meal_rating: number; complaint_count: number } | null }) {
   const router = useRouter();
@@ -23,7 +24,7 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       return;
     }
     startTransition(async () => {
-      const res = await savePrediction({ hours, minutes, mealRating: meal, complaints });
+      const res = await callAction(() => savePrediction({ hours, minutes, mealRating: meal, complaints }));
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
@@ -99,7 +100,7 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await updatePredictionRules({ runPoints: run, mealPoints: meal, complaintsPoints: complaints });
+              const res = await callAction(() => updatePredictionRules({ runPoints: run, mealPoints: meal, complaintsPoints: complaints }));
               setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })

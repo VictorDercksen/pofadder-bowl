@@ -399,7 +399,8 @@ a{color:inherit}
 .pb .pb-tag{border-radius:999px;padding:5px 10px;font-weight:600;letter-spacing:.6px}
 .pb .pb-chip{border-radius:999px}
 .pb .pb-field input,.pb .pb-field select,.pb .pb-field textarea{border-radius:8px;border:1.5px solid #bec8b8;background:var(--pb-panel);transition:border-color .12s ease,box-shadow .12s ease}
-.pb .pb-field input:focus,.pb .pb-field select:focus,.pb .pb-field textarea:focus{border-color:var(--pb-green);box-shadow:0 0 0 3px #183b2f22;outline:none}
+.pb .pb-field input:focus,.pb .pb-field select:focus,.pb .pb-field textarea:focus{border-color:var(--pb-green);box-shadow:0 0 0 3px #183b2f22}
+.pb .pb-field input:focus:not(:focus-visible),.pb .pb-field select:focus:not(:focus-visible),.pb .pb-field textarea:focus:not(:focus-visible){outline:none}
 .pb .pb-panel{border-radius:10px}
 .pb .pb-next{border-radius:0 10px 10px 0}
 .pb .pb-broadcast{border-radius:10px}
@@ -481,3 +482,7 @@ a{color:inherit}
 .pb .pb-post-action{background:transparent;border:0;color:var(--pb-muted);font-size:12px;padding:5px 0;text-decoration:none;cursor:pointer;min-height:0}
 .pb .pb-post-action:hover{color:var(--pb-orange);text-decoration:underline;text-underline-offset:4px}
 @media(max-width:580px){.pb .pb-post{padding:12px 12px 10px}.pb .pb-post-body{font-size:16px}}
+
+/* Standings tables (My trip origin story): scroll inside the panel on mid widths instead of widening the page. */
+.pb .pb-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.pb .pb-table-wrap .pb-table{min-width:520px}

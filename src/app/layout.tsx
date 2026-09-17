@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { barlow, barlowCondensed } from "@/lib/fonts";
+import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // Absolute base for Open Graph images (the teaser's share card) instead of Next's localhost default.
+  metadataBase: new URL(publicEnv.appOrigin),
   title: { default: "Pofadder Bowl 2026 · Show Us Your TD’s", template: "%s · Pofadder Bowl 2026" },
   description: "Private fantasy-league punishment experience. Malmesbury to Pofadder and back, 23–25 September 2026.",
   robots: { index: false, follow: false },

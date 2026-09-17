@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { TeamLogo } from "@/components/ui/Marks";
 import { confirmSleeperLink, importSleeperLeague, inviteMember, setEventParticipant, setMemberRole } from "@/lib/actions/members";
+import { callAction } from "@/lib/actions-client";
 
 type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
 
@@ -44,7 +45,7 @@ export function InviteForm() {
           disabled={pending || !email}
           onClick={() =>
             startTransition(async () => {
-              const res = await inviteMember({ email, displayName: name || undefined, role, isCommissioner: commish });
+              const res = await callAction(() => inviteMember({ email, displayName: name || undefined, role, isCommissioner: commish }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               if (res.ok) {
                 setEmail("");
@@ -74,7 +75,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
 
   function save() {
     startTransition(async () => {
-      const res = await setMemberRole({ userId: membership.user_id, role, isCommissioner: commish, isAdmin: adminFlag, status });
+      const res = await callAction(() => setMemberRole({ userId: membership.user_id, role, isCommissioner: commish, isAdmin: adminFlag, status }));
       setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
@@ -124,7 +125,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const res = await setEventParticipant({ userId: membership.user_id });
+                  const res = await callAction(() => setEventParticipant({ userId: membership.user_id }));
                   setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
                   router.refresh();
                 })
@@ -153,7 +154,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const res = await confirmSleeperLink({ userId: membership.user_id, sleeperUserId: sleeper || null, confirmed: Boolean(sleeper) });
+                  const res = await callAction(() => confirmSleeperLink({ userId: membership.user_id, sleeperUserId: sleeper || null, confirmed: Boolean(sleeper) }));
                   setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
                   router.refresh();
                 })
@@ -182,7 +183,7 @@ export function SleeperImport() {
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await importSleeperLeague();
+              const res = await callAction(() => importSleeperLeague());
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })

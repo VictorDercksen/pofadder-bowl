@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { claimSleeperIdentity, updateProfile } from "@/lib/actions/account";
+import { callAction } from "@/lib/actions-client";
 
 export function KitForm({ displayName, kitNumber }: { displayName: string; kitNumber: number }) {
   const router = useRouter();
@@ -28,7 +29,7 @@ export function KitForm({ displayName, kitNumber }: { displayName: string; kitNu
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await updateProfile({ displayName: name, kitNumber: number });
+              const res = await callAction(() => updateProfile({ displayName: name, kitNumber: number }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })
@@ -67,7 +68,7 @@ export function SleeperClaim({ users, current, confirmed }: { users: { id: strin
           disabled={pending || confirmed}
           onClick={() =>
             startTransition(async () => {
-              const res = await claimSleeperIdentity({ sleeperUserId: value || null });
+              const res = await callAction(() => claimSleeperIdentity({ sleeperUserId: value || null }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             })

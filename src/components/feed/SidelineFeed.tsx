@@ -9,6 +9,7 @@ import { postComment, toggleReaction } from "@/lib/actions/feed";
 import { formatTime } from "@/lib/time";
 import { useOnline } from "@/lib/hooks";
 import type { FeedPost } from "@/lib/feed";
+import { callAction } from "@/lib/actions-client";
 
 const KIND_LABEL: Record<string, string> = {
   checkin: "Check-in",
@@ -78,7 +79,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
       return;
     }
     startTransition(async () => {
-      const res = await postComment({ body });
+      const res = await callAction(() => postComment({ body }));
       setNote({ text: res.message ?? (res.ok ? "Posted." : "Failed."), tone: res.ok ? "ok" : "error" });
       if (res.ok) setComment("");
     });
@@ -88,7 +89,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
     // Optimistic toggle, reconciled by the server result.
     setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, reacted: !p.reacted, reaction_count: p.reaction_count + (p.reacted ? -1 : 1) } : p)));
     startTransition(async () => {
-      const res = await toggleReaction({ postId: post.id });
+      const res = await callAction(() => toggleReaction({ postId: post.id }));
       if (!res.ok) {
         setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, reacted: post.reacted, reaction_count: post.reaction_count } : p)));
         setNote({ text: res.message, tone: "error" });

@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { signedMediaUrl } from "@/lib/actions/evidence";
 import { nowMs } from "@/lib/time";
+import { callAction } from "@/lib/actions-client";
 
 export type GalleryFile = { id: string; kind: string; name: string; mime: string };
 
@@ -17,7 +18,7 @@ export function MediaGallery({ files }: { files: GalleryFile[] }) {
 
   function load(file: GalleryFile) {
     startTransition(async () => {
-      const res = await signedMediaUrl({ fileId: file.id });
+      const res = await callAction(() => signedMediaUrl({ fileId: file.id }));
       if (!res.ok) {
         setError(res.message);
         return;

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapPin } from "./CheckinMap";
+import { validCoordinate } from "@/lib/checkin-path";
 
 const ROUTE_COLOUR = "#cc542b";
 
@@ -24,7 +25,7 @@ function icon(kind: MapPin["kind"]) {
  * so a member who has zoomed in is not yanked back by the 45 s poll.
  */
 export function LiveMap({
-  pins,
+  pins: rawPins,
   path = [],
   focus,
   tileUrl,
@@ -41,6 +42,8 @@ export function LiveMap({
   fallbackLatitude: number;
   fallbackLongitude: number;
 }) {
+  // Check-ins are range-checked by the database, itinerary venues are not: drop anything Leaflet would throw on.
+  const pins = rawPins.filter(validCoordinate);
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);

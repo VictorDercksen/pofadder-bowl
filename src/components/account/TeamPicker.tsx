@@ -7,6 +7,7 @@ import { TeamLogo } from "@/components/ui/Marks";
 import { Status } from "@/components/ui/TitleRow";
 import { claimKit } from "@/lib/actions/account";
 import { NFL_TEAMS } from "@/lib/nfl";
+import { callAction } from "@/lib/actions-client";
 
 export type Claimed = { team: string; by: string; mine: boolean };
 
@@ -26,7 +27,7 @@ export function TeamPicker({ claimed, initialNumber, current, afterClaim = "/hom
       return;
     }
     startTransition(async () => {
-      const res = await claimKit({ kitTeam: team, kitNumber: number });
+      const res = await callAction(() => claimKit({ kitTeam: team, kitNumber: number }));
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       if (res.ok) {
         router.replace(afterClaim);

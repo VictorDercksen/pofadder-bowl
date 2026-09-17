@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
 import { setCertificateConsent } from "@/lib/actions/account";
 import { teamLogoSrc } from "@/lib/nfl";
+import { callAction } from "@/lib/actions-client";
 
 export type CertificateSummary = {
   participant: string;
@@ -214,7 +215,7 @@ export function ConsentToggle({ consent, isPublic, publicUrl }: { consent: boole
           onChange={(e) => {
             setValue(e.target.checked);
             startTransition(async () => {
-              const res = await setCertificateConsent({ consent: e.target.checked });
+              const res = await callAction(() => setCertificateConsent({ consent: e.target.checked }));
               setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
               router.refresh();
             });

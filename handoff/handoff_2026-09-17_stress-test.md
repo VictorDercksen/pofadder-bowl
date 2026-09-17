@@ -11,6 +11,7 @@ Follow-on to `handoff_2026-09-17_map-drawer-layering.md`. Infrastructure detail 
 | Schema | **One new migration**: `supabase/migrations/20260917000700_stress_test_fixes.sql`. Needs `npm run db:push` from the laptop after merge. Types unchanged (no new columns or RPC signatures the app reads) |
 | Env | Unchanged. `publicEnv` now trims every value |
 | Tests | `npm run typecheck`, `npm run lint`, `npm test` (10 files, 51 vitest, 17 new) pass |
+| Commits | `a67214e` (SQL, actions, logic, client) and the follow-up with the browser findings; PR #3 tracks the branch |
 
 ## What was asked
 
@@ -86,6 +87,15 @@ Every finding below was re-verified against the code before it was fixed. The ne
 - `ReviewForm`, `EvidenceUploader`: `crypto.randomUUID()` is undefined on insecure origins (testing over `http://<lan-ip>`); `newId()` in `src/lib/ids.ts` falls back to `getRandomValues`.
 - Demo: the "incident" marked cell 1 instead of the cell holding square 1.
 
+### Found in the browser (headless Chromium against `next start`)
+
+- **A rejected server action crashed the whole page.** Every `startTransition(async …)` except the check-in path awaited the action bare, so a dropped connection ("Failed to fetch") threw inside the transition and Next swapped the screen for "This page couldn't load", losing an unsent comment or slip. `callAction` in `src/lib/actions-client.ts` turns the rejection into `{ ok: false, message }`; all 32 call sites use it, and `uploadAll` catches and explains a failed draft creation (previously silent).
+- **One non-finite pin coordinate destroyed the map.** `LiveMap` filtered the route through `validCoordinate` but not the pins; a bad `itinerary_items` row (no range check in the schema) took `/map` and `/game-centre` down with "Invalid LatLng object". Pins are filtered now.
+- A rejected file in a multi-file pick was hidden behind the success note; the note now lists what was skipped.
+- `/demo/my-trip` overflowed horizontally between roughly 700 and 900 px (the six-column standings tables); they scroll inside a `pb-table-wrap` now.
+- Form fields suppressed the site's orange `:focus-visible` ring; the suppression is scoped to `:focus:not(:focus-visible)`.
+- `metadataBase` was unset, so the teaser's Open Graph image resolved against localhost in every build; set from `publicEnv.appOrigin`.
+
 ## Found, not fixed (decisions for Victor)
 
 1. **Self-review.** Victor is admin, commissioner and participant, so he can approve his own proof. Blocking it would lock reviews until Theo is a commissioner. Suggested: once Theo is in, add `if v_sub.submitter_id = auth.uid() then raise` to `review_submission`.
@@ -96,12 +106,16 @@ Every finding below was re-verified against the code before it was fixed. The ne
 6. The proxy treats any `getClaims()` error as signed-out; the single-use refresh-token race described in CLAUDE.md can bounce one parallel request to `/login`. Not reproducible here.
 7. Cancelling a small (≤ 6 MB) upload does not abort the transfer; the object stays orphaned in storage without an `evidence_files` row.
 8. Prediction lock and reveal are the same instant in the seed, so slips reveal the moment they lock. By design, noted.
+9. **Teaser poster.** In the sandbox the `/_next/image` request for the 3 MB, 1254×1254 teaser PNG never answered when the browser asked for WebP/AVIF, so `/teaser` never finished loading. Likely a sandbox worker problem (Vercel runs image optimisation on its own infrastructure), but open `/teaser` in a fresh browser on production and confirm the poster paints. A pre-compressed asset would remove the risk either way.
+10. `CLAUDE.md` says `/login` and `/recap/public` prerender; `/login` is `force-dynamic` (it bounces signed-in users) and the public recap reads the database, so only `/teaser` and `/demo/*` are static. Either adjust the doc or move the signed-in bounce into the proxy.
+11. Demo divergences (all deliberate previews, low): demo predictions never lock and accept 0 h 0 m; demo bingo marks your own squares and has no commissioner queue; demo approve/flag is a single toggle with no versioning; demo state resets on client-side navigation between demo screens. No skip-to-content link anywhere although `<main id="main">` exists.
+12. If `getCurrentPosition` never calls back at all, the check-in button stays on "Getting GPS fix…"; browsers do fire the 20 s timeout, so this is latent.
 
 ## Verification done
 
 - `npm run typecheck && npm run lint && npm test` green (51 tests).
 - Migration: applied twice on a clean rebuild of the agent's Postgres 16 cluster (shim → six migrations → seed → fixtures → new migration), re-runnable, every reproduction listed above re-run and passing, regression set passing, and every RPC called from `src/**` still executable by `authenticated` after the final blanket revoke.
-- Browser: see the browser section below.
+- Browser (before the fixes, then re-checked against `a67214e`): 19 public and demo pages plus 11 component harness cases at 360/390/768/1280 px; console quiet apart from the sandbox-blocked OSM tiles and the fake Realtime host; no hydration or key warnings, no duplicate ids, no `Dynamic server usage`, no 500s; every image has alt text, one `h1` per page, drawer focus trap and Escape work, the earlier drawer-over-map fix holds. Verified working for the first time: IndexedDB drafts survive a reload, certificate PNG export and the Web Share fallback, LocationSharing error paths (denied, timeout, offline, no API, weak accuracy, three rapid clicks → one request), map viewport (manual zoom kept on same-set refresh, refit on change, 500 markers in 420 ms, no "Map container is already initialized" across remounts), static-tile mode, demo-only routing, public recap 404 on junk slugs and traversal. The five browser fixes above were not re-run in Chromium after the change; they are small and covered by typecheck and lint.
 - Not verified: anything served by Supabase services rather than SQL (signed URLs, TUS, GoTrue, Realtime authorisation), the storage policies against the real storage-api, and the `pb-member-view` cookie against a live session.
 
 ## Suggested checks on production (after `db:push`)
