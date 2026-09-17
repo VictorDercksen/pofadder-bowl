@@ -16,7 +16,7 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 - Verify before committing: `npm run typecheck && npm run lint && npm test`. Run `npm run test:integration` when the local Supabase stack is available and the change touches SQL, RLS or actions.
 - Work on the assigned branch. Do not open a pull request unless asked. Do not push to `main` unless asked.
 - Never commit secrets. `.env*` is ignored except `.env.example`; keep env files LF (a stray `\r` once broke the league slug on Vercel).
-- From cloud sessions: no `vercel deploy`, no `supabase db push`. Schema changes go into `supabase/migrations/` and Victor pushes them from the laptop (`npm run db:push`).
+- From cloud sessions: no `vercel deploy`, no `supabase db push`. Schema changes go into `supabase/migrations/`; the `Supabase migrations` workflow (`.github/workflows/supabase-migrate.yml`) pushes them when they land on `main`, provided the three `SUPABASE_*` repository secrets exist. `npm run db:push` from the laptop is the fallback. Migrations must stay backward compatible with the previous deploy because Vercel builds in parallel.
 - Keep the Next.js managed block in `AGENTS.md`; `next dev` re-adds it if removed.
 - Do not put model names or session identifiers into code, commit messages or docs pushed to the repo.
 

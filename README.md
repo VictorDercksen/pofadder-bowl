@@ -84,6 +84,10 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
 4. **Vercel**: `vercel link`, add the environment variables above (Production + Preview), then `vercel deploy` or push to the connected GitHub repo. Node 24 is selected via `.node-version`. Private routes send `Cache-Control: private, no-store`.
 5. Invite members from **Review → Members**, set the participant role and “Make event participant”, import the Sleeper league and confirm links.
 
+## Schema deploys (GitHub Actions)
+
+`.github/workflows/supabase-migrate.yml` runs `supabase db push` against the hosted project whenever a file under `supabase/migrations/` lands on `main` (and on demand from the Actions tab, with a dry-run option). It needs three repository secrets under **Settings → Secrets and variables → Actions**: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
+
 ## Notes on supplied data
 
 - Event dates come from `supabase/seed.sql` / `data/league-programme.json` (user-supplied plans, not independently verified). Phase and countdowns derive from the configured event instants.
