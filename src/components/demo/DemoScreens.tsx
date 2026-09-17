@@ -42,7 +42,7 @@ function Feed() {
       <JerseyCard team="cin" displayName="THE LEAGUE" number={9} heading="Trade offer incoming" message="Have you tried trading your return ticket for a running back?" time="08:54" kind="League comment" />
       {state.submitted ? <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="New proof submitted" message="Three locals. One difficult explanation." time="Just now" kind={state.review} /> : null}
       {state.comments.map((c, i) => (
-        <JerseyCard key={i} team="nyg" displayName="DERCKSEN" number={26} heading="From your locker" message={c} time="Just now" kind="Demo comment" />
+        <JerseyCard key={i} team="nyg" displayName="DERCKSEN" number={26} message={c} time="Just now" kind="League comment" />
       ))}
     </div>
   );

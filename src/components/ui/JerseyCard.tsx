@@ -9,8 +9,8 @@ export type JerseyCardProps = {
   displayName: string;
   /** Kit number 0..99. */
   number: number | string;
-  /** Post heading. */
-  heading: string;
+  /** Post heading; omit for plain comments, which read as a forum reply. */
+  heading?: string;
   /** Message body (rendered as text, never HTML). */
   message: string;
   /** Clock time of the post, right-aligned in the byline. */
@@ -74,7 +74,7 @@ export function JerseyCard({ team, displayName, number, heading, message, time, 
             {kind ? <span className="pb-post-kind">{kind}</span> : null}
             <span className="pb-post-time">{time}</span>
           </div>
-          <b className="pb-post-heading">{heading}</b>
+          {heading ? <b className="pb-post-heading">{heading}</b> : null}
           <p className="pb-post-body">{message}</p>
           {reaction || actions ? (
             <div className="pb-post-foot">

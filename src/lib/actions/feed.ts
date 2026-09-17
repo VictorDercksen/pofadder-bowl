@@ -17,7 +17,7 @@ export async function postComment(input: { body: string }): Promise<ActionResult
     event_id: ctx.event.id,
     author_id: ctx.user.id,
     kind: "comment",
-    heading: "From the locker room",
+    heading: "League comment",
     body: parsed.data.body,
   });
   if (error) return { ok: false, message: "Could not post the comment. Try again." };

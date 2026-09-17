@@ -118,7 +118,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
               team={post.kit_team}
               displayName={post.author_name}
               number={post.kit_number}
-              heading={post.heading}
+              heading={post.kind === "comment" ? undefined : post.heading}
               message={post.body}
               time={formatTime(post.created_at, timezone)}
               kind={KIND_LABEL[post.kind] ?? post.kind}
