@@ -22,7 +22,17 @@ export function PressRoom({ prompts, canAnswer, timezone }: { prompts: Prompt[];
   const uploaderRef = useRef<EvidenceUploaderHandle>(null);
   const prompt = prompts[index];
 
-  useEffect(() => () => stopStream(), []);
+  useEffect(
+    () => () => {
+      try {
+        recorderRef.current?.stop();
+      } catch {
+        // already inactive
+      }
+      stopStream();
+    },
+    [],
+  );
 
   function stopStream() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -44,6 +54,7 @@ export function PressRoom({ prompts, canAnswer, timezone }: { prompts: Prompt[];
       }
       const mime = ["video/mp4", "video/webm;codecs=vp9,opus", "video/webm"].find((m) => MediaRecorder.isTypeSupported(m)) ?? "";
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const target = prompt; // pinned: "Next question" is disabled while recording, but never trust the closure
       const chunks: Blob[] = [];
       rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
       rec.onstop = () => {
@@ -55,7 +66,7 @@ export function PressRoom({ prompts, canAnswer, timezone }: { prompts: Prompt[];
           return;
         }
         const ext = type.includes("mp4") ? "mp4" : "webm";
-        uploaderRef.current?.addFile(new File([blob], `press-answer-${prompt.slot}-${prompt.sequence}.${ext}`, { type }));
+        uploaderRef.current?.addFile(new File([blob], `press-answer-${target.slot}-${target.sequence}.${ext}`, { type }));
       };
       recorderRef.current = rec;
       rec.start(1000);
@@ -89,7 +100,7 @@ export function PressRoom({ prompts, canAnswer, timezone }: { prompts: Prompt[];
         QUESTION {index + 1} OF {prompts.length} · {prompt.slot.toUpperCase()} · {prompt.open ? "OPEN" : `OPENS ${formatDateTime(prompt.opens_at, timezone).toUpperCase()}`}
       </small>
       <div className="pb-actions">
-        <button className="pb-secondary" type="button" onClick={() => setIndex((index + 1) % prompts.length)}>Next question</button>
+        <button className="pb-secondary" type="button" onClick={() => setIndex((index + 1) % prompts.length)} disabled={recording}>Next question</button>
         {canAnswer && prompt.open ? (
           recording ? (
             <button className="pb-primary orange" type="button" onClick={stop}>

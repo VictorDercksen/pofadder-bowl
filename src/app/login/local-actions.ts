@@ -4,10 +4,11 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
+import { safeInternalPath } from "@/lib/paths";
 
 /** True only when the app points at a local Supabase stack (fixture accounts use passwords). */
 export async function isLocalStack(): Promise<boolean> {
-  return /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?/.test(publicEnv.supabaseUrl);
+  return /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/.test(publicEnv.supabaseUrl);
 }
 
 export type LocalSignInState = { error?: string };
@@ -23,5 +24,5 @@ export async function localPasswordSignIn(_prev: LocalSignInState, formData: For
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
   if (error) return { error: error.message };
-  redirect(parsed.data.next && parsed.data.next.startsWith("/") ? parsed.data.next : "/home");
+  redirect(safeInternalPath(parsed.data.next, "/home"));
 }

@@ -31,7 +31,16 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 }
 
 /** Renders a share image / certificate PNG on a canvas from the real summary. */
+/** next/font exposes the real (hashed) family names only through these variables; canvas needs them by name. */
+function leagueFonts(): { barlow: string; condensed: string } {
+  const styles = getComputedStyle(document.documentElement);
+  const barlow = styles.getPropertyValue("--font-barlow").trim() || "Barlow";
+  const condensed = styles.getPropertyValue("--font-barlow-condensed").trim() || "'Barlow Condensed'";
+  return { barlow, condensed };
+}
+
 async function renderCertificate(summary: CertificateSummary, issued: boolean, kitTeam: string | null): Promise<Blob | null> {
+  const { barlow, condensed } = leagueFonts();
   const W = 1200;
   const H = 1200;
   const canvas = document.createElement("canvas");
@@ -75,20 +84,20 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   c.closePath();
   c.fill();
   c.fillStyle = gold;
-  c.font = "900 44px 'Barlow Condensed', Impact, sans-serif";
+  c.font = `900 44px ${condensed}, Impact, sans-serif`;
   c.textAlign = "center";
   c.fillText("PB", W / 2 + 130, 160);
-  c.font = "600 18px Barlow, Arial, sans-serif";
+  c.font = `600 18px ${barlow}, Arial, sans-serif`;
   c.fillText("2026", W / 2 + 130, 186);
 
   c.fillStyle = orange;
-  c.font = "600 22px Barlow, Arial, sans-serif";
+  c.font = `600 22px ${barlow}, Arial, sans-serif`;
   c.fillText(`SHOW US YOUR TD’S · ${issued ? "COMMISSIONER CERTIFIED" : "CERTIFICATE PENDING"}`, W / 2, 270);
   c.fillStyle = green;
-  c.font = "900 96px 'Barlow Condensed', Impact, sans-serif";
+  c.font = `900 96px ${condensed}, Impact, sans-serif`;
   c.fillText(issued ? `${summary.participant.split(" ")[0].toUpperCase()} SURVIVED POFADDER.` : "NOT CERTIFIED YET.", W / 2, 380);
   c.fillStyle = "#192e25";
-  c.font = "400 30px Barlow, Arial, sans-serif";
+  c.font = `400 30px ${barlow}, Arial, sans-serif`;
   c.fillText(issued ? "Two overnight buses. Fourteen kilometres. Ten plays." : "Pending the commissioner’s decision.", W / 2, 440);
   c.fillText(issued ? "One outstanding contribution to league entertainment." : "Built only from approved evidence.", W / 2, 484);
 
@@ -100,26 +109,26 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   stats.forEach(([big, small], i) => {
     const x = 220 + i * 380;
     c.fillStyle = green;
-    c.font = "700 74px 'Barlow Condensed', Impact, sans-serif";
+    c.font = `700 74px ${condensed}, Impact, sans-serif`;
     c.fillText(big, x, 620);
     c.fillStyle = "#687366";
-    c.font = "600 20px Barlow, Arial, sans-serif";
+    c.font = `600 20px ${barlow}, Arial, sans-serif`;
     c.fillText(small, x, 660);
     c.fillStyle = "#d9dacd";
     c.fillRect(x - 150, 680, 300, 3);
   });
 
   c.fillStyle = "#192e25";
-  c.font = "400 26px Barlow, Arial, sans-serif";
+  c.font = `400 26px ${barlow}, Arial, sans-serif`;
   c.fillText(`Bingo: ${summary.bingoWinners.length ? summary.bingoWinners.join(", ") : "no confirmed line"}`, W / 2, 760);
   c.fillText(`Predictions: ${summary.predictionWinners.length ? summary.predictionWinners.join(", ") : "not resolved"}`, W / 2, 800);
   c.fillText(`${summary.checkins} timestamped check-in${summary.checkins === 1 ? "" : "s"}`, W / 2, 840);
 
   c.fillStyle = green;
-  c.font = "500 54px 'Barlow Condensed', Impact, sans-serif";
+  c.font = `500 54px ${condensed}, Impact, sans-serif`;
   c.fillText(issued ? "The Commissioner" : "Awaiting the Commissioner", W / 2, 950);
   c.fillStyle = "#687366";
-  c.font = "400 22px Barlow, Arial, sans-serif";
+  c.font = `400 22px ${barlow}, Arial, sans-serif`;
   c.fillText(summary.issuedAt ? `Issued ${summary.issuedAt}` : summary.eventName, W / 2, 990);
 
   // Ticket stub
@@ -132,7 +141,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   c.stroke();
   c.setLineDash([]);
   c.fillStyle = "#192e25";
-  c.font = "600 20px Barlow, Arial, sans-serif";
+  c.font = `600 20px ${barlow}, Arial, sans-serif`;
   c.textAlign = "left";
   c.fillText(`PB26 · ${issued ? "SENTENCE CLOSED" : "SENTENCE OPEN"} · UNOFFICIAL FANTASY LEAGUE`, 120, 1095);
   for (let i = 0; i < 40; i++) {
@@ -149,6 +158,8 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
   async function exportPng(share: boolean) {
     setBusy(true);
     try {
+      const fonts = leagueFonts();
+      await Promise.all([document.fonts?.load(`900 96px ${fonts.condensed}`), document.fonts?.load(`600 22px ${fonts.barlow}`)]).catch(() => {});
       await document.fonts?.ready;
       const blob = await renderCertificate(summary, issued, kitTeam);
       if (!blob) throw new Error("render failed");

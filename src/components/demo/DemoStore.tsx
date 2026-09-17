@@ -113,7 +113,7 @@ function reducer(s: DemoState, a: DemoAction): DemoState {
     }
     case "incident": {
       const next = new Set(s.bingo);
-      next.add(1);
+      next.add(Math.max(0, s.layout.indexOf(1)));
       return { ...s, bingo: next, message: "Incident confirmed in the demo. Matching bingo square marked." };
     }
   }

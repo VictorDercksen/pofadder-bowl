@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countdown, eventPhase, formatTime, isStale, secondsToClock } from "./time";
+import { ageLabel, countdown, eventPhase, formatDateTime, formatTime, isStale, secondsToClock } from "./time";
 
 const times = {
   timezone: "Africa/Johannesburg",
@@ -36,5 +36,24 @@ describe("countdown and staleness", () => {
   it("formats clock strings", () => {
     expect(secondsToClock(5700)).toBe("1:35:00");
     expect(secondsToClock(605)).toBe("10:05");
+  });
+});
+
+describe("unparseable instants fail closed", () => {
+  it("never reports the sentence as served from a broken event row", () => {
+    expect(eventPhase({ ...times, away_arrival_at: "" }, new Date("2026-09-23T18:00:00Z"))).toBe("pregame");
+    expect(eventPhase({ ...times, departure_at: "not a date" }, new Date("2026-09-25T06:00:00Z"))).toBe("pregame");
+  });
+  it("renders a dash instead of throwing or printing NaN", () => {
+    expect(formatTime("", times.timezone)).toBe("—");
+    expect(formatDateTime("garbage", times.timezone)).toBe("—");
+    expect(countdown("", new Date("2026-09-24T08:35:00Z"))).toBe("");
+    expect(ageLabel("", new Date("2026-09-24T08:35:00Z"))).toBe("unknown");
+    expect(isStale("", 30, new Date("2026-09-24T08:35:00Z"))).toBe(true);
+  });
+  it("clamps clock strings", () => {
+    expect(secondsToClock(-5)).toBe("0:00");
+    expect(secondsToClock(90.5)).toBe("1:31");
+    expect(secondsToClock(Number.NaN)).toBe("0:00");
   });
 });

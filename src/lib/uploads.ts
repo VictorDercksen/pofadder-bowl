@@ -70,7 +70,7 @@ export function uploadEvidence(submissionId: string, file: File, onProgress: (p:
 // ---------------------------------------------------------------------------
 // Local drafts (IndexedDB): evidence is never silently discarded.
 // ---------------------------------------------------------------------------
-export type LocalDraftFile = { id: string; name: string; type: string; size: number; blob: Blob; status: "queued" | "uploaded" | "failed"; error?: string };
+export type LocalDraftFile = { id: string; name: string; type: string; size: number; blob: Blob; status: "queued" | "uploaded" | "failed"; error?: string; /** Kept so the resumable-upload fingerprint stays stable across retries. */ lastModified?: number };
 export type LocalDraft = { key: string; targetId: string; targetKind: "challenge" | "press"; submissionId?: string; caption: string; files: LocalDraftFile[]; updatedAt: number };
 
 interface DraftDB extends DBSchema {

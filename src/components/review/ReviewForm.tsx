@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { newId } from "@/lib/ids";
 import { Status } from "@/components/ui/TitleRow";
 import { reviewSubmission } from "@/lib/actions/review";
 
@@ -13,7 +14,7 @@ export function ReviewForm({ submissionId, version, status, points }: { submissi
   const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   // One key per (submission, version, decision) per page load: a double-click or retry replays the same decision.
-  const keyBase = useRef(crypto.randomUUID());
+  const keyBase = useRef(newId());
 
   function decide(decision: "approved" | "flagged" | "superseded") {
     if (decision === "flagged" && !reason.trim()) {
@@ -22,6 +23,8 @@ export function ReviewForm({ submissionId, version, status, points }: { submissi
     }
     startTransition(async () => {
       const res = await reviewSubmission({ submissionId, version, decision, idempotencyKey: `${keyBase.current}:${decision}:${version}`, reason: reason.trim() || undefined, note: note.trim() || undefined });
+      // The server replays an identical request for this key; a later, different decision needs a new one.
+      keyBase.current = newId();
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });

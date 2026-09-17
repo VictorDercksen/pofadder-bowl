@@ -12,5 +12,5 @@ export function Countdown({ targetIso, passedLabel = "Departed" }: { targetIso: 
     const id = window.setInterval(tick, 30_000);
     return () => window.clearInterval(id);
   }, [targetIso]);
-  return <>{label ? `${label} to go` : passedLabel}</>;
+  return <span suppressHydrationWarning>{label ? `${label} to go` : passedLabel}</span>;
 }

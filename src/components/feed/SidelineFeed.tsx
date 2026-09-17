@@ -67,6 +67,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
   }, [eventId, router, scheduleRefresh]);
 
   function submitComment() {
+    if (pending) return;
     const body = comment.trim();
     if (!body) {
       setNote({ text: "Write a comment first.", tone: "warn" });

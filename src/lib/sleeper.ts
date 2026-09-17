@@ -13,16 +13,29 @@ export async function fetchSleeperLeagueUsers(leagueId: string): Promise<Sleeper
   const [leagueRes, usersRes] = await Promise.all([fetch(`${BASE}/league/${leagueId}`, { cache: "no-store" }), fetch(`${BASE}/league/${leagueId}/users`, { cache: "no-store" })]);
   if (!usersRes.ok) throw new Error(`league users request failed (${usersRes.status})`);
   const league = leagueRes.ok ? ((await leagueRes.json()) as { season?: string }) : {};
-  const users = (await usersRes.json()) as Array<{ user_id: string; username?: string | null; display_name?: string; avatar?: string | null; is_owner?: boolean | null; metadata?: { team_name?: string } | null }>;
-  return users.map((u) => ({
-    user_id: String(u.user_id),
-    username: u.username ?? null,
-    display_name: (u.display_name ?? u.username ?? "Sleeper user").slice(0, 60),
-    team_name: u.metadata?.team_name?.slice(0, 80) ?? null,
-    avatar: u.avatar ?? null,
-    is_owner: Boolean(u.is_owner),
-    season: league.season ?? null,
-  }));
+  const raw: unknown = await usersRes.json();
+  if (!Array.isArray(raw)) throw new Error("league users response was not a list");
+  const text = (v: unknown, max: number): string | null => (typeof v === "string" && v.length > 0 ? v.slice(0, max) : null);
+  // Untrusted external JSON: bound the list and every string, and skip rows without a usable id.
+  return raw
+    .slice(0, 200)
+    .filter((u): u is Record<string, unknown> => typeof u === "object" && u !== null)
+    .flatMap((u) => {
+      const id = typeof u.user_id === "string" || typeof u.user_id === "number" ? String(u.user_id) : "";
+      if (!/^\d{1,30}$/.test(id)) return [];
+      const meta = typeof u.metadata === "object" && u.metadata !== null ? (u.metadata as Record<string, unknown>) : null;
+      return [
+        {
+          user_id: id,
+          username: text(u.username, 60),
+          display_name: text(u.display_name, 60) ?? text(u.username, 60) ?? "Sleeper user",
+          team_name: text(meta?.team_name, 80),
+          avatar: text(u.avatar, 64),
+          is_owner: u.is_owner === true,
+          season: typeof league.season === "string" ? league.season.slice(0, 8) : null,
+        },
+      ];
+    });
 }
 
 export function sleeperAvatarUrl(avatar: string | null, thumb = true): string | null {

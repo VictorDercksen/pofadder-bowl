@@ -1,4 +1,5 @@
 import { SessionFromFragment } from "./SessionFromFragment";
+import { safeInternalPath } from "@/lib/paths";
 
 export const metadata = { title: "Signing in" };
 export const dynamic = "force-dynamic";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function AuthSessionPage(props: PageProps<"/auth/session">) {
   const params = await props.searchParams;
-  const next = typeof params.next === "string" && params.next.startsWith("/") ? params.next : "/home";
+  const next = safeInternalPath(params.next, "/home");
   return (
     <div className="pb">
       <main className="pb-content" style={{ maxWidth: 520, margin: "0 auto" }}>

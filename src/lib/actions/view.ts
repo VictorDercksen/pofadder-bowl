@@ -4,12 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLeagueContextRaw, homeFor, MEMBER_VIEW_COOKIE } from "@/lib/league";
-
-/** Only same-origin paths; anything else falls back to the role home. */
-function safePath(value: FormDataEntryValue | null): string | null {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return null;
-  return value;
-}
+import { safeInternalPath } from "@/lib/paths";
 
 /**
  * Switches an elevated account (admin, commissioner or participant) into or out of the
@@ -29,5 +24,5 @@ export async function setMemberView(formData: FormData): Promise<void> {
   }
   revalidatePath("/", "layout");
   // Member view has no My trip / Proof locker / Commissioner screens: those pages redirect on their own.
-  redirect(safePath(formData.get("next")) ?? (mode === "member" ? "/game-centre" : homeFor(ctx)));
+  redirect(safeInternalPath(formData.get("next"), mode === "member" ? "/game-centre" : homeFor(ctx)));
 }

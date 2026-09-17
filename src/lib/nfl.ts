@@ -7,12 +7,17 @@ export type Team = { code: TeamCode; name: string; file: string; source: string 
 export const NFL_TEAMS: Team[] = teams as Team[];
 export const TEAM_BY_CODE: Record<string, Team> = Object.fromEntries(NFL_TEAMS.map((t) => [t.code, t]));
 
+/** Codes are stored lowercase; accept any case so an edited or imported value still resolves. */
+function normalise(code: string | null | undefined): string {
+  return (code ?? "").trim().toLowerCase();
+}
+
 export function teamName(code: string): string {
-  return TEAM_BY_CODE[code]?.name ?? "NFL team";
+  return TEAM_BY_CODE[normalise(code)]?.name ?? "NFL team";
 }
 
 export function teamLogoSrc(code: string): string {
-  return `/nfl/${TEAM_BY_CODE[code]?.file ?? "nfl.png"}`;
+  return `/nfl/${TEAM_BY_CODE[normalise(code)]?.file ?? "nfl.png"}`;
 }
 
 export const NFL_SHIELD_SRC = "/nfl/nfl.png";
@@ -58,7 +63,7 @@ export const KITS: Record<string, Kit> = {
 };
 
 export function kitFor(code: string | null | undefined): Kit {
-  return KITS[code ?? "nfl"] ?? KITS.nfl;
+  return KITS[normalise(code) || "nfl"] ?? KITS.nfl;
 }
 
 /** Inline CSS variables for a member's kit, usable on any themed block. */
