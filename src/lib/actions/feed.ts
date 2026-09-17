@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
+import { loadFeed, type FeedPost } from "@/lib/feed";
+import { FEED_PAGE_SIZE } from "@/lib/feed-page";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; message: string };
 
@@ -52,4 +54,19 @@ export async function deleteOwnComment(input: { postId: string }): Promise<Actio
   if (error) return { ok: false, message: "Could not delete the comment." };
   revalidatePath("/game-centre");
   return { ok: true };
+}
+
+const olderSchema = z.object({ before: z.object({ createdAt: z.iso.datetime({ offset: true }), id: z.uuid() }) });
+
+/** Next page of older sideline posts for "Earlier plays". Any active member; RLS scopes the rows. */
+export async function loadOlderPosts(input: { before: { createdAt: string; id: string } }): Promise<ActionResult & { posts?: FeedPost[]; hasMore?: boolean }> {
+  const parsed = olderSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Could not work out where the feed left off. Refresh and try again." };
+  const ctx = await getLeagueContext();
+  try {
+    const page = await loadFeed(ctx, { limit: FEED_PAGE_SIZE, before: parsed.data.before });
+    return { ok: true, posts: page.posts, hasMore: page.hasMore };
+  } catch {
+    return { ok: false, message: "Could not load earlier plays. Try again." };
+  }
 }
