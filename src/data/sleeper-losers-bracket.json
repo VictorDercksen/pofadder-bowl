@@ -1,8 +1,1041 @@
 {
   "season": "2024",
-  "leagueName": null,
-  "fetchedAt": null,
-  "bracket": [],
-  "rosters": [],
-  "users": []
+  "leagueName": "Show Us Your TD’s",
+  "leagueId": "1049438427567071232",
+  "fetchedAt": "2026-09-17T15:45:03.225Z",
+  "bracket": [
+    {
+      "m": 1,
+      "r": 1,
+      "l": 8,
+      "w": 7,
+      "t1": 8,
+      "t2": 7
+    },
+    {
+      "m": 2,
+      "r": 1,
+      "l": 3,
+      "w": 10,
+      "t1": 10,
+      "t2": 3
+    },
+    {
+      "m": 3,
+      "r": 2,
+      "l": 6,
+      "w": 10,
+      "t1": 6,
+      "t2": 10
+    },
+    {
+      "m": 4,
+      "r": 2,
+      "l": 7,
+      "w": 2,
+      "t1": 2,
+      "t2": 7
+    },
+    {
+      "p": 5,
+      "m": 5,
+      "r": 2,
+      "l": 8,
+      "w": 3,
+      "t1": 3,
+      "t2": 8
+    },
+    {
+      "p": 1,
+      "m": 6,
+      "r": 3,
+      "l": 2,
+      "w": 10,
+      "t1": 10,
+      "t2": 2,
+      "t2_from": {
+        "w": 4
+      },
+      "t1_from": {
+        "w": 3
+      }
+    },
+    {
+      "p": 3,
+      "m": 7,
+      "r": 3,
+      "l": 6,
+      "w": 7,
+      "t1": 6,
+      "t2": 7,
+      "t2_from": {
+        "l": 4
+      },
+      "t1_from": {
+        "l": 3
+      }
+    }
+  ],
+  "rosters": [
+    {
+      "co_owners": null,
+      "keepers": [
+        "9221"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn_inactive_starters": "on",
+        "allow_pn_player_injury_status": "on",
+        "allow_pn_scoring": "on",
+        "p_nick_3199": "CantguardMike",
+        "p_nick_5849": "FazeBabyHands",
+        "record": "WLWWWWWWWLLWLLWWWLLLWLWWWLWL",
+        "restrict_pn_scoring_starters_only": "on",
+        "streak": "1L"
+      },
+      "owner_id": "989900414369824768",
+      "player_map": null,
+      "players": [
+        "11566",
+        "11620",
+        "11631",
+        "11632",
+        "11655",
+        "1433",
+        "1466",
+        "4981",
+        "8154",
+        "9221",
+        "9997",
+        "JAX"
+      ],
+      "reserve": null,
+      "roster_id": 1,
+      "settings": {
+        "division": 1,
+        "fpts": 1775,
+        "fpts_against": 1565,
+        "fpts_against_decimal": 62,
+        "fpts_decimal": 42,
+        "losses": 11,
+        "ppts": 1922,
+        "ppts_decimal": 48,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 242,
+        "waiver_position": 7,
+        "wins": 17
+      },
+      "starters": [
+        "11566",
+        "9221",
+        "11631",
+        "9997",
+        "1466",
+        "8154",
+        "11632",
+        "1433",
+        "JAX"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": [
+        "9226"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "p_nick_10236": "Kingcaid",
+        "p_nick_10444": "Catcher Freeman",
+        "p_nick_11628": "Starvin Marvin",
+        "p_nick_1339": "My Ball Zach Ertz",
+        "p_nick_1945": "My Elite Employee",
+        "p_nick_2020": "Los Santos Customs",
+        "p_nick_2216": "Iron Mike",
+        "p_nick_4034": "Run CMC",
+        "p_nick_4037": "Designated Keeper",
+        "p_nick_4040": "Washed bum",
+        "p_nick_4068": "Glass Bones Williams",
+        "p_nick_4098": "",
+        "p_nick_4179": "Dobby",
+        "p_nick_421": "Inglorious Staffords",
+        "p_nick_5185": "",
+        "p_nick_5927": "Scary Terry",
+        "p_nick_5967": "Get Ready To Learn Chinese Buddy",
+        "p_nick_7049": "One Hit Wonder",
+        "p_nick_7528": "Najee Germany",
+        "p_nick_7543": "",
+        "p_nick_7569": "Perkys Collins",
+        "p_nick_7571": "Master Bateman",
+        "p_nick_8121": "Alpha Romeo",
+        "p_nick_9226": "A-Train",
+        "p_nick_9500": "Extra Chromie Homie",
+        "p_nick_9753": "Charbonnet Sauvignon",
+        "p_nick_9758": "Stroud Boy #1",
+        "p_nick_DAL": "Doomsday",
+        "p_nick_DEN": "Lets Ride",
+        "p_nick_GB": "Fudge Packers",
+        "record": "LWWWWLWWLLWLLLLLWLWLLWLLLWLL",
+        "streak": "2L"
+      },
+      "owner_id": "989964661036589056",
+      "player_map": null,
+      "players": [
+        "11628",
+        "1339",
+        "167",
+        "1945",
+        "2216",
+        "2359",
+        "4037",
+        "5848",
+        "7569",
+        "7600",
+        "8183",
+        "9226",
+        "PHI"
+      ],
+      "reserve": [
+        "4037"
+      ],
+      "roster_id": 2,
+      "settings": {
+        "division": 2,
+        "fpts": 1646,
+        "fpts_against": 1745,
+        "fpts_against_decimal": 4,
+        "fpts_decimal": 52,
+        "losses": 17,
+        "ppts": 1775,
+        "ppts_decimal": 16,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 239,
+        "waiver_position": 11,
+        "wins": 11
+      },
+      "starters": [
+        "8183",
+        "9226",
+        "7569",
+        "2216",
+        "1339",
+        "2359",
+        "11628",
+        "1945",
+        "PHI"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "p_nick_5848": "Hollywood Brown",
+        "p_nick_8119": "Datsun 1400",
+        "record": "LLLLLLLLLWWLWWLLLLWWWWLWWLWW",
+        "streak": "2W"
+      },
+      "owner_id": "990217137971109888",
+      "player_map": null,
+      "players": [
+        "11604",
+        "1479",
+        "3451",
+        "4034",
+        "4881",
+        "5844",
+        "5987",
+        "6819",
+        "7090",
+        "7543",
+        "8134",
+        "9493",
+        "MIN"
+      ],
+      "reserve": [
+        "4034"
+      ],
+      "roster_id": 3,
+      "settings": {
+        "division": 2,
+        "fpts": 1725,
+        "fpts_against": 1675,
+        "fpts_against_decimal": 72,
+        "fpts_decimal": 30,
+        "losses": 16,
+        "ppts": 1796,
+        "ppts_decimal": 70,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 250,
+        "waiver_position": 9,
+        "wins": 12
+      },
+      "starters": [
+        "4881",
+        "5987",
+        "9493",
+        "8134",
+        "11604",
+        "1479",
+        "5844",
+        "3451",
+        "MIN"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": [
+        "10859",
+        "8138"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn_inactive_starters": "on",
+        "allow_pn_player_injury_status": "on",
+        "allow_pn_scoring": "off",
+        "record": "LWWWWWLLLLLWWLWWWWLLLLLLWWWW",
+        "restrict_pn_scoring_starters_only": "off",
+        "streak": "4W"
+      },
+      "owner_id": "990238954706313216",
+      "player_map": null,
+      "players": [
+        "10859",
+        "1689",
+        "2133",
+        "4227",
+        "4984",
+        "6790",
+        "6813",
+        "7525",
+        "8138",
+        "8167",
+        "9500",
+        "LAC"
+      ],
+      "reserve": null,
+      "roster_id": 4,
+      "settings": {
+        "division": 3,
+        "fpts": 1618,
+        "fpts_against": 1815,
+        "fpts_against_decimal": 72,
+        "fpts_decimal": 54,
+        "losses": 13,
+        "ppts": 1723,
+        "ppts_decimal": 20,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 246,
+        "waiver_position": 3,
+        "wins": 15
+      },
+      "starters": [
+        "4984",
+        "8138",
+        "1689",
+        "9500",
+        "10859",
+        "6813",
+        "2133",
+        "4227",
+        "LAC"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": [
+        "7547",
+        "8150"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "p_nick_3198": "King",
+        "p_nick_7547": "Sun God",
+        "record": "LLWWWWWWWWLWLWWWWWWWWWLLLWLL",
+        "streak": "2L"
+      },
+      "owner_id": "992018562124435456",
+      "player_map": null,
+      "players": [
+        "10229",
+        "10236",
+        "3198",
+        "5846",
+        "6650",
+        "6770",
+        "6801",
+        "7049",
+        "7547",
+        "8111",
+        "8137",
+        "8150",
+        "IND"
+      ],
+      "reserve": [
+        "10229"
+      ],
+      "roster_id": 5,
+      "settings": {
+        "division": 1,
+        "fpts": 1900,
+        "fpts_against": 1739,
+        "fpts_against_decimal": 86,
+        "fpts_decimal": 10,
+        "losses": 9,
+        "ppts": 1994,
+        "ppts_decimal": 70,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 204,
+        "waiver_position": 5,
+        "wins": 19
+      },
+      "starters": [
+        "6770",
+        "3198",
+        "7547",
+        "6801",
+        "10236",
+        "8150",
+        "8137",
+        "6650",
+        "IND"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "LLLWLLLLWLLLLLLLLWLLWLLLLLWW",
+        "streak": "2W"
+      },
+      "owner_id": "888071584081072128",
+      "player_map": null,
+      "players": [
+        "11560",
+        "11610",
+        "11651",
+        "2309",
+        "4035",
+        "5849",
+        "6786",
+        "7042",
+        "7526",
+        "8110",
+        "8148",
+        "9509",
+        "NO"
+      ],
+      "reserve": [
+        "4035"
+      ],
+      "roster_id": 6,
+      "settings": {
+        "division": 1,
+        "fpts": 1495,
+        "fpts_against": 1808,
+        "fpts_against_decimal": 54,
+        "fpts_decimal": 12,
+        "losses": 22,
+        "ppts": 1633,
+        "ppts_decimal": 82,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 207,
+        "waiver_position": 8,
+        "wins": 6
+      },
+      "starters": [
+        "5849",
+        "9509",
+        "8148",
+        "7526",
+        "8110",
+        "11610",
+        "2309",
+        "7042",
+        "NO"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "LWLLWWWLLLWWWWWWLLLLLLWLLLWW",
+        "streak": "2W"
+      },
+      "owner_id": "992418746503348224",
+      "player_map": null,
+      "players": [
+        "11539",
+        "11618",
+        "11624",
+        "4217",
+        "6768",
+        "6794",
+        "6806",
+        "7528",
+        "8136",
+        "8151",
+        "9756",
+        "PIT"
+      ],
+      "reserve": null,
+      "roster_id": 7,
+      "settings": {
+        "division": 3,
+        "fpts": 1693,
+        "fpts_against": 1661,
+        "fpts_against_decimal": 14,
+        "fpts_decimal": 62,
+        "losses": 15,
+        "ppts": 1796,
+        "ppts_decimal": 96,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 225,
+        "waiver_position": 6,
+        "wins": 13
+      },
+      "starters": [
+        "6768",
+        "8151",
+        "6794",
+        "9756",
+        "4217",
+        "7528",
+        "11618",
+        "11539",
+        "PIT"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "WWWWLLLWLLWWWWLLLWLWLLWWLLLL",
+        "streak": "4L"
+      },
+      "owner_id": "992422110960087040",
+      "player_map": null,
+      "players": [
+        "10222",
+        "4199",
+        "5012",
+        "5119",
+        "5859",
+        "5872",
+        "6904",
+        "7021",
+        "7594",
+        "8205",
+        "9484",
+        "ATL"
+      ],
+      "reserve": null,
+      "roster_id": 8,
+      "settings": {
+        "division": 2,
+        "fpts": 1633,
+        "fpts_against": 1743,
+        "fpts_against_decimal": 42,
+        "fpts_decimal": 54,
+        "losses": 15,
+        "ppts": 1700,
+        "ppts_decimal": 4,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 192,
+        "waiver_position": 1,
+        "wins": 13
+      },
+      "starters": [
+        "6904",
+        "4199",
+        "5859",
+        "10222",
+        "5012",
+        "7594",
+        "5872",
+        "5119",
+        "ATL"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": [
+        "4983",
+        "8155"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "WLLLWWWLWWWLWWLLLLLLWWWWWWWL",
+        "streak": "1L"
+      },
+      "owner_id": "992460800172367872",
+      "player_map": null,
+      "players": [
+        "11533",
+        "11584",
+        "11626",
+        "3163",
+        "3214",
+        "4033",
+        "4866",
+        "4983",
+        "5022",
+        "5096",
+        "5927",
+        "8155",
+        "SEA"
+      ],
+      "reserve": [
+        "5022"
+      ],
+      "roster_id": 9,
+      "settings": {
+        "division": 2,
+        "fpts": 1849,
+        "fpts_against": 1566,
+        "fpts_against_decimal": 74,
+        "fpts_decimal": 24,
+        "losses": 12,
+        "ppts": 1963,
+        "ppts_decimal": 84,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 131,
+        "waiver_position": 2,
+        "wins": 16
+      },
+      "starters": [
+        "3163",
+        "4866",
+        "4983",
+        "5927",
+        "3214",
+        "11584",
+        "5096",
+        "11533",
+        "SEA"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "WLLLLWWWWWLLLLLLLLWWLWWWWWLL",
+        "streak": "2L"
+      },
+      "owner_id": "1126459197412982784",
+      "player_map": null,
+      "players": [
+        "11563",
+        "1426",
+        "4046",
+        "4195",
+        "5892",
+        "6783",
+        "7564",
+        "7571",
+        "7611",
+        "8130",
+        "9508",
+        "9753",
+        "MIA"
+      ],
+      "reserve": [
+        "5892"
+      ],
+      "roster_id": 10,
+      "settings": {
+        "division": 1,
+        "fpts": 1741,
+        "fpts_against": 1706,
+        "fpts_against_decimal": 30,
+        "fpts_decimal": 84,
+        "losses": 15,
+        "ppts": 1926,
+        "ppts_decimal": 50,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 250,
+        "waiver_position": 12,
+        "wins": 13
+      },
+      "starters": [
+        "11563",
+        "9753",
+        "7571",
+        "1426",
+        "8130",
+        "9508",
+        "7564",
+        "4195",
+        "MIA"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": [
+        "1135601225502015488"
+      ],
+      "keepers": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "record": "WWLLLLLLWWWWWWWWWWWWWWLLLLLW",
+        "streak": "1W"
+      },
+      "owner_id": "992707739300184064",
+      "player_map": null,
+      "players": [
+        "11635",
+        "4018",
+        "4039",
+        "4066",
+        "4892",
+        "4943",
+        "8112",
+        "8143",
+        "8146",
+        "8259",
+        "9224",
+        "9480",
+        "BUF"
+      ],
+      "reserve": [
+        "4066"
+      ],
+      "roster_id": 11,
+      "settings": {
+        "division": 3,
+        "fpts": 1751,
+        "fpts_against": 1816,
+        "fpts_against_decimal": 40,
+        "fpts_decimal": 80,
+        "losses": 11,
+        "ppts": 1935,
+        "ppts_decimal": 76,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 209,
+        "waiver_position": 4,
+        "wins": 17
+      },
+      "starters": [
+        "4892",
+        "9224",
+        "8146",
+        "8112",
+        "9480",
+        "4018",
+        "4039",
+        "8259",
+        "BUF"
+      ],
+      "taxi": null
+    },
+    {
+      "co_owners": null,
+      "keepers": [
+        "4137",
+        "5045"
+      ],
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn_inactive_starters": "on",
+        "allow_pn_player_injury_status": "on",
+        "allow_pn_scoring": "on",
+        "record": "WWWLLLLWLWLLLLWWWWWWLLWWWWLW",
+        "restrict_pn_scoring_starters_only": "on",
+        "streak": "1W"
+      },
+      "owner_id": "992750371216953344",
+      "player_map": null,
+      "players": [
+        "1264",
+        "3321",
+        "4137",
+        "4144",
+        "5045",
+        "5850",
+        "5947",
+        "6804",
+        "7553",
+        "7588",
+        "9488",
+        "TB"
+      ],
+      "reserve": null,
+      "roster_id": 12,
+      "settings": {
+        "division": 3,
+        "fpts": 1689,
+        "fpts_against": 1676,
+        "fpts_against_decimal": 44,
+        "fpts_decimal": 90,
+        "losses": 12,
+        "ppts": 1791,
+        "ppts_decimal": 80,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 200,
+        "waiver_position": 10,
+        "wins": 16
+      },
+      "starters": [
+        "6804",
+        "5850",
+        "5045",
+        "9488",
+        "4144",
+        "4137",
+        "3321",
+        "1264",
+        "TB"
+      ],
+      "taxi": null
+    }
+  ],
+  "users": [
+    {
+      "avatar": "15d7cf259bc30eab8f6120f45f652fb6",
+      "display_name": "Pierre05",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mention_pn": "on",
+        "show_mascots": "off",
+        "team_name": "Wentz upon a time"
+      },
+      "settings": null,
+      "user_id": "888071584081072128"
+    },
+    {
+      "avatar": "b3338675f635c2c1f42b469621d38ec6",
+      "display_name": "TheoLotter",
+      "is_bot": false,
+      "is_owner": true,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "allow_sms": "on",
+        "avatar": "https://sleepercdn.com/uploads/a514d71ed32ec0cb0049d0c26ed4e12e.jpg",
+        "mascot_message": "on",
+        "mention_pn": "on",
+        "player_like_pn": "on",
+        "player_nickname_update": "off",
+        "show_mascots": "on",
+        "team_name": "Bad Nabers",
+        "team_name_update": "off",
+        "trade_block_pn": "on",
+        "transaction_commissioner": "on",
+        "transaction_free_agent": "on",
+        "transaction_trade": "on",
+        "transaction_waiver": "on",
+        "user_message_pn": "on"
+      },
+      "settings": null,
+      "user_id": "989900414369824768"
+    },
+    {
+      "avatar": "67121910568afbd229f817d1b6ce4ae8",
+      "display_name": "Skin4TheWin",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "allow_sms": "on",
+        "archived": "off",
+        "mention_pn": "on",
+        "team_name": "1.02 Boys 💯"
+      },
+      "settings": null,
+      "user_id": "989964661036589056"
+    },
+    {
+      "avatar": "15d7cf259bc30eab8f6120f45f652fb6",
+      "display_name": "chvisser98",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mention_pn": "on",
+        "team_name": "Too Legette To Quit"
+      },
+      "settings": null,
+      "user_id": "990217137971109888"
+    },
+    {
+      "avatar": "4f4090e5e9c3941414db40a871e3e909",
+      "display_name": "PeetduPlessis",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mascot_message": "off",
+        "mention_pn": "on",
+        "player_like_pn": "on",
+        "player_nickname_update": "off",
+        "team_name": "LaPorta Potty",
+        "team_name_update": "off",
+        "trade_block_pn": "on",
+        "transaction_commissioner": "on",
+        "transaction_free_agent": "on",
+        "transaction_trade": "on",
+        "transaction_waiver": "on",
+        "user_message_pn": "on"
+      },
+      "settings": null,
+      "user_id": "990238954706313216"
+    },
+    {
+      "avatar": "b319fdf8b7b5b0359d3c78622ba4d70c",
+      "display_name": "deanbb",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mention_pn": "on",
+        "team_name": "Tee'z Nuts"
+      },
+      "settings": null,
+      "user_id": "992018562124435456"
+    },
+    {
+      "avatar": "b319fdf8b7b5b0359d3c78622ba4d70c",
+      "display_name": "Blackburn22",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "allow_sms": "on",
+        "mention_pn": "on",
+        "team_name": "PurdyGood"
+      },
+      "settings": null,
+      "user_id": "992418746503348224"
+    },
+    {
+      "avatar": "6f08a4eca77ea4f44e1b40842e5ffe7b",
+      "display_name": "SB123456",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "avatar": "https://sleepercdn.com/uploads/eb7d63fa5315b047b494c44e35f35748.jpg",
+        "mention_pn": "on",
+        "team_name": "Brownnatron"
+      },
+      "settings": null,
+      "user_id": "992422110960087040"
+    },
+    {
+      "avatar": "b3338675f635c2c1f42b469621d38ec6",
+      "display_name": "CarelvanZyl",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "allow_sms": "on",
+        "mention_pn": "on",
+        "team_name": "Goedert's Glory Gobblers"
+      },
+      "settings": null,
+      "user_id": "992460800172367872"
+    },
+    {
+      "avatar": "f0edbf4278f53f9425db175073df6584",
+      "display_name": "llewellyn",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mention_pn": "on",
+        "team_name": "Saquon These Balls"
+      },
+      "settings": null,
+      "user_id": "992707739300184064"
+    },
+    {
+      "avatar": "82aec8e811b839b8ec25d7b458afd57b",
+      "display_name": "Wentzel",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "league_report_pn": "on",
+        "mascot_message": "on",
+        "mention_pn": "on",
+        "player_like_pn": "on",
+        "player_nickname_update": "on",
+        "team_name": "LAW’s Daybreakers",
+        "team_name_update": "on",
+        "trade_block_pn": "on",
+        "transaction_commissioner": "on",
+        "transaction_free_agent": "on",
+        "transaction_trade": "on",
+        "transaction_waiver": "on",
+        "user_message_pn": "on"
+      },
+      "settings": null,
+      "user_id": "992750371216953344"
+    },
+    {
+      "avatar": "b319fdf8b7b5b0359d3c78622ba4d70c",
+      "display_name": "VictorDercksen",
+      "is_bot": false,
+      "is_owner": null,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "avatar": "https://sleepercdn.com/uploads/677b3217042d87b5e430ab0530914a5c.jpg",
+        "mention_pn": "on",
+        "team_name": "Chase-ing Mahomelessness"
+      },
+      "settings": null,
+      "user_id": "1126459197412982784"
+    },
+    {
+      "avatar": "b319fdf8b7b5b0359d3c78622ba4d70c",
+      "display_name": "LouisSwanepoel",
+      "is_bot": false,
+      "is_owner": false,
+      "league_id": "1049438427567071232",
+      "metadata": {
+        "allow_pn": "on",
+        "mention_pn": "on",
+        "team_name": "The Baker Man Can"
+      },
+      "settings": null,
+      "user_id": "1135601225502015488"
+    }
+  ]
 }
