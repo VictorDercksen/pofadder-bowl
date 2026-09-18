@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
+import { generateProps } from "@/lib/prop-generator";
 import type { ActionResult } from "@/lib/actions/feed";
 
 const sideSchema = z.enum(["over", "under", "yes", "no"]);
@@ -43,4 +44,21 @@ export async function settleProp(input: { propId: string; result: string }): Pro
   }
   revalidateProps();
   return { ok: true, message: parsed.data.result === "void" ? "Prop voided. Nobody scores it." : "Prop settled. Standings updated and the feed has the call." };
+}
+
+/** Commissioner builds (or rebuilds) the board from the event programme. Refused once locked or picked. */
+export async function generatePropBoard(): Promise<ActionResult> {
+  const ctx = await getLeagueContext();
+  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  const { data: challenges, error: loadError } = await ctx.supabase.from("challenges").select("sequence, title").eq("event_id", ctx.event.id).order("sequence");
+  if (loadError) return { ok: false, message: loadError.message };
+  const drafts = generateProps(ctx.event, challenges ?? []);
+  const { data: count, error } = await ctx.supabase.rpc("upsert_props", { p_event: ctx.event.id, p_props: drafts });
+  if (error) {
+    if (error.message.includes("already picked")) return { ok: false, message: "Members have already picked. The board cannot be rewritten." };
+    if (error.message.includes("has locked")) return { ok: false, message: "The board has locked." };
+    return { ok: false, message: error.message };
+  }
+  revalidateProps();
+  return { ok: true, message: `${count ?? drafts.length} props on the board, generated from the programme. Edit lines in the seed if a number looks off.` };
 }

@@ -1635,6 +1635,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      upsert_props: { Args: { p_event: string; p_props: Json }; Returns: number }
     }
     Enums: {
       certificate_status: "pending" | "issued"

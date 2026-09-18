@@ -67,7 +67,7 @@ Key server-side behaviour (`20260916000200_functions.sql`):
 
 - `review_submission` — transactional, idempotent approval/flag/supersede with row locks and version check; approving a newer version records an explicit `superseded` decision for the previously approved one. Score is the `event_scores` view over approved state, never a counter.
 - `record_checkin` — participant only, requires sharing consent, deduplicates by client id; `remove_checkins` hides history.
-- `upsert_prop_pick` — one side per prop, editable until the prop locks; other members’ picks are hidden until then. `settle_prop` (commissioner, locked props only, idempotent, posts to the feed; `void` scores nothing). `prop_leaderboard` scores active members: one point per correct pick.
+- `upsert_prop_pick` — one side per prop, editable until the prop locks; other members’ picks are hidden until then. `settle_prop` (commissioner, locked props only, idempotent, posts to the feed; `void` scores nothing). `prop_leaderboard` scores active members: one point per correct pick. `upsert_props` (commissioner) writes the board the app generates from the programme (`src/lib/prop-generator.ts`); refused once locked or picked.
 - `upsert_prediction` — rejects writes at/after `events.prediction_lock_at` (departure); `predictions_revealed` hides others until `prediction_reveal_at`; `resolve_predictions` awards closest/exact with shared ties.
 - `issue_certificate` / `set_certificate_consent` / `public_certificate` — certificate stays pending until a commissioner issues it; a public recap needs commissioner publication **and** participant consent.
 
