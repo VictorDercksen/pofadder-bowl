@@ -14,11 +14,11 @@ const BASE = process.env.SCREENSHOT_BASE ?? "http://localhost:3000";
 const OUT = "screenshots";
 const WIDTHS = [360, 390, 1280];
 const ROLE_SCREENS: Record<string, string[]> = {
-  participant: ["/my-trip", "/game-centre", "/map", "/proof", "/bingo", "/predictions", "/press", "/recap", "/account"],
-  commissioner: ["/review", "/review/members", "/game-centre", "/map", "/proof", "/bingo", "/predictions", "/press", "/recap", "/account"],
-  member: ["/game-centre", "/map", "/bingo", "/predictions", "/press", "/recap", "/account"],
+  participant: ["/my-trip", "/game-centre", "/map", "/proof", "/props", "/predictions", "/press", "/recap", "/account"],
+  commissioner: ["/review", "/review/members", "/game-centre", "/map", "/proof", "/props", "/predictions", "/press", "/recap", "/account"],
+  member: ["/game-centre", "/map", "/props", "/predictions", "/press", "/recap", "/account"],
 };
-const PUBLIC_SCREENS = ["/teaser", "/login", "/setup", "/demo/game-centre", "/demo/my-trip", "/demo/map", "/demo/proof", "/demo/review", "/demo/bingo", "/demo/predictions", "/demo/press", "/demo/recap", "/demo/access"];
+const PUBLIC_SCREENS = ["/teaser", "/login", "/setup", "/demo/game-centre", "/demo/my-trip", "/demo/map", "/demo/proof", "/demo/review", "/demo/props", "/demo/predictions", "/demo/press", "/demo/recap", "/demo/access"];
 
 const problems: string[] = [];
 
@@ -96,14 +96,13 @@ async function main() {
   const page = await context.newPage();
   page.on("pageerror", (e) => consoleErrors.push(`public: pageerror ${e.message.slice(0, 160)}`));
   for (const path of PUBLIC_SCREENS) await shoot(page, path, "public");
-  // Demo bingo interaction: tapping toggles a square.
+  // Demo prop board interaction: tapping a side selects it.
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto(`${BASE}/demo/bingo`, { waitUntil: "domcontentloaded", timeout: 45_000 });
-  const btn = page.locator(".pb-bingo button:not([disabled])").first();
-  const before = await btn.getAttribute("aria-pressed");
+  await page.goto(`${BASE}/demo/props`, { waitUntil: "domcontentloaded", timeout: 45_000 });
+  const btn = page.locator(".pb-prop-sides button[aria-pressed=false]").first();
   await btn.click();
   const after = await btn.getAttribute("aria-pressed");
-  if (before === after) problems.push("demo bingo square did not toggle on tap");
+  if (after !== "true") problems.push("demo prop side did not select on tap");
   await context.close();
   await browser.close();
 

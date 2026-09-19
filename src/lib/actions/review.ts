@@ -6,7 +6,7 @@ import { getLeagueContext } from "@/lib/league";
 import type { ActionResult } from "@/lib/actions/feed";
 
 function revalidateReview() {
-  for (const p of ["/review", "/proof", "/press", "/game-centre", "/my-trip", "/recap", "/predictions", "/bingo"]) revalidatePath(p);
+  for (const p of ["/review", "/proof", "/press", "/game-centre", "/my-trip", "/recap", "/predictions", "/props"]) revalidatePath(p);
 }
 
 const decisionSchema = z.object({
@@ -92,15 +92,4 @@ export async function issueCertificate(input: { isPublic: boolean }): Promise<Ac
   if (error) return { ok: false, message: error.message };
   revalidateReview();
   return { ok: true, message: "Certificate issued from the current approved state." };
-}
-
-export async function decideIncident(input: { incidentId: string; confirm: boolean }): Promise<ActionResult> {
-  const parsed = z.object({ incidentId: z.string().uuid(), confirm: z.boolean() }).safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Invalid incident." };
-  const ctx = await getLeagueContext();
-  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
-  const { error } = await ctx.supabase.rpc("decide_bingo_incident", { p_incident: parsed.data.incidentId, p_confirm: parsed.data.confirm });
-  if (error) return { ok: false, message: error.message };
-  revalidateReview();
-  return { ok: true, message: parsed.data.confirm ? "Incident confirmed. Matching squares are marked on every card." : "Incident rejected." };
 }

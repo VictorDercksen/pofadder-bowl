@@ -12,7 +12,7 @@ export function MemberViewToggle({ viewing, variant = "text" }: { viewing: boole
   const pathname = usePathname();
   const className = variant === "button" ? (viewing ? "pb-primary orange" : "pb-secondary") : "pb-text-action";
   return (
-    <form action={setMemberView} className="pb-view-toggle">
+    <form action={setMemberView} className="pb-view-toggle" data-tour="member-view">
       <input type="hidden" name="next" value={pathname} />
       <input type="hidden" name="mode" value={viewing ? "self" : "member"} />
       <button className={className} type="submit" aria-pressed={viewing}>

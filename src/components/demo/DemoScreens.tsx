@@ -7,8 +7,8 @@ import { JerseyCard } from "@/components/ui/JerseyCard";
 import { LeaguePatch, PbShield, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { OriginStory } from "@/components/trip/OriginStory";
-import { completedLines, winningCells } from "@/lib/bingo";
-import { DEMO_BINGO_WORDS, DEMO_QUESTIONS, DemoStatus, useDemo } from "./DemoStore";
+import { formatLine, sideLabel, sidesFor, type PropKind } from "@/lib/props";
+import { DEMO_PROPS, DEMO_QUESTIONS, DemoStatus, useDemo } from "./DemoStore";
 
 function DemoMap() {
   return (
@@ -189,7 +189,7 @@ export function DemoTrip() {
           <div className="pb-phone-tabs">
             <Link href="/demo/my-trip">My trip</Link>
             <Link href="/demo/proof">Proof</Link>
-            <Link href="/demo/bingo">Bingo</Link>
+            <Link href="/demo/props">Props</Link>
           </div>
         </div>
         <div>
@@ -447,52 +447,57 @@ export function DemoReview() {
   );
 }
 
-export function DemoBingo() {
+export function DemoProps() {
   const { state, dispatch } = useDemo();
-  const lines = completedLines(state.bingo);
-  const winning = winningCells(state.bingo);
+  const picked = Object.keys(state.picks).length;
   return (
     <>
-      <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag="PERSONAL BINGO CARD" team="cin" />
+      <TitleRow kicker="LEAGUE SIDE QUEST · LOCKS WED 23 SEPT · 19:15" title="Call the damage." blurb="Ten props on Victor’s trip. Pick a side on each before departure. Most correct calls wins 5 FAAB in Sleeper." tag={`${picked}/${DEMO_PROPS.length} PICKED`} team="cin" />
       <div className="pb-split">
         <div className="pb-panel">
           <div className="pb-panel-top">
-            <h3>Victor’s card</h3>
-            <span className="pb-tag">{lines.length ? `BINGO · ${lines.filter((l) => l !== "full_house").length} LINE${lines.length === 1 ? "" : "S"}` : `${state.bingo.size}/25 marked`}</span>
+            <h3>The prop board</h3>
+            <span className="pb-tag">LOCKS AT 19:15</span>
           </div>
-          <div className="pb-bingo-banner">
-            <TeamLogo code="nyg" size={31} />
-            <span>THE PUNISHMENT PLAYBOOK</span>
-            <TeamLogo code="cin" size={31} />
+          <div className="pb-prop-board" role="list" aria-label="Prop board">
+            {DEMO_PROPS.map((p) => {
+              const sides = sidesFor(p.kind as PropKind);
+              const mine = state.picks[p.sequence];
+              return (
+                <div className="pb-challenge pb-prop" role="listitem" key={p.sequence}>
+                  <span className="pb-num">{p.sequence}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <strong>
+                      {p.title}
+                      {p.line ? <span className="pb-prop-line">{formatLine(p.line, p.unit)}</span> : null}
+                    </strong>
+                    <div className="pb-prop-sides" role="group" aria-label={`Your side on prop ${p.sequence}`}>
+                      {sides.map((side) => (
+                        <button key={side} type="button" aria-pressed={mine === side} onClick={() => dispatch({ type: "pick", sequence: p.sequence, side })}>
+                          {sideLabel(side)}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="pb-small pb-prop-state">{mine ? `You have ${sideLabel(mine)}.` : "Pick a side."}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="pb-bingo-letters" aria-hidden="true">
-            <span>B</span>
-            <span>I</span>
-            <span>N</span>
-            <span>G</span>
-            <span>O</span>
-          </div>
-          <div className="pb-bingo">
-            {state.layout.map((pos, cell) => (
-              <button key={cell} type="button" aria-pressed={state.bingo.has(cell)} className={`${pos === 12 ? "free" : ""} ${winning.has(cell) ? "winning" : ""}`.trim()} disabled={pos === 12} onClick={() => dispatch({ type: "bingo", cell })}>
-                {pos === 12 ? `FREE · ${DEMO_BINGO_WORDS[12]}` : DEMO_BINGO_WORDS[pos]}
-              </button>
-            ))}
-          </div>
-          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap any square. In the league game, confirmed incidents mark everyone’s matching squares and wins are detected on the server.</p>
+          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap a side. In the league game picks lock at departure, other members’ picks show once the board locks and a commissioner settles each prop from the record.</p>
         </div>
         <div>
           <div className="pb-panel">
-            <h3>The misery leaderboard</h3>
+            <h3>Standings</h3>
             <div className="pb-rank">
               <b className="pb-ranking-num">1</b>
               <TeamLogo code="cin" decorative size={30} />
               <div>
                 Tee’z Nuts
                 <br />
-                <small className="pb-small">First bingo · 10:21</small>
+                <small className="pb-small">Board locked</small>
               </div>
-              <span>1 line</span>
+              <span>10/10 picked</span>
             </div>
             <div className="pb-rank">
               <b className="pb-ranking-num">2</b>
@@ -500,27 +505,25 @@ export function DemoBingo() {
               <div>
                 LaPorta Potty
                 <br />
-                <small className="pb-small">One square away</small>
+                <small className="pb-small">Board locked</small>
               </div>
-              <span>9/25</span>
+              <span>8/10 picked</span>
             </div>
             <div className="pb-rank">
               <b className="pb-ranking-num">3</b>
               <TeamLogo code="nyg" decorative size={30} />
               <div>
-                Your card
+                You
                 <br />
-                <small className="pb-small">Dignity prepaid</small>
+                <small className="pb-small">Editable until kickoff</small>
               </div>
-              <span>{state.bingo.size}/25</span>
+              <span>{picked}/10 picked</span>
             </div>
           </div>
           <div className="pb-next">
-            <h3>Incident booth</h3>
-            <p>“Group chat shows zero sympathy.”</p>
-            <div className="pb-actions">
-              <button className="pb-secondary" type="button" onClick={() => dispatch({ type: "incident" })}>Confirm incident</button>
-            </div>
+            <div className="pb-kicker">THE STAKES</div>
+            <h3>5 FAAB in Sleeper.</h3>
+            <p>One point per correct call. Most correct takes 5 FAAB; a tie shares it. The prediction winner takes the other 5. No cash stakes.</p>
           </div>
         </div>
       </div>
@@ -544,7 +547,7 @@ export function DemoPredictions() {
   }
   return (
     <>
-      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag="LOCKS AT 19:15" team="gb" />
+      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock at departure. The top slip wins 5 FAAB in Sleeper." tag="LOCKS AT 19:15" team="gb" />
       <div className="pb-split">
         <div className="pb-panel">
           <h2>The prediction slip</h2>
@@ -590,7 +593,7 @@ export function DemoPredictions() {
           ))}
           <div className="pb-next">
             <h3>Equal guesses share the glory.</h3>
-            <p>Tied winners receive the same points. Results appear at the final whistle.</p>
+            <p>Tied winners receive the same points. The top slip takes 5 FAAB in Sleeper. Results appear at the final whistle.</p>
           </div>
         </div>
       </div>
@@ -722,7 +725,7 @@ export function DemoRecap() {
           <div className="pb-rank">
             <span className="pb-ranking-num">★</span>
             <div>
-              Bingo winner
+              Prop board winner
               <br />
               <b>Tee’z Nuts</b>
             </div>

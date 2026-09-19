@@ -1,6 +1,6 @@
 # Pofadder Bowl 2026 · Show Us Your TD’s
 
-Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 14 km and completes ten proof challenges worth 100 points while the league watches, reacts, plays Punishment Bingo and predicts the damage.
+Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 14 km and completes ten proof challenges worth 100 points while the league watches, reacts, plays the prop board and predicts the damage.
 
 Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storage, Realtime) and Leaflet, deployed to Vercel.
 
@@ -8,11 +8,11 @@ Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storag
 
 | Area | Where |
 |---|---|
-| Ten screens (game centre, my trip, map, proof locker, commissioner, bingo, predictions, press room, final whistle, league access) | `src/app/(league)/*` |
+| Ten screens (game centre, my trip, map, proof locker, commissioner, prop board, predictions, press room, final whistle, league access) | `src/app/(league)/*` |
 | Public teaser + share panel, invite-only sign-in, labelled demo | `src/app/teaser`, `src/app/login`, `src/app/demo` |
 | Design system ported from the approved mockup, `JerseyCard` and shell | `src/app/globals.css`, `src/components/ui`, `src/components/shell` |
 | Database schema, functions/RPCs, RLS, storage policies | `supabase/migrations/*.sql` |
-| Production seed (league, event, itinerary, challenges, bingo, prompts) | `supabase/seed.sql` |
+| Production seed (league, event, itinerary, challenges, props, prompts) | `supabase/seed.sql` |
 | Local fixtures, commissioner bootstrap, integration tests, screenshots | `scripts/*.ts` |
 | Supplied programme data, NFL team map, fonts, artwork | `src/data`, `src/fonts`, `public/brand`, `public/nfl`, `public/maps` |
 
@@ -20,10 +20,9 @@ Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storag
 
 Sleeper hosts the league, but Sleeper’s API is public **read-only and offers no OAuth or sign-in** for third-party apps ([docs.sleeper.com](https://docs.sleeper.com)). It therefore cannot be the identity provider. The app uses **Supabase invite-only email sign-in** (magic links; public sign-up disabled) and uses Sleeper for what it can do:
 
-- Three ways in, all against the same invited account: the emailed magic link, the 6-digit code from that email (typed on `/login` when the link opens in the wrong browser; needs the custom template with `{{ .Token }}`), or a password the member sets once under **League access → Password**. Admins can email a fresh link or mint a one-time link to hand over from **Review → Members**.
+- Three ways in, all against the same invited account: a password (the default tab on `/login`), the emailed magic link, or the 6-digit code from that email (typed on `/login` when the link opens in the wrong browser; needs the custom template with `{{ .Token }}`). **Every member must hold a password**: the first link signs them in and `getLeagueContext` sends any account without one to `/set-password` before anything else, so the email link is only for the invite and for a forgotten password. It can be changed under **League access → Password**. Admins can email a fresh link or mint a one-time link to hand over from **Review → Members**.
 - A commissioner imports the Sleeper league’s managers (`SLEEPER_LEAGUE_ID`, default `1313900125680054272` = Show Us Your TD’s 2026).
 - Each member confirms their own Sleeper team from that list at sign-on (`/choose-sleeper`, before the kit picker) or later under **League access → Sleeper team**. A team can be held by one member; admins can override in **Review → Members**. The confirmed team name shows in the header next to the kit badge.
-- The game centre shows the sentenced season’s Sleeper losers bracket (live from the public API, cached an hour; `npx tsx scripts/fetch-sleeper-bracket.ts` snapshots it into `src/data/sleeper-losers-bracket.json` as a fallback).
 - Roles (participant, member, commissioner) and the event participant are set only by commissioners or the bootstrap script and are enforced by RLS and RPCs. There is no client-side role switch.
 
 ## Local development
@@ -48,10 +47,10 @@ Demo mode is always available at `/demo`: an in-memory replica of the mockup, vi
 ```bash
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint (React Compiler rules on)
-npm test                 # vitest: bingo lines, prediction scoring/locking, event phases, upload rules
+npm test                 # vitest: prop scoring, prediction scoring/locking, event phases, upload rules
 npm run test:integration # against the local stack: RLS across 4 accounts, storage policies,
                          # approval idempotency + concurrency, supersede transition,
-                         # prediction lock/reveal/resolution, bingo cards/wins, feed, certificate
+                         # prediction lock/reveal/resolution, prop picks/settlement, feed, certificate
 npm run test:auth-flow   # against the local stack + `next start -p 3001`: bootstrap invite email →
                          # Mailpit → signed-in /review; login-form magic link → /game-centre;
                          # sign-out; no email for uninvited addresses
@@ -62,13 +61,13 @@ npm run screenshots      # Playwright: every screen × 3 roles × 360/390/1280 p
 
 ## Data model (Supabase)
 
-`profiles`, `leagues`, `memberships` (role + `is_commissioner` + status), `sleeper_league_users`, `events` (all instants UTC, `timezone` = Africa/Johannesburg), `itinerary_items`, `challenges`, `penalties`, `press_prompts`, `evidence_submissions` (versioned: draft → submitted → approved | flagged | superseded), `evidence_files`, `review_decisions` (audit, unique idempotency key), `location_settings`, `checkins`, `activity_posts`, `reactions` (one per member per post), `bingo_squares`, `bingo_cards` (stable shuffled layout per member), `bingo_incidents`, `bingo_wins` (unique per line), `prediction_rules`, `predictions`, `official_results`, `prediction_awards`, `certificates`.
+`profiles`, `leagues`, `memberships` (role + `is_commissioner` + status), `sleeper_league_users`, `events` (all instants UTC, `timezone` = Africa/Johannesburg), `itinerary_items`, `challenges`, `penalties`, `press_prompts`, `evidence_submissions` (versioned: draft → submitted → approved | flagged | superseded), `evidence_files`, `review_decisions` (audit, unique idempotency key), `location_settings`, `checkins`, `activity_posts`, `reactions` (one per member per post), `props` (over/under and yes/no, per-prop lock, result), `prop_picks` (one side per member per prop), `prediction_rules`, `predictions`, `official_results`, `prediction_awards`, `certificates`.
 
 Key server-side behaviour (`20260916000200_functions.sql`):
 
 - `review_submission` — transactional, idempotent approval/flag/supersede with row locks and version check; approving a newer version records an explicit `superseded` decision for the previously approved one. Score is the `event_scores` view over approved state, never a counter.
 - `record_checkin` — participant only, requires sharing consent, deduplicates by client id; `remove_checkins` hides history.
-- `ensure_bingo_card`, `propose_bingo_incident`, `decide_bingo_incident` (commissioner; detects rows/columns/diagonals/full house for every card, first completion only), `bingo_leaderboard` (no layouts leak).
+- `upsert_prop_pick` — one side per prop, editable until the prop locks; other members’ picks are hidden until then. `settle_prop` (commissioner, locked props only, idempotent, posts to the feed; `void` scores nothing). `prop_leaderboard` scores active members: one point per correct pick. `upsert_props` (commissioner) writes the board the app generates from the programme (`src/lib/prop-generator.ts`); refused once locked or picked.
 - `upsert_prediction` — rejects writes at/after `events.prediction_lock_at` (departure); `predictions_revealed` hides others until `prediction_reveal_at`; `resolve_predictions` awards closest/exact with shared ties.
 - `issue_certificate` / `set_certificate_consent` / `public_certificate` — certificate stays pending until a commissioner issues it; a public recap needs commissioner publication **and** participant consent.
 
@@ -84,6 +83,10 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
    ```
 4. **Vercel**: `vercel link`, add the environment variables above (Production + Preview), then `vercel deploy` or push to the connected GitHub repo. Node 24 is selected via `.node-version`. Private routes send `Cache-Control: private, no-store`.
 5. Invite members from **Review → Members**, set the participant role and “Make event participant”, import the Sleeper league and confirm links.
+
+## Schema deploys (GitHub Actions)
+
+Supabase's GitHub integration (dashboard → Project Settings → Integrations) pushes `supabase/migrations/` to the hosted project when they land on `main`. `.github/workflows/supabase-migrate.yml` is the manual fallback: run it from the Actions tab (dry-run option) to apply or repeat a push. It needs three repository secrets under **Settings → Secrets and variables → Actions**: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
 
 ## Notes on supplied data
 

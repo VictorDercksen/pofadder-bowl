@@ -28,7 +28,7 @@ export default async function MapPage() {
     <>
       <TitleRow kicker="CHECK-INS · LEAGUE ONLY" title={`Where’s ${name.split(" ")[0]}?`} blurb="A fresh check-in whenever the participant returns. A timestamp everyone can trust." tag={latest ? (isStale(latest.captured_at) ? "STALE CHECK-IN" : "RECENT CHECK-IN") : "NO CHECK-INS"} team="buf" />
       <div className="pb-split">
-        <div className="pb-panel pb-plain-map">
+        <div className="pb-panel pb-plain-map" data-tour="map-panel">
           <CheckinLive eventId={ctx.event.id} />
           <CheckinMap pins={pins} path={path} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">

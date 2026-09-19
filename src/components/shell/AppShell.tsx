@@ -40,7 +40,7 @@ export function AppShell({
           </div>
         </Link>
         {badge}
-        <div className="pb-account">{account}</div>
+        <div className="pb-account" data-tour="header-account">{account}</div>
       </header>
       <div className="pb-badge-strip">
         <div className="pb-badge-strip-label">
@@ -53,7 +53,7 @@ export function AppShell({
         </div>
       </div>
       <div className="pb-shell">
-        <nav className="pb-sidebar" aria-label="Game Centre screens">
+        <nav className="pb-sidebar" aria-label="Game Centre screens" data-tour="nav">
           <div className="pb-side-label">THE PROGRAMME</div>
           <NavLinks items={items} />
           <div className="pb-sidebar-note">

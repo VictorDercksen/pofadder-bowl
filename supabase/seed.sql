@@ -75,34 +75,20 @@ insert into public.press_prompts (event_id, slot, sequence, question, opens_at) 
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 'sunset', 1, 'The sunset speech: address the league, own the result, and give your next-season promise.', '2026-09-24T17:30:00+02:00')
 on conflict (event_id, slot, sequence) do update set question = excluded.question, opens_at = excluded.opens_at;
 
--- Bingo: 25 supplied squares including the free centre phrase.
-insert into public.bingo_squares (event_id, position, text, is_free) values
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 0, 'Someone asks why you’re here', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Group chat shows zero sympathy', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Bus sleep counted as recovery', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, '“Never drafting him again”', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'First town-sign selfie is blurry', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Regret at kilometre 9', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'A local has never heard of Sleeper', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Find a shop that’s actually open', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, '“It’s a fantasy football thing”', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Watch says 13.99 km', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Take a photo of absolutely nothing', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 11, 'League requests a VAR review', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 12, 'Dignity left in Malmesbury', true),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 13, 'Chicken and ribs get a full scouting report', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 14, 'Someone asks if you lost a bet', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 15, 'Phone battery enters the red zone', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 16, '“At least the weather’s nice”', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 17, 'The standings hurt more out loud', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 18, 'Run gets called “character building”', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 19, 'A stranger offers more sympathy than the league', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 20, 'Check the return ticket for the fifth time', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 21, 'Sunset speech needs a second take', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 22, 'Someone suggests doing this annually', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 23, '22:30 bus feels like a playoff win', false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 24, '“Same time next year?” in the chat', false)
-on conflict (event_id, position) do update set text = excluded.text, is_free = excluded.is_free;
+-- Prop board: ten over/under and yes/no props, set before departure. Picks lock at departure.
+-- Settled by a commissioner from the record after the trip (see detail for each rule).
+insert into public.props (event_id, sequence, title, detail, kind, line, unit, locks_at) values
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Watch distance on the approved run trace', 'The distance on the GPS export the commissioner approves for the 14 km run.', 'over_under', 14.25, 'km', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Minutes the Intercape arrives late at KLK Garage', 'Scheduled 04:45. Settled from the arrival check-in or the night sign photo timestamp.', 'over_under', 20, 'min late', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Chicken and rib combo finished on camera', 'Plate clean in the rating clip. Bones do not count as leftovers.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Locals approached before three agree to be filmed', 'Victor keeps the tally and states it in the third clip. Commissioner may audit the footage.', 'over_under', 4.5, 'locals', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Proof challenges approved by the final whistle', 'Out of ten. Counted from the commissioner scoreboard when the certificate is issued.', 'over_under', 8.5, 'approved', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Sideline feed comments before the sunset speech', 'Member comments on the feed posted before 17:30 on Thursday. System posts and reactions excluded.', 'over_under', 60.5, 'comments', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Map check-ins over the whole trip', 'Every check-in on the map between departure and arrival home.', 'over_under', 15.5, 'check-ins', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Length of the sunset loser''s speech', 'Duration of the approved N14 clip, first word to last.', 'over_under', 90, 'seconds', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Rand spent in Pofadder on receipts', 'Total of every receipt submitted as proof, including the R50 challenge.', 'over_under', 150, 'rand', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'The 22:30 Intercape leaves within 15 minutes of schedule', 'Settled from the boarding clip and the departure check-in.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00')
+on conflict (event_id, sequence) do update set title = excluded.title, detail = excluded.detail, kind = excluded.kind, line = excluded.line, unit = excluded.unit, locks_at = excluded.locks_at;
 
 insert into public.prediction_rules (event_id, run_points, meal_points, complaints_points)
 values ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 5, 5)

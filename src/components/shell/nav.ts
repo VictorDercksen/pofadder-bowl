@@ -9,7 +9,7 @@ export function navFor(role: ShellRole, base: string): NavItem[] {
     { n: "03", label: "Check-in map", href: `${base}/map` },
     { n: "04", label: "Proof locker", href: `${base}/proof`, roles: ["participant", "commissioner", "admin", "demo"] },
     { n: "05", label: "Commissioner", href: `${base}/review`, roles: ["commissioner", "admin", "demo"] },
-    { n: "06", label: "Punishment Bingo", href: `${base}/bingo` },
+    { n: "06", label: "Prop board", href: `${base}/props` },
     { n: "07", label: "Predictions", href: `${base}/predictions` },
     { n: "08", label: "Press room", href: `${base}/press` },
     { n: "09", label: "Final whistle", href: `${base}/recap` },

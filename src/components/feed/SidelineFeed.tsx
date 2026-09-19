@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { JerseyCard } from "@/components/ui/JerseyCard";
 import { EmptyState, Status } from "@/components/ui/TitleRow";
 import { createClient } from "@/lib/supabase/client";
-import { postComment, toggleReaction } from "@/lib/actions/feed";
+import { loadOlderPosts, postComment, toggleReaction } from "@/lib/actions/feed";
+import { FEED_PAGE_SIZE, appendFeedPosts, feedCursor, mergeFeedPosts } from "@/lib/feed-page";
 import { formatTime } from "@/lib/time";
 import { useOnline } from "@/lib/hooks";
 import type { FeedPost } from "@/lib/feed";
@@ -15,24 +16,31 @@ const KIND_LABEL: Record<string, string> = {
   comment: "League comment",
   submission: "Proof submitted",
   decision: "Commissioner call",
-  bingo: "Bingo",
+  prop: "Prop board",
   prediction: "Predictions",
   system: "League",
 };
 
 /**
- * Jersey-card activity feed. Server-rendered posts are passed in; live updates arrive
- * through an authorised Realtime subscription with a bounded polling fallback.
+ * Jersey-card activity feed. The server renders the first page (five posts); "Earlier plays"
+ * loads five more at a time through a server action. Live updates arrive through an
+ * authorised Realtime subscription with a bounded polling fallback and are merged over
+ * whatever is already on screen, so loaded history is never lost to a refresh.
  */
-export function SidelineFeed({ initialPosts, eventId, timezone, canComment = true }: { initialPosts: FeedPost[]; eventId: string; timezone: string; canComment?: boolean }) {
+export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, timezone, canComment = true }: { initialPosts: FeedPost[]; initialHasMore?: boolean; eventId: string; timezone: string; canComment?: boolean }) {
   const router = useRouter();
   const [posts, setPosts] = useState(initialPosts);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  // Once "Earlier plays" has been used, the action result owns hasMore; until then the server's first page does.
+  const [pagedOnce, setPagedOnce] = useState(false);
   const [seenInitial, setSeenInitial] = useState(initialPosts);
   if (initialPosts !== seenInitial) {
-    // Server refresh delivered new posts: adopt them (derived state pattern).
+    // Server refresh delivered a fresh first page: merge it over what is shown (derived state pattern).
     setSeenInitial(initialPosts);
-    setPosts(initialPosts);
+    setPosts((prev) => mergeFeedPosts(initialPosts, prev));
+    if (!pagedOnce) setHasMore(initialHasMore);
   }
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [comment, setComment] = useState("");
   const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const online = useOnline();
@@ -84,6 +92,28 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
     });
   }
 
+  function loadOlder() {
+    if (loadingOlder) return;
+    const cursor = feedCursor(posts);
+    if (!cursor) return;
+    if (!online) {
+      setNote({ text: "You are offline. Reconnect to load earlier plays.", tone: "warn" });
+      return;
+    }
+    setLoadingOlder(true);
+    startTransition(async () => {
+      const res = await loadOlderPosts({ before: cursor });
+      setLoadingOlder(false);
+      if (!res.ok) {
+        setNote({ text: res.message, tone: "error" });
+        return;
+      }
+      setPosts((prev) => appendFeedPosts(prev, res.posts ?? []));
+      setHasMore(Boolean(res.hasMore));
+      setPagedOnce(true);
+    });
+  }
+
   function react(post: FeedPost) {
     // Optimistic toggle, reconciled by the server result.
     setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, reacted: !p.reacted, reaction_count: p.reaction_count + (p.reacted ? -1 : 1) } : p)));
@@ -97,7 +127,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
   }
 
   return (
-    <section className="pb-sideline" aria-labelledby="sideline-heading">
+    <section className="pb-sideline" aria-labelledby="sideline-heading" data-tour="sideline">
       <div className="pb-sideline-head">
         <div>
           <div className="pb-kicker">THE LOCKER ROOM IS TALKING</div>
@@ -132,6 +162,15 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
               actions={canComment ? <a className="pb-post-action" href="#sideline-comment">Reply</a> : null}
             />
           ))}
+          <div className="pb-feed-more">
+            {hasMore ? (
+              <button className="pb-secondary" type="button" onClick={loadOlder} disabled={loadingOlder} aria-label={`Load ${FEED_PAGE_SIZE} earlier plays`}>
+                {loadingOlder ? "Rolling the tape…" : `Earlier plays · ${FEED_PAGE_SIZE} more`}
+              </button>
+            ) : posts.length > FEED_PAGE_SIZE ? (
+              <span className="pb-small">That is the whole tape.</span>
+            ) : null}
+          </div>
         </div>
       )}
       {canComment ? (

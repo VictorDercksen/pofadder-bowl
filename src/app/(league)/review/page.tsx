@@ -4,21 +4,21 @@ import { TitleRow } from "@/components/ui/TitleRow";
 import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
-import { formatDateTime } from "@/lib/time";
+import { formatDateTime, nowMs } from "@/lib/time";
 
 export const metadata = { title: "Commissioner" };
 
 export default async function ReviewPage() {
   const ctx = await requireCommissioner();
   const tz = ctx.event.timezone;
-  const [subs, score, { data: challenges }, { data: penalties }, { data: results }, { data: certificate }, { data: incidents }, { data: decisions }, { data: profiles }] = await Promise.all([
+  const [subs, score, { data: challenges }, { data: penalties }, { data: results }, { data: certificate }, { data: props }, { data: decisions }, { data: profiles }] = await Promise.all([
     loadSubmissions(ctx),
     getEventScore(ctx),
     ctx.supabase.from("challenges").select("id, sequence, title, points").eq("event_id", ctx.event.id),
     ctx.supabase.from("penalties").select("*").eq("event_id", ctx.event.id).order("sequence"),
     ctx.supabase.from("official_results").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle(),
-    ctx.supabase.from("bingo_incidents").select("*, square:bingo_squares(text)").eq("event_id", ctx.event.id).eq("status", "proposed"),
+    ctx.supabase.from("props").select("id, sequence, locks_at, result").eq("event_id", ctx.event.id).order("sequence"),
     ctx.supabase.from("review_decisions").select("*, submission:evidence_submissions!inner(event_id)").eq("submission.event_id", ctx.event.id).order("created_at", { ascending: false }).limit(8),
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
@@ -26,6 +26,7 @@ export default async function ReviewPage() {
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
   const kits = new Map((profiles ?? []).map((p) => [p.id, p.kit_team]));
   const queue = subs.filter((s) => s.status === "submitted");
+  const openProps = (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs());
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
 
   return (
@@ -33,7 +34,7 @@ export default async function ReviewPage() {
       <TitleRow kicker="COMMISSIONER’S VIEW" title="Under review." blurb="Watch the evidence. Make the call. Put the points on the board." tag="REVIEW ACCESS" identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
       <div className="pb-split">
         <div>
-          <div className="pb-panel">
+          <div className="pb-panel" data-tour="review-queue">
             <div className="pb-panel-top">
               <h3>
                 Awaiting review
@@ -80,19 +81,21 @@ export default async function ReviewPage() {
           </div>
           <div className="pb-panel" style={{ marginTop: 15 }}>
             <h3>
-              Bingo incidents to confirm
-              {incidents?.length ? <span className="pb-badge-count">{incidents.length}</span> : null}
+              Props to settle
+              {openProps.length ? <span className="pb-badge-count">{openProps.length}</span> : null}
             </h3>
-            {incidents && incidents.length > 0 ? (
+            {openProps.length > 0 ? (
               <p className="pb-small">
-                {incidents.length} proposed. <Link href="/bingo" className="pb-text-action">Confirm on the bingo page ↗</Link>
+                {openProps.length} locked and unsettled. <Link href="/props" className="pb-text-action">Settle on the prop board ↗</Link>
               </p>
+            ) : (props ?? []).some((p) => p.result == null) ? (
+              <p className="pb-small">Props settle once the board locks.</p>
             ) : (
-              <p className="pb-small">No proposed incidents.</p>
+              <p className="pb-small">Every prop is settled.</p>
             )}
           </div>
         </div>
-        <div className="pb-panel">
+        <div className="pb-panel" data-tour="review-tools">
           <div className="pb-official-strip" aria-hidden="true" />
           <div className="pb-panel-top">
             <h3>Scoreboard</h3>

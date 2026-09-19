@@ -1,16 +1,12 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { Shield } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { Countdown } from "@/components/ui/Countdown";
 import { CheckinMap } from "@/components/map/CheckinMap";
 import { SidelineFeed } from "@/components/feed/SidelineFeed";
-import { LosersBracketPanel } from "@/components/sleeper/LosersBracket";
-import { LoadingPlay } from "@/components/ui/Football";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadFeed } from "@/lib/feed";
 import { checkinPath } from "@/lib/checkin-path";
-import { sleeperLeagueId } from "@/lib/env";
 import { loadCheckins, participantName } from "@/lib/checkins";
 import { nextItinerary } from "@/lib/itinerary";
 import { ageLabel, eventPhase, formatDay, formatTime, isStale, PHASE_HEADINGS, QUARTER_LABELS, quarterNumber } from "@/lib/time";
@@ -26,7 +22,7 @@ export default async function GameCentrePage() {
     loadCheckins(ctx),
     participantName(ctx),
     nextItinerary(ctx, now),
-    loadFeed(ctx).then((posts) => ({ posts, error: null as string | null })).catch((e: Error) => ({ posts: [], error: e.message })),
+    loadFeed(ctx).then((page) => ({ ...page, error: null as string | null })).catch((e: Error) => ({ posts: [], hasMore: false, error: e.message })),
   ]);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
@@ -36,7 +32,7 @@ export default async function GameCentrePage() {
   return (
     <>
       <TitleRow kicker={`LEAGUE VIEW · ${formatDay(now, tz).toUpperCase()} · ${formatTime(now, tz)} SAST`} title={phase === "pregame" ? "The away game is coming." : phase === "postgame" ? "The away game is over." : "The away game is on."} blurb={`One man in ${ctx.event.away_town}. An entire league enjoying it.`} tag={QUARTER_LABELS[phase]} team="nyg" />
-      <div className="pb-broadcast">
+      <div className="pb-broadcast" data-tour="scoreboard">
         <div>
           <div className="pb-broadcast-head">
             <Shield size={25} height={34} />
@@ -60,7 +56,7 @@ export default async function GameCentrePage() {
       </div>
 
       <div className="pb-centre-top">
-        <div className="pb-panel pb-plain-map">
+        <div className="pb-panel pb-plain-map" data-tour="live-map">
           <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
@@ -70,7 +66,7 @@ export default async function GameCentrePage() {
             <Link className="pb-text-action" href="/map">Open map ↗</Link>
           </div>
         </div>
-        <div className="pb-next-drive">
+        <div className="pb-next-drive" data-tour="next-drive">
           <div className="pb-panel-top">
             <div className="pb-kicker">{next.challenge ? `NEXT DRIVE · ${next.challenge.points} POINTS` : "NEXT DRIVE"}</div>
             <span className="pb-down-marker" aria-label={`Quarter ${q || 1}`}>{q || 1}</span>
@@ -81,7 +77,7 @@ export default async function GameCentrePage() {
           {ctx.isParticipant || ctx.isCommissioner ? (
             <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
           ) : (
-            <Link className="pb-primary orange" href="/bingo">Open Punishment Bingo ↗</Link>
+            <Link className="pb-primary orange" href="/props">Open the prop board ↗</Link>
           )}
           <div className="pb-next" style={{ marginTop: "auto" }}>
             <div className="pb-kicker">RETURN BUS · {formatTime(ctx.event.return_departure_at, tz)}</div>
@@ -93,10 +89,6 @@ export default async function GameCentrePage() {
         </div>
       </div>
 
-      <Suspense fallback={<LoadingPlay compact label="Pulling the losers bracket from Sleeper…" />}>
-        <LosersBracketPanel leagueId={ctx.league.sleeper_league_id ?? sleeperLeagueId() ?? null} />
-      </Suspense>
-
       {feedResult.error ? (
         <section className="pb-sideline">
           <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
@@ -104,7 +96,7 @@ export default async function GameCentrePage() {
           </div>
         </section>
       ) : (
-        <SidelineFeed initialPosts={feedResult.posts} eventId={ctx.event.id} timezone={tz} />
+        <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} eventId={ctx.event.id} timezone={tz} />
       )}
     </>
   );

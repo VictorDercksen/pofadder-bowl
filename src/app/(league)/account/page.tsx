@@ -3,6 +3,7 @@ import { TitleRow } from "@/components/ui/TitleRow";
 import { KitForm, PasswordForm, SleeperClaim } from "@/components/account/AccountForms";
 import { TeamPicker } from "@/components/account/TeamPicker";
 import { SleeperTeamCard } from "@/components/sleeper/SleeperTeam";
+import { TourReplayButton } from "@/components/tour/TourButtons";
 import { getLeagueContext } from "@/lib/league";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
 import { formatDateTime } from "@/lib/time";
@@ -24,7 +25,7 @@ export default async function AccountPage() {
       <TitleRow kicker="PRIVATE LEAGUE ACCESS" title="Your seat on the sideline." blurb="One league. Three roles. Everyone gets the right view." tag={roleLabel.toUpperCase()} team={ctx.profile.kit_team} />
       <div>
         <div>
-          <div className="pb-panel">
+          <div className="pb-panel" data-tour="account-panel">
             <h3>Account</h3>
             <p className="pb-small" style={{ marginTop: 8 }}>
               Signed in as <b>{ctx.user.email ?? "your league email"}</b> · role <b>{roleLabel}</b>
@@ -38,9 +39,19 @@ export default async function AccountPage() {
               {ctx.isAdmin ? <Link className="pb-secondary" href="/review/members">League admin ↗</Link> : null}
             </div>
           </div>
+          <div className="pb-panel" style={{ marginTop: 18 }} data-tour="tour-replay">
+            <h3>The tour</h3>
+            <p className="pb-small" style={{ marginTop: 6 }}>
+              The guided walk through every screen your role can see.{" "}
+              {ctx.profile.tutorial_completed_at ? `Last taken ${formatDateTime(ctx.profile.tutorial_completed_at, ctx.event.timezone)}.` : "Not taken yet."}
+            </p>
+            <div className="pb-actions">
+              <TourReplayButton role={ctx.role} isParticipant={ctx.isParticipant} persist={ctx.profile.tutorial_completed_at === null} />
+            </div>
+          </div>
           <div className="pb-panel" style={{ marginTop: 18 }}>
             <h3>Password</h3>
-            <p className="pb-small" style={{ marginTop: 6 }}>Email links expire and sometimes land in the wrong browser. Set a password once and sign in with it from any device; the email link keeps working as a backup.</p>
+            <p className="pb-small" style={{ marginTop: 6 }}>Change the password you sign in with. Forgotten it on another device? The Email link tab on the sign-in page still works and lets you set a new one.</p>
             <PasswordForm />
           </div>
           <div className="pb-panel" style={{ marginTop: 18 }}>
