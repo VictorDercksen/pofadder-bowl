@@ -1,16 +1,16 @@
 # Pofadder Bowl 2026 · Handoff (2026-09-19, road routes on the check-in map)
 
-Follow-on to `handoff_2026-09-17_stress-test.md`. Infrastructure detail still lives in `handoff_2026-09-17.md`.
+Follow-on to `handoff_2026-09-19_supabase-integration-trigger.md` (production and migration state) and `handoff_2026-09-17_stress-test.md` (map and check-in detail). Infrastructure detail still lives in `handoff_2026-09-17.md`.
 
 ## State at handoff
 
 | Item | Value |
 |---|---|
-| Branch | `claude/maps-route-connections-96dyp9` (not merged) |
-| Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
+| Branch | `claude/maps-route-connections-96dyp9`, merged into `main` on request (`origin/main` merged into the branch first, no conflicts; typecheck, lint, 98 unit tests and `next build` green on the merged tree) |
+| Production | https://pofadder-bowl.vercel.app deploys from `main`, so this ships with the push. No files under `supabase/` changed, so the Supabase GitHub integration does not run |
 | Schema | Unchanged. No migration, no type regeneration |
 | Env | **One new optional server-only variable**: `MAP_ROUTING_URL`. Nothing to set on Vercel unless the default public OSRM router should be replaced or switched off |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (12 files, 75 vitest, 24 new) pass |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (15 files, 98 vitest after the merge, 24 new here) pass |
 
 ## What was asked
 
