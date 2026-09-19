@@ -1,3 +1,5 @@
+-- Applied to production by the Supabase GitHub integration on merge to main (a push touching this
+-- folder is what starts it). Pending on the hosted project as of 2026-09-19.
 -- Commissioner can (re)write the prop board from the app. The board is generated in the app
 -- from the event programme (src/lib/prop-generator.ts) and handed over as JSON; this RPC
 -- validates and stores it. Refused once any prop has locked or holds a pick, so a live
