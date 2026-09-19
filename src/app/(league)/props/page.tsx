@@ -4,7 +4,6 @@ import { KitPanel } from "@/components/ui/KitPanel";
 import { Countdown } from "@/components/ui/Countdown";
 import { PropBoard, type BoardProp } from "@/components/props/PropBoard";
 import { PropLive } from "@/components/props/PropLive";
-import { PropGenerate } from "@/components/props/PropGenerate";
 import { getLeagueContext } from "@/lib/league";
 import { formatLine, isPropLocked, sortStandings, type PropResult, type PropSide } from "@/lib/props";
 import { formatDateTime, formatTime, nowMs } from "@/lib/time";
@@ -29,9 +28,8 @@ export default async function PropsPage() {
       <>
         <TitleRow kicker="LEAGUE SIDE QUEST" title="Call the damage." tag="PROP BOARD" team={ctx.profile.kit_team} />
         <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
-          {propsError ? `The prop board could not load (${propsError.message}).` : ctx.isCommissioner ? "No props are set for this event yet. Generate the board below." : "No props are set for this event yet. The commissioner generates the board before departure."}
+          {propsError ? `The prop board could not load (${propsError.message}).` : "No props are set for this event yet. The board is generated before departure."}
         </div>
-        {!propsError && ctx.isCommissioner ? <PropGenerate existing={0} /> : null}
       </>
     );
   }
@@ -111,7 +109,6 @@ export default async function PropsPage() {
                 <p>If the record cannot decide a prop, the commissioner voids it for everyone.</p>
               </div>
             </div>
-            {ctx.isCommissioner && !allLocked && rows.length === 0 ? <PropGenerate existing={board.length} /> : null}
             <div className="pb-next">
               <div className="pb-kicker">THE STAKES</div>
               <h3>5 FAAB in Sleeper.</h3>

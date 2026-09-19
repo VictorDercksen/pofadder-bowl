@@ -46,3 +46,7 @@ If the integration runs but fails, the likely cause is migration history: the CL
 ## Addendum (same day): second trigger
 
 Victor confirmed the integration settings (working directory `.`, deploy to production on, branch `main`) after the first trigger commit. A second comment-only touch of the pending migration was pushed to `main` so the saved settings see a push under `supabase/`.
+
+## Addendum (same day): generate buttons removed
+
+The migration landed through the integration and Victor generated the production board. At his request the "Generate the board" and "Regenerate from the programme" buttons are gone from `/props` (`PropGenerate.tsx` deleted, empty-state copy neutral). The `generatePropBoard` action, `src/lib/prop-generator.ts` and the `upsert_props` RPC remain so a future event can build its board; re-expose the button if needed.
