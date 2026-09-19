@@ -43,7 +43,7 @@ const participantBlock: TourStep[] = [
 
 const commissionerBlock: TourStep[] = [
   step("review", "SCREEN 05", "Under review.", "Submitted proof lands in this queue with its version number. Open one, watch the evidence and approve or flag it. Every decision is recorded with your name and shows on the sideline.", "/review", ["review-queue"]),
-  step("review-tools", "THE SCOREBOARD SIDE", "Penalties, results, certificate.", "Flag a penalty, enter the official results (the league's predictions resolve against them) and issue the certificate that closes the event. Bingo incidents proposed by members wait for your confirmation on the bingo screen.", "/review", ["review-tools"]),
+  step("review-tools", "THE SCOREBOARD SIDE", "Penalties, results, certificate.", "Flag a penalty, enter the official results (the league's predictions resolve against them) and issue the certificate that closes the event. Locked props wait for you to settle them on the prop board; the queue count shows here.", "/review", ["review-tools"]),
 ];
 
 const adminBlock: TourStep[] = [
@@ -58,7 +58,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("next-drive", "NEXT DRIVE", "What is up next, and the bus.", "The next item on the itinerary with its points, plus the countdown to the return bus from KLK Garage. There is no second bus.", "/game-centre", ["next-drive"]),
   step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline"]),
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
-  step("bingo", "SCREEN 06", "Punishment Bingo.", "Your own shuffled card, fixed for the event. Tap a square to propose an incident. Once the commissioner confirms it, everyone holding that square gets it marked. Rows, columns, diagonals and full house win; first to complete a line takes it.", "/bingo", ["bingo-card"]),
+  step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
   step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 14 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
   step(
     "press",
@@ -72,7 +72,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   ),
   step("recap", "SCREEN 09", "Final whistle.", "The recap builds itself from approved evidence, real check-ins and confirmed results. Once the commissioner issues the certificate, and the participant consents, a public version can be shared outside the league.", "/recap", ["certificate"]),
   step("account", "SCREEN 10", "League access.", "Your kit, your Sleeper team and a password so you never wait for an email link again. You can replay this tour from here at any time.", "/account", ["tour-replay"]),
-  step("done", "FULL TIME", "That is the rundown.", participant ? "Pack the bag. Check in, get the proof, survive the group chat. No appeals." : "Kickoff is 23 September. Until then, predictions are open and the bingo cards are dealt. Enjoy the away game."),
+  step("done", "FULL TIME", "That is the rundown.", participant ? "Pack the bag. Check in, get the proof, survive the group chat. No appeals." : "Kickoff is 23 September. Until then, predictions and the prop board are open. Enjoy the away game."),
 ];
 
 /**

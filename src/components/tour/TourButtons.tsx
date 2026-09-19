@@ -15,7 +15,7 @@ export function TourReplayButton({ role, isParticipant, persist }: { role: Role;
 }
 
 const TEST_ROLES: { role: Role; label: string; note: string }[] = [
-  { role: "member", label: "League member", note: "Game centre, map, bingo, predictions, press, recap" },
+  { role: "member", label: "League member", note: "Game centre, map, prop board, predictions, press, recap" },
   { role: "participant", label: "Participant", note: "Adds My trip, location sharing and the proof locker" },
   { role: "commissioner", label: "Commissioner", note: "Adds the review queue and the whistle" },
   { role: "admin", label: "Admin", note: "Adds the roster, member view and this panel" },

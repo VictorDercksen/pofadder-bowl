@@ -4,6 +4,7 @@ import { CertificateExport, ConsentToggle } from "@/components/recap/Certificate
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
+import { propWinners } from "@/lib/props";
 import { loadCheckins, participantName } from "@/lib/checkins";
 import { publicEnv } from "@/lib/env";
 import { eventPhase, formatDateTime, formatLongDate, secondsToClock } from "@/lib/time";
@@ -13,14 +14,14 @@ export const metadata = { title: "Final whistle" };
 export default async function RecapPage() {
   const ctx = await getLeagueContext();
   const tz = ctx.event.timezone;
-  const [score, subs, checkins, name, { data: cert }, { data: results }, { data: wins }, { data: awards }, { data: profiles }, { data: challenges }, { data: penalties }] = await Promise.all([
+  const [score, subs, checkins, name, { data: cert }, { data: results }, { data: standings }, { data: awards }, { data: profiles }, { data: challenges }, { data: penalties }] = await Promise.all([
     getEventScore(ctx),
     loadSubmissions(ctx),
     loadCheckins(ctx, 200),
     participantName(ctx),
     ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("official_results").select("*").eq("event_id", ctx.event.id).maybeSingle(),
-    ctx.supabase.from("bingo_wins").select("*").eq("event_id", ctx.event.id).order("achieved_at"),
+    ctx.supabase.rpc("prop_leaderboard", { p_event: ctx.event.id }),
     ctx.supabase.from("prediction_awards").select("*").eq("event_id", ctx.event.id),
     ctx.supabase.from("profiles").select("id, display_name"),
     ctx.supabase.from("challenges").select("*").eq("event_id", ctx.event.id).order("sequence"),
@@ -30,8 +31,10 @@ export default async function RecapPage() {
   const approved = subs.filter((s) => s.status === "approved" && s.challenge_id);
   const phase = eventPhase(ctx.event);
   const issued = cert?.status === "issued";
-  const firstLine = (wins ?? []).find((w) => w.line_key !== "full_house");
-  const bingoWinners = Array.from(new Set((wins ?? []).filter((w) => w.line_key !== "full_house").map((w) => w.user_id))).map((id) => names.get(id) ?? "member");
+  // Most correct calls share the prize; nobody wins on zero.
+  const propWinnerIds = propWinners((standings ?? []).map((r) => [r.user_id, { correct: r.correct, wrong: r.wrong, pending: 0 }]));
+  const propWinnerNames = propWinnerIds.map((id) => names.get(id) ?? "member");
+  const propsSettled = (standings ?? []).some((r) => r.correct + r.wrong > 0);
   const predTotals = new Map<string, number>();
   for (const a of awards ?? []) predTotals.set(a.user_id, (predTotals.get(a.user_id) ?? 0) + a.points);
   const predWinners = [...predTotals.entries()].sort((a, b) => b[1] - a[1]);
@@ -46,7 +49,7 @@ export default async function RecapPage() {
     runKm: results?.run_distance_km != null ? Number(results.run_distance_km) : null,
     runTime: results?.run_seconds != null ? secondsToClock(results.run_seconds) : null,
     checkins: checkins.length,
-    bingoWinners,
+    propWinners: propWinnerNames,
     predictionWinners: topPred,
     issuedAt: cert?.issued_at ? formatLongDate(cert.issued_at, tz) : null,
     eventName: ctx.event.name,
@@ -114,16 +117,15 @@ export default async function RecapPage() {
           <div className="pb-rank">
             <span className="pb-ranking-num">★</span>
             <div>
-              Bingo winner{bingoWinners.length === 1 ? "" : "s"}
+              Prop board winner{propWinnerNames.length === 1 ? "" : "s"} · 5 FAAB in Sleeper
               <br />
-              <b>{bingoWinners.length ? bingoWinners.join(", ") : "No confirmed line yet"}</b>
-              {firstLine ? <small className="pb-small"> · first line {formatDateTime(firstLine.achieved_at, tz)}</small> : null}
+              <b>{propWinnerNames.length ? propWinnerNames.join(", ") : propsSettled ? "No correct calls" : "Not settled yet"}</b>
             </div>
           </div>
           <div className="pb-rank">
             <span className="pb-ranking-num">★</span>
             <div>
-              Prediction winner{topPred.length === 1 ? "" : "s"}
+              Prediction winner{topPred.length === 1 ? "" : "s"} · 5 FAAB in Sleeper
               <br />
               <b>{topPred.length ? topPred.join(", ") : results?.resolved_at ? "No awards" : "Not resolved yet"}</b>
             </div>

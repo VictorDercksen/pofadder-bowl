@@ -4,7 +4,7 @@ import { kitVars } from "@/lib/nfl";
 
 /**
  * A block themed with a member's kit: team-colour yoke stripe, badge watermark and
- * accent rule. Used for bingo cards, prediction slips, press prompts and proof panels.
+ * accent rule. Used for the prop board, prediction slips, press prompts and proof panels.
  */
 export function KitPanel({ team, name, kicker, children, className = "", dark = false, tour }: { team: string | null | undefined; name?: string; kicker?: string; children: ReactNode; className?: string; dark?: boolean; /** Anchor for the first-run tour spotlight. */ tour?: string }) {
   return (

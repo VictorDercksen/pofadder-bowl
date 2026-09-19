@@ -30,7 +30,7 @@ export default async function PredictionsPage() {
 
   return (
     <>
-      <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team={ctx.profile.kit_team} />
+      <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. The top slip wins 5 FAAB in Sleeper." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team={ctx.profile.kit_team} />
       <div className="pb-split">
         <KitPanel team={ctx.profile.kit_team} name="The prediction slip" kicker={`${ctx.profile.display_name.toUpperCase()} · #${String(ctx.profile.kit_number).padStart(2, "0")}`} tour="prediction-slip">
           <PredictionSlip locked={locked} lockAt={ctx.event.prediction_lock_at} existing={mine ? { run_seconds: mine.run_seconds, meal_rating: mine.meal_rating, complaint_count: mine.complaint_count } : null} />
@@ -90,7 +90,12 @@ export default async function PredictionsPage() {
           </div>
           <div className="pb-next">
             <h3>Equal guesses share the glory.</h3>
-            <p>Tied winners receive the same points. Results appear once the commissioner enters official results and resolves the slips. Separate from Victor’s 100-point punishment score. No cash stakes.</p>
+            <p>Tied winners receive the same points. Results appear once the commissioner enters official results and resolves the slips. Separate from Victor’s 100-point punishment score.</p>
+          </div>
+          <div className="pb-next">
+            <div className="pb-kicker">THE STAKES</div>
+            <h3>5 FAAB in Sleeper.</h3>
+            <p>The highest-scoring slip takes 5 FAAB, added to the winner’s Sleeper waiver budget by the commissioner after the trip. A tie at the top shares it. The prop board winner takes the other 5. No cash stakes.</p>
           </div>
           {results?.resolved_at ? (
             <div style={{ marginTop: 16 }}>

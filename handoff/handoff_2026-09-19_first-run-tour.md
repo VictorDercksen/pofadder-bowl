@@ -6,9 +6,9 @@ Follow-on to `handoff_2026-09-17_nav-perf-sleeper-ui.md`. Infrastructure detail 
 
 | Item | Value |
 |---|---|
-| Branch | `claude/first-run-tutorial` (not merged, no PR opened) |
+| Branch | `claude/first-run-tutorial`, merged into `main` at Victor's request (no PR) |
 | Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
-| Schema | **One new migration**: `supabase/migrations/20260919000900_tutorial.sql` (adds `profiles.tutorial_completed_at timestamptz` and `profiles.tutorial_version smallint`, grants self-update on both). Run `npm run db:push` from the laptop. Before the push the app still works: the tour simply never auto-starts (see "How it works") |
+| Schema | **One new migration**: `supabase/migrations/20260919000900_tutorial.sql` (adds `profiles.tutorial_completed_at timestamptz` and `profiles.tutorial_version smallint`, grants self-update on both). The Supabase GitHub integration applies it on the push to `main` (it watches `supabase/`); confirm under Database → Migrations. Until it is applied the app still works: the tour simply never auto-starts (see "How it works") |
 | Types | `src/lib/database.types.ts` hand-edited for the two new profile columns. Regenerate from the local stack when convenient |
 | Env | Unchanged |
 | Tests | `npm run typecheck`, `npm run lint`, `npm test` (68 vitest, 10 new in `src/lib/tour.test.ts`) pass; `npx next build` passes |
@@ -29,7 +29,7 @@ A guided tour: a spotlight overlay with a step card that walks the member from s
 | Commissioner | review queue, penalties/results/certificate | commissioner, admin |
 | Admin | roster and invites, member view switch, the tour test panel | admin |
 | Participant | My trip phone card, location sharing consent, proof locker, draft → submitted → approved | participant, plus any commissioner/admin who is the event participant (Victor) |
-| League | scoreboard, last check-in, next drive and bus, sideline, map, bingo, predictions, press room, final whistle, League access, full time | everyone |
+| League | scoreboard, last check-in, next drive and bus, sideline, map, prop board, predictions, press room, final whistle, League access, full time | everyone |
 
 Member: 14 steps. Participant: 18. Commissioner: 16. Admin who is also participant: 23. The welcome and press copy change wording for the participant. Every step's `href` is checked by a unit test against `navFor(role)` so the tour never sends a role to a screen its menu does not offer.
 
@@ -41,7 +41,7 @@ Member: 14 steps. Participant: 18. Commissioner: 16. Admin who is also participa
 - Auto-start rule in the layout: `ctx.profile.tutorial_completed_at === null` (strict). `undefined` means the column is not migrated yet, so the tour stays quiet rather than looping forever. Finish or Skip both call `completeTutorial` (`src/lib/actions/tutorial.ts`: Zod, `getLeagueContextRaw`, updates the caller's own profile row under `profiles_update_self`, `revalidatePath("/", "layout")`) and then navigate to `homeFor(ctx)`.
 - Replay: League access → "The tour" panel → `TourReplayButton` (`src/components/tour/TourButtons.tsx`) runs the account's own role again (persists only if the flag is still null) and returns to `/account`.
 - Admin test: League admin (`/review/members`) → "First-run tour" panel → `TourTestPanel` with League member / Participant / Commissioner / Admin. Test runs set `persist: false`, so nothing is recorded, and return to `/review/members`. The Admin option includes the participant block when the admin is the event participant; the Commissioner option is Theo's view (no participant block).
-- Anchors added (`data-tour`): `header-account`, `nav` (AppShell), `menu` (NavDrawer button), `member-view` (MemberViewToggle), `scoreboard`, `live-map`, `next-drive` (game centre), `sideline` (SidelineFeed), `map-panel`, `trip-phone`, `location-sharing`, `proof-list`, `proof-flow`, `review-queue`, `review-tools`, `admin-roster`, `tour-test`, `bingo-card`, `prediction-slip`, `press-room`, `certificate`, `account-panel`, `tour-replay`. `KitPanel` gained an optional `tour` prop for the ones on kit panels. Hidden anchors (sidebar and account block below 850 px, header toggle below 580 px, anything inside the closed drawer) are skipped, and the step falls back to the Menu button.
+- Anchors added (`data-tour`): `header-account`, `nav` (AppShell), `menu` (NavDrawer button), `member-view` (MemberViewToggle), `scoreboard`, `live-map`, `next-drive` (game centre), `sideline` (SidelineFeed), `map-panel`, `trip-phone`, `location-sharing`, `proof-list`, `proof-flow`, `review-queue`, `review-tools`, `admin-roster`, `tour-test`, `prop-board` (props page), `prediction-slip`, `press-room`, `certificate`, `account-panel`, `tour-replay`. `KitPanel` gained an optional `tour` prop for the ones on kit panels. Hidden anchors (sidebar and account block below 850 px, header toggle below 580 px, anything inside the closed drawer) are skipped, and the step falls back to the Menu button.
 - CSS at the end of `globals.css` under "First-run tour" (`pb-tour*`, z-index 70 above the drawer's 61; reduced motion disables the transitions).
 - `TOUR_VERSION` in `src/lib/tour.ts` is stored in `tutorial_version`. To make everyone take a rewritten tour again, bump it and change the layout's auto-start test to compare versions (currently completion alone is checked).
 
@@ -54,10 +54,14 @@ Member: 14 steps. Participant: 18. Commissioner: 16. Admin who is also participa
 ## Suggested checks on production (after merge and `db:push`)
 
 1. Sign in as Victor: the tour starts on `/review` (23 steps). Let it run through to League access and Finish; it should land on `/review` and not start again. League access → "The tour" shows "Last taken …".
-2. League admin → First-run tour → League member: 14 steps through game centre, map, bingo, predictions, press, recap, League access, back to `/review/members`. Nothing recorded.
+2. League admin → First-run tour → League member: 14 steps through game centre, map, prop board, predictions, press, recap, League access, back to `/review/members`. Nothing recorded.
 3. Same on a phone: cards as bottom sheets, Menu button spotlighted on the header/programme steps, the spotlight follows when you scroll.
 4. Switch to member view and replay from League access: the member version runs.
 5. Sign in as a member who has already used the app: the tour starts once (column null), and never again after Finish or Skip.
+
+## Merge notes
+
+`origin/main` had moved on since the branch point (prop board replacing Punishment Bingo, password gate, drawer identity block, sideline paging, migration workflow). Merged main into the branch: the bingo page deletion was taken, the tour's bingo step became the prop board step (`props`, anchor `prop-board` on the `KitPanel` of `/props`), the commissioner copy now mentions settling props, and the CSS blocks from both sides were kept. Verification was re-run on the merged tree.
 
 ## Still open
 

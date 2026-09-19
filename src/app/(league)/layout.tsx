@@ -2,10 +2,10 @@ import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
 import { MemberViewToggle } from "@/components/shell/MemberViewToggle";
 import { TeamLogo } from "@/components/ui/Marks";
+import { DrawerIdentity } from "@/components/shell/DrawerIdentity";
 import { SleeperTeamChip } from "@/components/sleeper/SleeperTeam";
 import { TutorialTour } from "@/components/tour/TutorialTour";
 import { describeRole, getLeagueContext, homeFor } from "@/lib/league";
-import { teamName } from "@/lib/nfl";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
 
 export const dynamic = "force-dynamic";
@@ -46,16 +46,14 @@ export default async function LeagueLayout({ children }: { children: React.React
         </>
       }
       drawerIdentity={
-        <Link href="/account" className="pb-drawer-identity" style={{ textDecoration: "none", color: "inherit" }}>
-          <TeamLogo code={ctx.profile.kit_team} size={52} />
-          <span style={{ minWidth: 0 }}>
-            <b>{ctx.profile.display_name}</b>
-            <small>
-              {ctx.profile.kit_team ? `${teamName(ctx.profile.kit_team)} · #${String(ctx.profile.kit_number).padStart(2, "0")}` : "No kit yet"} · {roleLabel}
-            </small>
-            {chip ? <span className="pb-drawer-sleeper">{chip}</span> : null}
-          </span>
-        </Link>
+        <DrawerIdentity
+          href="/account"
+          name={ctx.profile.display_name}
+          kitTeam={ctx.profile.kit_team}
+          kitNumber={ctx.profile.kit_number}
+          roleLabel={roleLabel}
+          sleeper={sleeper ? { teamName: sleeper.teamName, displayName: sleeper.displayName, avatarUrl: sleeperAvatarUrl(sleeper.avatar) } : null}
+        />
       }
       drawerFooter={
         <>
