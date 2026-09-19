@@ -32,7 +32,7 @@ export default async function MyTripPage() {
     <>
       <TitleRow kicker="VICTOR’S VIEW · MOBILE FIRST" title="Your next play." blurb="Check in. Get the proof. Survive the group chat." tag={ctx.isParticipant ? "PARTICIPANT" : "COMMISSIONER PREVIEW"} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-phone">
+        <div className="pb-phone" data-tour="trip-phone">
           <div className="pb-phone-top">
             <b>{formatTime(now, tz)}</b>
             <span>{formatDay(now, tz)} · SAST</span>

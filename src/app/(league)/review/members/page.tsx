@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { InviteForm, MemberRow, SleeperImport } from "@/components/review/MemberAdmin";
+import { TourTestPanel } from "@/components/tour/TourButtons";
 import { requireAdmin } from "@/lib/league";
 import { formatDateTime } from "@/lib/time";
 
@@ -23,7 +24,7 @@ export default async function MembersPage() {
         <Link href="/review" className="pb-text-action">← Back to review</Link>
       </p>
       <div className="pb-split">
-        <div className="pb-panel">
+        <div className="pb-panel" data-tour="admin-roster">
           <h3>Members</h3>
           <p className="pb-small">
             Participant for this event: <b>{participantId ? (byId.get(participantId)?.display_name ?? participantId) : "not set"}</b>. Only an active member with the participant role can be selected.
@@ -62,6 +63,11 @@ export default async function MembersPage() {
                 ))}
               </ul>
             ) : null}
+          </div>
+          <div className="pb-panel" style={{ marginTop: 18 }} data-tour="tour-test">
+            <h3>First-run tour</h3>
+            <p className="pb-small">Every member walks through the tour once at first sign-in and can replay it from League access. Run any role’s version here; test runs never mark anything.</p>
+            <TourTestPanel isParticipant={ctx.isParticipant} />
           </div>
         </div>
       </div>

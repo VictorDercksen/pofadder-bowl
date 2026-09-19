@@ -19,7 +19,7 @@ export default async function ProofPage() {
     <>
       <TitleRow kicker={`${ctx.isParticipant ? "VICTOR’S VIEW" : "COMMISSIONER PREVIEW"} · ${score.approvedChallenges} OF ${score.total} APPROVED`} title="The proof locker." blurb="Every play needs evidence. Every point has to be earned." tag={`${score.approved} / ${score.max} POINTS`} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <KitPanel team={ctx.profile.kit_team} name="Ten plays. One hundred points." kicker={`${ctx.profile.display_name.toUpperCase()} · PROOF LOCKER`}>
+        <KitPanel team={ctx.profile.kit_team} name="Ten plays. One hundred points." kicker={`${ctx.profile.display_name.toUpperCase()} · PROOF LOCKER`} tour="proof-list">
           {challenges.map((c) => {
             const s = latestFor(subs, { challengeId: c.id });
             return (
@@ -54,7 +54,7 @@ export default async function ProofPage() {
               <p>The commissioner holds the certificate whistle.</p>
             </div>
           )}
-          <div className="pb-panel" style={{ marginTop: 18 }}>
+          <div className="pb-panel" style={{ marginTop: 18 }} data-tour="proof-flow">
             <h3>The commissioner has the whistle.</h3>
             <p className="pb-small" style={{ marginTop: 8 }}>
               Draft → submitted → approved or flagged. A replacement upload creates a new version; approved evidence is never overwritten silently. Large clips upload in resumable chunks straight to private storage, and unfinished drafts stay on this device.

@@ -1088,6 +1088,8 @@ export type Database = {
           id: string
           kit_number: number
           kit_team: string | null
+          tutorial_completed_at: string | null
+          tutorial_version: number | null
           updated_at: string
         }
         Insert: {
@@ -1096,6 +1098,8 @@ export type Database = {
           id: string
           kit_number?: number
           kit_team?: string | null
+          tutorial_completed_at?: string | null
+          tutorial_version?: number | null
           updated_at?: string
         }
         Update: {
@@ -1104,6 +1108,8 @@ export type Database = {
           id?: string
           kit_number?: number
           kit_team?: string | null
+          tutorial_completed_at?: string | null
+          tutorial_version?: number | null
           updated_at?: string
         }
         Relationships: []

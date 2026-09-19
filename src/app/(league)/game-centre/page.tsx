@@ -36,7 +36,7 @@ export default async function GameCentrePage() {
   return (
     <>
       <TitleRow kicker={`LEAGUE VIEW · ${formatDay(now, tz).toUpperCase()} · ${formatTime(now, tz)} SAST`} title={phase === "pregame" ? "The away game is coming." : phase === "postgame" ? "The away game is over." : "The away game is on."} blurb={`One man in ${ctx.event.away_town}. An entire league enjoying it.`} tag={QUARTER_LABELS[phase]} team="nyg" />
-      <div className="pb-broadcast">
+      <div className="pb-broadcast" data-tour="scoreboard">
         <div>
           <div className="pb-broadcast-head">
             <Shield size={25} height={34} />
@@ -60,7 +60,7 @@ export default async function GameCentrePage() {
       </div>
 
       <div className="pb-centre-top">
-        <div className="pb-panel pb-plain-map">
+        <div className="pb-panel pb-plain-map" data-tour="live-map">
           <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
@@ -70,7 +70,7 @@ export default async function GameCentrePage() {
             <Link className="pb-text-action" href="/map">Open map ↗</Link>
           </div>
         </div>
-        <div className="pb-next-drive">
+        <div className="pb-next-drive" data-tour="next-drive">
           <div className="pb-panel-top">
             <div className="pb-kicker">{next.challenge ? `NEXT DRIVE · ${next.challenge.points} POINTS` : "NEXT DRIVE"}</div>
             <span className="pb-down-marker" aria-label={`Quarter ${q || 1}`}>{q || 1}</span>

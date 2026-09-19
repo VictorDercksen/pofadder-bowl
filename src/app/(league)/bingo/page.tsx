@@ -45,7 +45,7 @@ export default async function BingoPage() {
     <>
       <TitleRow kicker="LEAGUE SIDE QUEST" title="Misery loves company." blurb="Your card. His misfortune. Five in a row wins." tag={myLines.length ? `BINGO · ${myLines.length} LINE${myLines.length === 1 ? "" : "S"}` : "PERSONAL BINGO CARD"} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <KitPanel team={ctx.profile.kit_team} name={`${ctx.profile.display_name}’s card`} kicker={`${teamName(ctx.profile.kit_team ?? "nfl").toUpperCase()} · ${marked}/25 MARKED`}>
+        <KitPanel team={ctx.profile.kit_team} name={`${ctx.profile.display_name}’s card`} kicker={`${teamName(ctx.profile.kit_team ?? "nfl").toUpperCase()} · ${marked}/25 MARKED`} tour="bingo-card">
           <BingoBoard
             layout={card.layout}
             squares={squares.map((s) => ({ id: s.id, position: s.position, text: s.text, is_free: s.is_free }))}

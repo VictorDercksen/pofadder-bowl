@@ -56,7 +56,7 @@ export function NavDrawer({ items, identity, footer }: { items: NavItem[]; ident
 
   return (
     <>
-      <button ref={openerRef} type="button" className="pb-menu-btn" aria-expanded={open} aria-controls={id} aria-label="Open navigation" onClick={() => setOpen(true)}>
+      <button ref={openerRef} type="button" className="pb-menu-btn" data-tour="menu" aria-expanded={open} aria-controls={id} aria-label="Open navigation" onClick={() => setOpen(true)}>
         <span className="pb-menu-bars" aria-hidden="true">
           <i />
           <i />

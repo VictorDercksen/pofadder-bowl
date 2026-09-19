@@ -97,7 +97,7 @@ export function SidelineFeed({ initialPosts, eventId, timezone, canComment = tru
   }
 
   return (
-    <section className="pb-sideline" aria-labelledby="sideline-heading">
+    <section className="pb-sideline" aria-labelledby="sideline-heading" data-tour="sideline">
       <div className="pb-sideline-head">
         <div>
           <div className="pb-kicker">THE LOCKER ROOM IS TALKING</div>

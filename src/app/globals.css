@@ -571,3 +571,31 @@ a{color:inherit}
 .pb .pb-sl-seed{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--sl-card-2);font:900 13px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--sl-muted);flex-shrink:0}
 @media(max-width:850px){.pb .pb-sl-chip{max-width:190px}}
 @media(max-width:580px){.pb .pb-account .pb-sl-chip-text{display:none}.pb .pb-account .pb-sl-chip{padding:4px;gap:0}.pb .pb-sl-bracket{padding:12px;border-radius:10px}.pb .pb-sl-round{min-width:214px;flex-basis:214px}}
+
+/* --- First-run tour: spotlight overlay and step card ------------------------------ */
+.pb .pb-tour{position:fixed;inset:0;z-index:70;pointer-events:none}
+.pb .pb-tour-blocker{position:absolute;inset:0;pointer-events:auto}
+.pb .pb-tour-dim{position:absolute;inset:0;background:#0f261c9e}
+.pb .pb-tour-spot{position:fixed;border-radius:12px;box-shadow:0 0 0 200vmax #0f261c9e,0 0 0 3px var(--pb-gold),0 0 24px #e8bd6766;transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease}
+.pb .pb-tour-card{position:fixed;pointer-events:auto;background:var(--pb-panel);color:var(--pb-ink);border:1px solid var(--pb-line);border-top:4px solid var(--pb-orange);border-radius:12px;padding:16px 18px 16px;box-shadow:0 18px 50px #0f261c66;max-height:calc(100vh - 28px);overflow:auto;outline:none;transition:top .22s ease,left .22s ease}
+.pb .pb-tour-card:focus-visible{outline:3px solid var(--pb-gold);outline-offset:2px}
+.pb .pb-tour-card h3{font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:.3px;margin:4px 0 8px}
+.pb .pb-tour-card p{font-size:13px;line-height:1.5;color:#3c4a3e}
+.pb .pb-tour-progress{height:3px;background:#e4e2d4;border-radius:999px;overflow:hidden;margin-bottom:12px}
+.pb .pb-tour-progress i{display:block;height:100%;background:var(--pb-green);transition:width .25s ease}
+.pb .pb-tour-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pb .pb-tour-head .pb-kicker{margin:0}
+.pb .pb-tour-count{font:700 12px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;color:var(--pb-muted)}
+.pb .pb-tour-loading{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--pb-muted)}
+.pb .pb-tour-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;flex-wrap:wrap}
+.pb .pb-tour-nav{display:inline-flex;gap:8px;margin-left:auto}
+.pb .pb-tour-card .pb-primary,.pb .pb-tour-card .pb-secondary{min-height:38px;padding:9px 16px}
+.pb .pb-tour-card.sheet{border-radius:14px}
+.pb .pb-tour-card.centre{top:50%;transform:translateY(-50%)}
+.pb .pb-tour-test{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.pb .pb-tour-test-option{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--pb-paper);border:1.5px solid #bec8b8;border-radius:10px;padding:10px 12px;color:var(--pb-ink);cursor:pointer;transition:border-color .12s ease,background .12s ease}
+.pb .pb-tour-test-option:hover{border-color:var(--pb-green);background:#eef1e6}
+.pb .pb-tour-test-option b{font:700 15px var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;letter-spacing:.8px;text-transform:uppercase}
+.pb .pb-tour-test-option small{font-size:11px;color:var(--pb-muted);line-height:1.35}
+@media(max-width:580px){.pb .pb-tour-test{grid-template-columns:1fr}.pb .pb-tour-card h3{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.pb .pb-tour-spot,.pb .pb-tour-card,.pb .pb-tour-progress i{transition:none}}

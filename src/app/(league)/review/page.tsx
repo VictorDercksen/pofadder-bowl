@@ -33,7 +33,7 @@ export default async function ReviewPage() {
       <TitleRow kicker="COMMISSIONER’S VIEW" title="Under review." blurb="Watch the evidence. Make the call. Put the points on the board." tag="REVIEW ACCESS" identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
       <div className="pb-split">
         <div>
-          <div className="pb-panel">
+          <div className="pb-panel" data-tour="review-queue">
             <div className="pb-panel-top">
               <h3>
                 Awaiting review
@@ -92,7 +92,7 @@ export default async function ReviewPage() {
             )}
           </div>
         </div>
-        <div className="pb-panel">
+        <div className="pb-panel" data-tour="review-tools">
           <div className="pb-official-strip" aria-hidden="true" />
           <div className="pb-panel-top">
             <h3>Scoreboard</h3>

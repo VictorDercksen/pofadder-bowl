@@ -32,7 +32,7 @@ export default async function PredictionsPage() {
     <>
       <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. Bragging rights are the only currency." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <KitPanel team={ctx.profile.kit_team} name="The prediction slip" kicker={`${ctx.profile.display_name.toUpperCase()} · #${String(ctx.profile.kit_number).padStart(2, "0")}`}>
+        <KitPanel team={ctx.profile.kit_team} name="The prediction slip" kicker={`${ctx.profile.display_name.toUpperCase()} · #${String(ctx.profile.kit_number).padStart(2, "0")}`} tour="prediction-slip">
           <PredictionSlip locked={locked} lockAt={ctx.event.prediction_lock_at} existing={mine ? { run_seconds: mine.run_seconds, meal_rating: mine.meal_rating, complaint_count: mine.complaint_count } : null} />
           {revealed ? (
             <div style={{ marginTop: 18 }}>

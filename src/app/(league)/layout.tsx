@@ -3,7 +3,8 @@ import { AppShell } from "@/components/shell/AppShell";
 import { MemberViewToggle } from "@/components/shell/MemberViewToggle";
 import { TeamLogo } from "@/components/ui/Marks";
 import { SleeperTeamChip } from "@/components/sleeper/SleeperTeam";
-import { describeRole, getLeagueContext } from "@/lib/league";
+import { TutorialTour } from "@/components/tour/TutorialTour";
+import { describeRole, getLeagueContext, homeFor } from "@/lib/league";
 import { teamName } from "@/lib/nfl";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
 
@@ -73,6 +74,8 @@ export default async function LeagueLayout({ children }: { children: React.React
         </div>
       ) : null}
       {children}
+      {/* First-run tour: auto-starts while the profile flag is null (strictly null: undefined means the column is not migrated yet). */}
+      <TutorialTour role={ctx.role} isParticipant={ctx.isParticipant} autoStart={ctx.profile.tutorial_completed_at === null} home={homeFor(ctx)} />
     </AppShell>
   );
 }

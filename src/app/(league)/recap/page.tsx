@@ -56,7 +56,7 @@ export default async function RecapPage() {
   return (
     <>
       <TitleRow kicker={`POSTGAME VIEW · ${issued ? "COMMISSIONER CERTIFIED" : phase === "postgame" ? "AWAITING CERTIFICATION" : "IN PROGRESS"}`} title={issued ? "Sentence served." : "The final whistle."} blurb={issued ? "The bus made it home. The group chat will never let this go." : "The recap builds itself from approved evidence, real check-ins and confirmed results."} tag={issued ? "CERTIFIED" : "PENDING"} team="sf" />
-      <div className="pb-certificate" id="certificate">
+      <div className="pb-certificate" id="certificate" data-tour="certificate">
         <div className="pb-kicker">SHOW US YOUR TD’S · {issued ? "COMMISSIONER CERTIFIED" : "CERTIFICATE PENDING"}</div>
         <div className="pb-champion-crest">
           <TeamLogo code={ctx.profile.kit_team} decorative size={55} />
