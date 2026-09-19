@@ -42,3 +42,7 @@ If the integration runs but fails, the likely cause is migration history: the CL
 
 - Regenerate `database.types.ts` from the hosted schema.
 - Carried forward: invite Theo as commissioner; custom SMTP.
+
+## Addendum (same day): second trigger
+
+Victor confirmed the integration settings (working directory `.`, deploy to production on, branch `main`) after the first trigger commit. A second comment-only touch of the pending migration was pushed to `main` so the saved settings see a push under `supabase/`.
