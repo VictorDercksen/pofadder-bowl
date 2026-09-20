@@ -160,6 +160,7 @@ export type Database = {
           id: string
           points: number
           proof_type: string
+          rated: boolean
           sequence: number
           title: string
         }
@@ -168,6 +169,7 @@ export type Database = {
           id?: string
           points: number
           proof_type: string
+          rated?: boolean
           sequence: number
           title: string
         }
@@ -176,6 +178,7 @@ export type Database = {
           id?: string
           points?: number
           proof_type?: string
+          rated?: boolean
           sequence?: number
           title?: string
         }
@@ -389,6 +392,7 @@ export type Database = {
           event_id: string
           id: string
           press_prompt_id: string | null
+          rating: number | null
           status: Database["public"]["Enums"]["submission_status"]
           submitted_at: string | null
           submitter_id: string
@@ -402,6 +406,7 @@ export type Database = {
           event_id: string
           id?: string
           press_prompt_id?: string | null
+          rating?: number | null
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string | null
           submitter_id: string
@@ -415,6 +420,7 @@ export type Database = {
           event_id?: string
           id?: string
           press_prompt_id?: string | null
+          rating?: number | null
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string | null
           submitter_id?: string
@@ -811,7 +817,7 @@ export type Database = {
       }
       predictions: {
         Row: {
-          complaint_count: number
+          complaint_count: number | null
           created_at: string
           event_id: string
           meal_rating: number
@@ -820,7 +826,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          complaint_count: number
+          complaint_count?: number | null
           created_at?: string
           event_id: string
           meal_rating: number
@@ -829,7 +835,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          complaint_count?: number
+          complaint_count?: number | null
           created_at?: string
           event_id?: string
           meal_rating?: number
@@ -1665,14 +1671,16 @@ export type Database = {
         }
       }
       upsert_prediction: {
-        Args: {
-          p_complaint_count: number
-          p_event: string
-          p_meal_rating: number
-          p_run_seconds: number
-        }
+        Args:
+          | { p_event: string; p_meal_rating: number; p_run_seconds: number }
+          | {
+              p_complaint_count: number
+              p_event: string
+              p_meal_rating: number
+              p_run_seconds: number
+            }
         Returns: {
-          complaint_count: number
+          complaint_count: number | null
           created_at: string
           event_id: string
           meal_rating: number

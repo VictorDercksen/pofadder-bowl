@@ -1,6 +1,7 @@
 import { TitleRow } from "@/components/ui/TitleRow";
 import { KitPanel } from "@/components/ui/KitPanel";
 import { MemberBadge } from "@/components/ui/Marks";
+import { RatingBadge, RatingSelector } from "@/components/ui/RatingSelector";
 import { PredictionSlip, RulesEditor } from "@/components/predictions/PredictionSlip";
 import { getLeagueContext } from "@/lib/league";
 import { DEFAULT_RULES } from "@/lib/predictions";
@@ -33,7 +34,7 @@ export default async function PredictionsPage() {
       <TitleRow kicker={`PREGAME VIEW · LOCKS ${formatDateTime(ctx.event.prediction_lock_at, tz).toUpperCase()}`} title="Call it before kickoff." blurb="Predictions lock at departure. The top slip wins 5 FAAB in Sleeper." tag={locked ? "LOCKED" : `LOCKS AT ${formatTime(ctx.event.prediction_lock_at, tz)}`} team={ctx.profile.kit_team} />
       <div className="pb-split">
         <KitPanel team={ctx.profile.kit_team} name="The prediction slip" kicker={`${ctx.profile.display_name.toUpperCase()} · #${String(ctx.profile.kit_number).padStart(2, "0")}`} tour="prediction-slip">
-          <PredictionSlip locked={locked} lockAt={ctx.event.prediction_lock_at} existing={mine ? { run_seconds: mine.run_seconds, meal_rating: mine.meal_rating, complaint_count: mine.complaint_count } : null} />
+          <PredictionSlip locked={locked} lockAt={ctx.event.prediction_lock_at} existing={mine ? { run_seconds: mine.run_seconds, meal_rating: mine.meal_rating } : null} />
           {revealed ? (
             <div style={{ marginTop: 18 }}>
               <h3>The league’s calls</h3>
@@ -42,8 +43,7 @@ export default async function PredictionsPage() {
                   <tr>
                     <th>Member</th>
                     <th>Run</th>
-                    <th>Meal</th>
-                    <th>Complaints</th>
+                    <th>Rib rating</th>
                     <th className="num">Points</th>
                   </tr>
                 </thead>
@@ -52,8 +52,7 @@ export default async function PredictionsPage() {
                     <tr key={p.user_id ?? ""}>
                       <td><MemberBadge code={p.kit_team} name={p.display_name ?? "member"} size={22} /></td>
                       <td>{secondsToClock(p.run_seconds ?? 0)}</td>
-                      <td>{p.meal_rating} / 10</td>
-                      <td>{p.complaint_count}</td>
+                      <td><RatingBadge value={p.meal_rating} /></td>
                       <td className="num">{totals.get(p.user_id ?? "") ?? 0}</td>
                     </tr>
                   ))}
@@ -77,15 +76,8 @@ export default async function PredictionsPage() {
           <div className="pb-challenge">
             <span className="pb-num">{r.meal_points}</span>
             <div>
-              <strong>Exact meal rating</strong>
-              <p>Victor’s on-camera verdict is final.</p>
-            </div>
-          </div>
-          <div className="pb-challenge">
-            <span className="pb-num">{r.complaints_points}</span>
-            <div>
-              <strong>Closest complaint count</strong>
-              <p>Commissioner counts distinct recorded complaints.</p>
+              <strong>Exact rib rating</strong>
+              <p>The score Victor gives the chicken and rib combo when he submits the proof. His verdict is final.</p>
             </div>
           </div>
           <div className="pb-next">
@@ -100,9 +92,8 @@ export default async function PredictionsPage() {
           {results?.resolved_at ? (
             <div style={{ marginTop: 16 }}>
               <h3>Official results</h3>
-              <p className="pb-small">
-                Run {results.run_seconds != null ? secondsToClock(results.run_seconds) : "—"} · meal {results.meal_rating ?? "—"} / 10 · {results.complaint_count ?? "—"} complaints
-              </p>
+              <p className="pb-small">Run {results.run_seconds != null ? secondsToClock(results.run_seconds) : "—"}</p>
+              <RatingSelector value={results.meal_rating} label="Official chicken and rib combo rating" readOnly size="small" caption="official" />
               {[...totals.entries()].sort((a, b) => b[1] - a[1]).map(([uid, pts], i) => (
                 <div className="pb-rank" key={uid}>
                   <b className="pb-ranking-num">{i + 1}</b>
@@ -112,7 +103,7 @@ export default async function PredictionsPage() {
               ))}
             </div>
           ) : null}
-          {ctx.isAdmin && !locked ? <RulesEditor rules={{ run_points: r.run_points, meal_points: r.meal_points, complaints_points: r.complaints_points }} /> : null}
+          {ctx.isAdmin && !locked ? <RulesEditor rules={{ run_points: r.run_points, meal_points: r.meal_points }} /> : null}
         </div>
       </div>
     </>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MemberBadge, Shield } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { IconLink } from "@/components/ui/IconButton";
+import { RatingSelector } from "@/components/ui/RatingSelector";
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { ReviewForm } from "@/components/review/ReviewForm";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
@@ -40,6 +41,7 @@ export default async function ReviewSubmissionPage(props: PageProps<"/review/[su
           <div className="pb-clip">
             <small>{challenge ? `PROOF #${String(challenge.sequence).padStart(2, "0")}` : "PRESS ROOM"} · VERSION {s.version}</small>
             <h2>{s.caption ? `“${s.caption}”` : "No caption supplied."}</h2>
+            {challenge?.rated ? <RatingSelector value={s.rating} label={`${challenge.title.split(",")[0]} rating`} readOnly tone="dark" caption="participant’s verdict" /> : null}
             <small>
               {s.files.length} FILE(S) · {s.submitted_at ? `SUBMITTED ${formatDateTime(s.submitted_at, tz).toUpperCase()}` : "NOT SUBMITTED"}
             </small>
@@ -69,7 +71,7 @@ export default async function ReviewSubmissionPage(props: PageProps<"/review/[su
             <Shield />
           </div>
           <p className="pb-small">
-            {challenge ? `Required proof: ${challenge.proof_type}.` : "A real clip must exist and answer the prompt."} Does the evidence match the challenge? Is the timestamp plausible? {isRun ? "Does the trace cover the full 10 km including the R358 leg? " : ""}Anything missing goes in the flag reason.
+            {challenge ? `Required proof: ${challenge.proof_type}.` : "A real clip must exist and answer the prompt."} Does the evidence match the challenge? Is the timestamp plausible? {isRun ? "Does the trace cover the full 10 km including the R358 leg? " : ""}{challenge?.rated ? "Is the score out of ten stated on camera and does it match the strip above? " : ""}Anything missing goes in the flag reason.
           </p>
           <h3 style={{ marginTop: 16 }}>Audit trail</h3>
           {(decisions ?? []).length === 0 ? <p className="pb-small">No decisions on this version yet.</p> : null}

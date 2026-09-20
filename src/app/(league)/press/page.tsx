@@ -22,7 +22,7 @@ export default async function PressPage() {
     const found = subs.find((s) => s.press_prompt_id === p.id) ?? null;
     // An unsubmitted draft is the participant's business: members and the member view only learn that it exists.
     const latest = found && found.status === "draft" && !ctx.isParticipant && !ctx.isCommissioner ? null : found;
-    return { ...p, open: now >= Date.parse(p.opens_at) && (!p.closes_at || now < Date.parse(p.closes_at)), latest: latest ? { id: latest.id, version: latest.version, status: latest.status, caption: latest.caption, files: latest.files } : null };
+    return { ...p, open: now >= Date.parse(p.opens_at) && (!p.closes_at || now < Date.parse(p.closes_at)), latest: latest ? { id: latest.id, version: latest.version, status: latest.status, caption: latest.caption, rating: latest.rating, files: latest.files } : null };
   });
   const midday = list.filter((p) => p.slot === "midday");
   const sunset = list.filter((p) => p.slot === "sunset");

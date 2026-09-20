@@ -17,7 +17,7 @@ export type DemoState = {
   review: "Pending review" | "Approved" | "Flagged · needs more proof";
   reaction: boolean;
   comments: string[];
-  prediction: { h: number; m: number; rating: string; complaints: number } | null;
+  prediction: { h: number; m: number; rating: number } | null;
   question: number;
   recorded: boolean;
   /** Prop sequence -> chosen side. */
@@ -40,7 +40,7 @@ export type DemoAction =
   | { type: "flag"; note: string }
   | { type: "react" }
   | { type: "comment"; text: string }
-  | { type: "predict"; h: number; m: number; rating: string; complaints: number }
+  | { type: "predict"; h: number; m: number; rating: number }
   | { type: "question" }
   | { type: "record" }
   | { type: "answer" }
@@ -110,7 +110,7 @@ function step(s: DemoState, a: DemoAction): DemoState {
       if (!a.text.trim()) return { ...s, tone: "warn", message: "Write a comment first." };
       return { ...s, comments: [a.text.trim(), ...s.comments], message: "Demo comment added to the local feed." };
     case "predict":
-      return { ...s, prediction: { h: a.h, m: a.m, rating: a.rating, complaints: a.complaints }, message: `Prediction saved for this preview: ${a.h} h ${a.m} m, meal ${a.rating}, ${a.complaints} complaints. Editable until kickoff.` };
+      return { ...s, prediction: { h: a.h, m: a.m, rating: a.rating }, message: `Prediction saved for this preview: ${a.h} h ${a.m} m, ribs ${a.rating} / 10. Editable until kickoff.` };
     case "question":
       return { ...s, question: (s.question + 1) % DEMO_QUESTIONS.length, recorded: false };
     case "record":

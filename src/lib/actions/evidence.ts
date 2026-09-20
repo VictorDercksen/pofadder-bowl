@@ -47,6 +47,22 @@ export async function updateCaption(input: { submissionId: string; caption: stri
   return { ok: true, message: "Caption saved." };
 }
 
+/**
+ * The out-of-ten score on a rated play (the chicken and rib combo). Only the owner's draft or
+ * flagged version takes it; submit_submission refuses a rated play without one.
+ */
+export async function updateRating(input: { submissionId: string; rating: number }): Promise<ActionResult> {
+  const parsed = z.object({ submissionId: z.uuid(), rating: z.number().int().min(1).max(10) }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Rate it 1 to 10." };
+  const ctx = await getLeagueContext();
+  if (!ctx.isParticipant) return { ok: false, message: "Only the participant can rate the play." };
+  const { error, count } = await ctx.supabase.from("evidence_submissions").update({ rating: parsed.data.rating }, { count: "exact" }).eq("id", parsed.data.submissionId).eq("submitter_id", ctx.user.id);
+  if (error) return { ok: false, message: "Could not save the rating." };
+  if (!count) return { ok: false, message: "This submission can no longer be edited. Create a new version instead." };
+  revalidateEvidence();
+  return { ok: true, message: "Rating saved." };
+}
+
 export type PreparedUpload =
   | { ok: true; mode: "signed"; path: string; token: string; fileId: string; kind: string; mime: string }
   | { ok: true; mode: "resumable"; path: string; fileId: string; kind: string; mime: string }
@@ -140,7 +156,11 @@ export async function submitDraft(input: { submissionId: string }): Promise<Acti
   if (!parsed.success) return { ok: false, message: "Invalid submission." };
   const ctx = await getLeagueContext();
   const { error } = await ctx.supabase.rpc("submit_submission", { p_submission: parsed.data.submissionId });
-  if (error) return { ok: false, message: error.message.includes("attach at least") ? "Attach at least one uploaded file before submitting." : error.message };
+  if (error) {
+    if (error.message.includes("attach at least")) return { ok: false, message: "Attach at least one uploaded file before submitting." };
+    if (error.message.includes("rate it")) return { ok: false, message: "Rate it out of ten before submitting." };
+    return { ok: false, message: error.message };
+  }
   revalidateEvidence();
   return { ok: true, message: "Proof submitted for commissioner review." };
 }

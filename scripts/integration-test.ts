@@ -234,9 +234,12 @@ async function main() {
   await test("member can save before lock, others hidden before reveal, locked after departure", async () => {
     const future = new Date(Date.now() + 3600_000).toISOString();
     await admin.from("events").update({ prediction_lock_at: future, prediction_reveal_at: future }).eq("id", event.id);
-    const { error } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 5400, p_meal_rating: 8, p_complaint_count: 12 });
+    const { error } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 5400, p_meal_rating: 8 });
     assert.ok(!error, error?.message);
-    const { error: e2 } = await commissioner.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 6000, p_meal_rating: 7, p_complaint_count: 20 });
+    const { error: e2 } = await commissioner.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 6000, p_meal_rating: 7 });
+    // The previous deploy still sends a complaint count; the shim overload must accept and ignore it.
+    const { error: e3 } = await commissioner.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 6000, p_meal_rating: 7, p_complaint_count: 20 });
+    assert.ok(!e3, e3?.message);
     assert.ok(!e2, e2?.message);
     const { data: hidden } = await participant.from("predictions_revealed").select("user_id").eq("event_id", event.id);
     assert.equal(hidden?.length ?? 0, 0, "others' predictions must be hidden before reveal");
@@ -244,14 +247,14 @@ async function main() {
     assert.equal(base?.length ?? 0, 0, "base table must not leak before reveal");
     const past = new Date(Date.now() - 60_000).toISOString();
     await admin.from("events").update({ prediction_lock_at: past }).eq("id", event.id);
-    const { error: locked } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1, p_complaint_count: 1 });
+    const { error: locked } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1 });
     assert.ok(locked && /locked/.test(locked.message));
-    const { error: outErr } = await outsider.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1, p_complaint_count: 1 });
+    const { error: outErr } = await outsider.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1 });
     assert.ok(outErr);
   });
   await test("resolution awards closest/exact with ties sharing", async () => {
     await admin.from("events").update({ prediction_reveal_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", event.id);
-    const { error: re } = await commissioner.from("official_results").upsert({ event_id: event.id, run_seconds: 5700, meal_rating: 8, complaint_count: 16 }, { onConflict: "event_id" });
+    const { error: re } = await commissioner.from("official_results").upsert({ event_id: event.id, run_seconds: 5700, meal_rating: 8 }, { onConflict: "event_id" });
     assert.ok(!re, re?.message);
     const { data: n, error } = await commissioner.rpc("resolve_predictions", { p_event: event.id });
     assert.ok(!error, error?.message);
@@ -259,8 +262,8 @@ async function main() {
     const run = awards!.filter((a) => a.category === "run");
     assert.equal(run.length, 2, "tie on run (both 300 s off) shares points");
     assert.equal(awards!.filter((a) => a.category === "meal").length, 1);
-    assert.equal(awards!.filter((a) => a.category === "complaints").length, 2, "tie on complaints (both 4 off)");
-    assert.equal(n, 5);
+    assert.equal(awards!.filter((a) => a.category === "complaints").length, 0, "the complaint count is no longer scored");
+    assert.equal(n, 3);
     const { data: revealed } = await participant.from("predictions_revealed").select("user_id").eq("event_id", event.id);
     assert.equal(revealed?.length, 2, "predictions visible after reveal");
     const { error: memberResolve } = await member.rpc("resolve_predictions", { p_event: event.id });

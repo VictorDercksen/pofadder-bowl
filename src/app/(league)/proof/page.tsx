@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MemberBadge } from "@/components/ui/Marks";
 import { IconLink } from "@/components/ui/IconButton";
+import { RatingBadge } from "@/components/ui/RatingSelector";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { KitPanel } from "@/components/ui/KitPanel";
 import { getEventScore, getLeagueContext } from "@/lib/league";
@@ -49,6 +50,7 @@ export default async function ProofPage() {
                     <strong>{c.title}</strong>
                     <p>
                       {c.proof_type} · {c.points} points · {leagueStatusLabel(s, c.points)}
+                      {c.rated && s ? <> · <RatingBadge value={s.rating} /></> : null}
                     </p>
                   </div>
                   {s ? (
@@ -130,6 +132,7 @@ export default async function ProofPage() {
                   <strong>{c.title}</strong>
                   <p>
                     {c.proof_type} · {c.points} points · {statusLabel(s, c.points)}
+                    {c.rated && s ? <> · <RatingBadge value={s.rating} /></> : null}
                   </p>
                 </div>
                 <Link className={s?.status === "approved" ? "pb-secondary" : "pb-primary"} href={`/proof/${c.id}`} style={{ marginLeft: "auto", flexShrink: 0 }}>

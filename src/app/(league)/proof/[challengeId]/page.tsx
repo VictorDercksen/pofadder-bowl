@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MemberBadge } from "@/components/ui/Marks";
 import { EmptyState, TitleRow } from "@/components/ui/TitleRow";
 import { IconLink } from "@/components/ui/IconButton";
+import { RatingBadge, RatingSelector } from "@/components/ui/RatingSelector";
 import { EvidenceUploader } from "@/components/proof/EvidenceUploader";
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
@@ -31,6 +32,8 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
   const seq = String(challenge.sequence).padStart(2, "0");
 
   const isRun = challenge.proof_type.toLowerCase().includes("export");
+  const rated = challenge.rated;
+  const ratingLabel = rated ? `${challenge.title.split(",")[0]} rating` : "Rating";
   const trace = current && isRun ? trackFileOf(current.files) : null;
 
   const nav = (
@@ -51,6 +54,7 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
             <strong>{s.status.toUpperCase()}</strong>
             <p>
               {s.files.length} file(s) · {s.submitted_at ? `submitted ${formatDateTime(s.submitted_at, tz)}` : `created ${formatDateTime(s.created_at, tz)}`}
+              {rated ? <> · <RatingBadge value={s.rating} /></> : null}
               {s.caption ? ` · “${s.caption}”` : ""}
             </p>
             {(decisions ?? []).filter((d) => d.submission_id === s.id).map((d) => (
@@ -79,6 +83,7 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
                 <div className="pb-clip">
                   <small>PROOF #{seq} · VERSION {current.version} · {statusHeading(current.status).toUpperCase()}</small>
                   <h2>{current.caption ? `“${current.caption}”` : "No caption supplied."}</h2>
+                  {rated ? <RatingSelector value={current.rating} label={ratingLabel} readOnly tone="dark" caption={`${who}’s verdict`} /> : null}
                   <small>
                     {current.files.length} FILE(S) · {current.submitted_at ? `SUBMITTED ${formatDateTime(current.submitted_at, tz).toUpperCase()}` : "NOT SUBMITTED"}
                   </small>
@@ -126,8 +131,10 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
               targetId={challenge.id}
               targetTitle={challenge.title}
               accept={accept}
-              current={current ? { id: current.id, version: current.version, status: current.status, caption: current.caption, files: current.files } : null}
-              captureHint={isRun ? "Upload the watch export (GPX or TCX, FIT as a backup) plus a screenshot. The GPX line is what the commissioner approves and what the league sees on the map." : undefined}
+              current={current ? { id: current.id, version: current.version, status: current.status, caption: current.caption, rating: current.rating, files: current.files } : null}
+              captureHint={isRun ? "Upload the watch export (GPX or TCX, FIT as a backup) plus a screenshot. The GPX line is what the commissioner approves and what the league sees on the map." : rated ? "Upload the rating clip, then give the score out of ten. The score goes on the record and settles the league’s rating predictions." : undefined}
+              rated={rated}
+              ratingLabel={ratingLabel}
             />
           )}
           {isRun && current ? (

@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
 import { useRouter } from "next/navigation";
 import { IconButton } from "@/components/ui/IconButton";
+import { RatingSelector } from "@/components/ui/RatingSelector";
 import { toast } from "@/lib/toast-store";
-import { createDraft, deleteDraftFile, submitDraft, updateCaption } from "@/lib/actions/evidence";
+import { createDraft, deleteDraftFile, submitDraft, updateCaption, updateRating } from "@/lib/actions/evidence";
 import { formatBytes, validateFile } from "@/lib/evidence-rules";
 import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
 import { useOnline } from "@/lib/hooks";
 import { newId } from "@/lib/ids";
 
 export type ExistingFile = { id: string; original_name: string | null; kind: string; byte_size: number };
-export type ExistingSubmission = { id: string; version: number; status: string; caption: string; files: ExistingFile[] } | null;
+export type ExistingSubmission = { id: string; version: number; status: string; caption: string; rating: number | null; files: ExistingFile[] } | null;
 
 type Props = {
   targetKind: "challenge" | "press";
@@ -22,6 +23,10 @@ type Props = {
   accept?: string;
   captureHint?: string;
   captionPlaceholder?: string;
+  /** The play wants a score out of ten with the proof (the chicken and rib combo). */
+  rated?: boolean;
+  /** Label for the rating strip, e.g. the dish being rated. */
+  ratingLabel?: string;
   /** Imperative handle so other components (press room recorder) can add a captured file. */
   ref?: Ref<EvidenceUploaderHandle>;
 };
@@ -35,12 +40,13 @@ type Row = { local: LocalDraftFile; progress: number; handle?: UploadHandle };
  * private storage with progress/retry/cancel, then submit for review.
  * Labels are explicit: draft (local) → uploaded (in storage) → submitted (in review).
  */
-export function EvidenceUploader({ targetKind, targetId, targetTitle, current, accept, captureHint, captionPlaceholder, ref }: Props) {
+export function EvidenceUploader({ targetKind, targetId, targetTitle, current, accept, captureHint, captionPlaceholder, rated = false, ratingLabel = "Rating out of ten", ref }: Props) {
   const router = useRouter();
   const draftKey = `${targetKind}:${targetId}`;
   const editable = !current || current.status === "draft" || current.status === "flagged";
   const [submissionId, setSubmissionId] = useState<string | undefined>(editable ? current?.id : undefined);
   const [caption, setCaption] = useState(editable ? (current?.caption ?? "") : "");
+  const [rating, setRating] = useState<number | null>(editable ? (current?.rating ?? null) : null);
   const [rows, setRows] = useState<Row[]>([]);
   const online = useOnline();
   const [pending, startTransition] = useTransition();
@@ -157,12 +163,24 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     persist(next, caption, submissionId);
   }
 
+  /** Writes the score to the server draft as soon as it is picked; before a draft exists it waits for the first save or submit. */
+  function pickRating(n: number) {
+    setRating(n);
+    if (!submissionId) return;
+    startTransition(async () => {
+      const res = await updateRating({ submissionId, rating: n });
+      if (!res.ok) toast(res.message, "error");
+    });
+  }
+
   function saveCaption() {
     startTransition(async () => {
       await persist(rows, caption, submissionId);
       if (submissionId) {
         const res = await updateCaption({ submissionId, caption });
-        toast(res.ok ? "Caption saved to the draft." : res.message, res.ok ? "ok" : "error");
+        const rated = rating != null && rating !== current?.rating ? await updateRating({ submissionId, rating }) : { ok: true as const };
+        const ok = res.ok && rated.ok;
+        toast(ok ? "Draft saved." : (!res.ok ? res.message : rated.ok ? "" : rated.message) || "Could not save the draft.", ok ? "ok" : "error");
       } else toast("Draft saved on this device.", "ok");
     });
   }
@@ -182,8 +200,19 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       toast("Attach and upload at least one file before submitting.", "warn");
       return;
     }
+    if (rated && rating == null) {
+      toast("Rate it out of ten before submitting.", "warn");
+      return;
+    }
     startTransition(async () => {
       if (caption !== (current?.caption ?? "")) await updateCaption({ submissionId, caption });
+      if (rated && rating != null && rating !== current?.rating) {
+        const saved = await updateRating({ submissionId, rating });
+        if (!saved.ok) {
+          toast(saved.message, "error");
+          return;
+        }
+      }
       const res = await submitDraft({ submissionId });
       toast(res.message ?? "", res.ok ? "ok" : "error");
       if (res.ok) {
@@ -278,6 +307,20 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
               ) : null}
             </div>
           ))}
+        </div>
+      ) : null}
+
+      {rated && editable ? (
+        <div className="pb-field" data-tour="proof-rating">
+          {ratingLabel}
+          <RatingSelector value={rating} label={ratingLabel} onChange={pickRating} caption="your call" />
+          <p className="pb-small" style={{ marginTop: 6 }}>Pick the score before you submit. It goes on the record with the clip and settles the league’s rating predictions.</p>
+        </div>
+      ) : null}
+      {rated && !editable && current ? (
+        <div className="pb-field" data-tour="proof-rating">
+          {ratingLabel}
+          <RatingSelector value={current.rating} label={ratingLabel} readOnly caption={`version ${current.version}`} />
         </div>
       ) : null}
 

@@ -6,23 +6,23 @@ import { toast } from "@/lib/toast-store";
 import { savePrediction, updatePredictionRules } from "@/lib/actions/predictions";
 import { validatePrediction, type PredictionRules } from "@/lib/predictions";
 import { Countdown } from "@/components/ui/Countdown";
+import { RatingSelector } from "@/components/ui/RatingSelector";
 
-export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; lockAt: string; existing: { run_seconds: number; meal_rating: number; complaint_count: number } | null }) {
+export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; lockAt: string; existing: { run_seconds: number; meal_rating: number } | null }) {
   const router = useRouter();
   const [hours, setHours] = useState(existing ? Math.floor(existing.run_seconds / 3600) : 1);
   const [minutes, setMinutes] = useState(existing ? Math.floor((existing.run_seconds % 3600) / 60) : 35);
-  const [meal, setMeal] = useState(existing?.meal_rating ?? 8);
-  const [complaints, setComplaints] = useState(existing?.complaint_count ?? 12);
+  const [meal, setMeal] = useState<number | null>(existing?.meal_rating ?? null);
   const [pending, startTransition] = useTransition();
 
   function save() {
-    const invalid = validatePrediction({ hours, minutes, mealRating: meal, complaints });
-    if (invalid) {
-      toast(invalid, "warn");
+    const invalid = validatePrediction({ hours, minutes, mealRating: meal });
+    if (invalid || meal == null) {
+      toast(invalid ?? "Pick a rib rating out of ten.", "warn");
       return;
     }
     startTransition(async () => {
-      const res = await savePrediction({ hours, minutes, mealRating: meal, complaints });
+      const res = await savePrediction({ hours, minutes, mealRating: meal });
       toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
@@ -38,20 +38,11 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
         </div>
       </label>
       <p className="pb-small" style={{ marginTop: 5 }}>Hours / minutes</p>
-      <label className="pb-field">
-        Chicken &amp; rib combo rating
-        <select value={meal} disabled={locked} onChange={(e) => setMeal(Number(e.target.value))}>
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-            <option key={n} value={n}>
-              {n} / 10
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="pb-field">
-        Recorded complaints
-        <input type="number" min={0} max={999} value={complaints} disabled={locked} onChange={(e) => setComplaints(Number(e.target.value))} />
-      </label>
+      <div className="pb-field">
+        Chicken and rib combo rating
+        <RatingSelector value={meal} label="Chicken and rib combo rating" onChange={setMeal} readOnly={locked} caption={locked ? "your call" : "exact match wins"} />
+        <p className="pb-small" style={{ marginTop: 6 }}>Victor scores the combo out of ten on camera when he submits the proof. Match it exactly to take the points.</p>
+      </div>
       <div className="pb-actions">
         <button className="pb-primary" type="button" onClick={save} disabled={locked || pending}>
           {locked ? "Locked at departure" : existing ? "Update predictions" : "Lock in my predictions"}
@@ -69,24 +60,19 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
   const router = useRouter();
   const [run, setRun] = useState(rules.run_points);
   const [meal, setMeal] = useState(rules.meal_points);
-  const [complaints, setComplaints] = useState(rules.complaints_points);
   const [pending, startTransition] = useTransition();
   return (
     <div style={{ marginTop: 16 }}>
       <h3>Admin: rules</h3>
       <p className="pb-small">Configurable until predictions lock.</p>
-      <div className="pb-inline-fields" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+      <div className="pb-inline-fields">
         <label className="pb-field">
           Run
           <input type="number" min={0} max={100} value={run} onChange={(e) => setRun(Number(e.target.value))} />
         </label>
         <label className="pb-field">
-          Meal
+          Rib rating
           <input type="number" min={0} max={100} value={meal} onChange={(e) => setMeal(Number(e.target.value))} />
-        </label>
-        <label className="pb-field">
-          Complaints
-          <input type="number" min={0} max={100} value={complaints} onChange={(e) => setComplaints(Number(e.target.value))} />
         </label>
       </div>
       <div className="pb-actions">
@@ -96,7 +82,7 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const res = await updatePredictionRules({ runPoints: run, mealPoints: meal, complaintsPoints: complaints });
+              const res = await updatePredictionRules({ runPoints: run, mealPoints: meal });
               toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })

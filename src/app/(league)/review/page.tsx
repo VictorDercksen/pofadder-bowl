@@ -29,6 +29,7 @@ export default async function ReviewPage() {
   const queue = subs.filter((s) => s.status === "submitted");
   const openProps = (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs());
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
+  const approvedRating = subs.find((s) => s.status === "approved" && s.rating != null)?.rating ?? null;
 
   return (
     <>
@@ -140,7 +141,7 @@ export default async function ReviewPage() {
             );
           })}
           <PenaltyList penalties={penalties ?? []} />
-          <ResultsForm results={results ?? null} timezone={tz} />
+          <ResultsForm results={results ?? null} timezone={tz} approvedRating={approvedRating} />
           <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} timezone={tz} />
         </div>
       </div>

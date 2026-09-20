@@ -47,18 +47,18 @@ insert into public.itinerary_items (event_id, quarter, sequence, starts_at, titl
 on conflict (event_id, quarter, sequence) do update set starts_at = excluded.starts_at, title = excluded.title, description = excluded.description, venue_text = excluded.venue_text;
 
 -- Ten proof challenges worth exactly 100 points.
-insert into public.challenges (event_id, sequence, title, proof_type, points) values
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Town welcome sign, in the dark, on arrival', 'photo', 5),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, '10 km run, full GPS trace including the R358 leg', 'watch export', 25),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Welcome sign again, in daylight, still in running kit', 'photo', 5),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Three locals asked what Pofadder is known for', '3 clips', 10),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Oldest building in town, with its year', 'photo', 5),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Chicken and rib combo, rated out of ten', 'clip', 5),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Final league standings read aloud in the Hotel bar', 'clip', 15),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'R50 spent in Pofadder on a public holiday', 'receipt', 10),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Sunset loser''s speech on the N14', 'clip', 10),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Boarding the 22:30 bus, ticket and face in frame', 'clip', 10)
-on conflict (event_id, sequence) do update set title = excluded.title, proof_type = excluded.proof_type, points = excluded.points;
+insert into public.challenges (event_id, sequence, title, proof_type, points, rated) values
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Town welcome sign, in the dark, on arrival', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, '10 km run, full GPS trace including the R358 leg', 'watch export', 25, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Welcome sign again, in daylight, still in running kit', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Three locals asked what Pofadder is known for', '3 clips', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Oldest building in town, with its year', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Chicken and rib combo, rated out of ten', 'clip', 5, true),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Final league standings read aloud in the Hotel bar', 'clip', 15, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'R50 spent in Pofadder on a public holiday', 'receipt', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Sunset loser''s speech on the N14', 'clip', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Boarding the 22:30 bus, ticket and face in frame', 'clip', 10, false)
+on conflict (event_id, sequence) do update set title = excluded.title, proof_type = excluded.proof_type, points = excluded.points, rated = excluded.rated;
 
 insert into public.penalties (event_id, sequence, text) values
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Missed the 22:30 bus: sentence doubled next season.'),
@@ -90,8 +90,8 @@ insert into public.props (event_id, sequence, title, detail, kind, line, unit, l
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'The 22:30 Intercape leaves within 15 minutes of schedule', 'Settled from the boarding clip and the departure check-in.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00')
 on conflict (event_id, sequence) do update set title = excluded.title, detail = excluded.detail, kind = excluded.kind, line = excluded.line, unit = excluded.unit, locks_at = excluded.locks_at;
 
-insert into public.prediction_rules (event_id, run_points, meal_points, complaints_points)
-values ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 5, 5)
+insert into public.prediction_rules (event_id, run_points, meal_points)
+values ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 5)
 on conflict (event_id) do nothing;
 
 -- Certificate starts pending. It is only issued by a commissioner decision.

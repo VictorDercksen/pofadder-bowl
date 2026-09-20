@@ -6,6 +6,7 @@ import { useState } from "react";
 import { JerseyCard } from "@/components/ui/JerseyCard";
 import { LeaguePatch, PbShield, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { RatingSelector } from "@/components/ui/RatingSelector";
 import { IconLink, IconTab } from "@/components/ui/IconButton";
 import { OriginStory } from "@/components/trip/OriginStory";
 import { formatLine, sideLabel, sidesFor, type PropKind } from "@/lib/props";
@@ -532,14 +533,17 @@ export function DemoPredictions() {
   const { state, dispatch } = useDemo();
   const [h, setH] = useState(1);
   const [m, setM] = useState(35);
-  const [rating, setRating] = useState("8 / 10");
-  const [complaints, setComplaints] = useState(12);
+  const [rating, setRating] = useState<number | null>(8);
   function predict() {
-    if (!Number.isInteger(h) || h < 0 || h > 8 || !Number.isInteger(m) || m < 0 || m > 59 || !Number.isInteger(complaints) || complaints < 0 || complaints > 999) {
-      dispatch({ type: "notify", text: "Use whole hours (0–8), minutes (0–59), and complaints (0–999)." });
+    if (!Number.isInteger(h) || h < 0 || h > 8 || !Number.isInteger(m) || m < 0 || m > 59) {
+      dispatch({ type: "notify", text: "Use whole hours (0–8) and minutes (0–59)." });
       return;
     }
-    dispatch({ type: "predict", h, m, rating, complaints });
+    if (rating == null) {
+      dispatch({ type: "notify", text: "Pick a rib rating out of ten." });
+      return;
+    }
+    dispatch({ type: "predict", h, m, rating });
   }
   return (
     <>
@@ -555,18 +559,11 @@ export function DemoPredictions() {
             </div>
           </label>
           <p className="pb-small" style={{ marginTop: 5 }}>Hours / minutes</p>
-          <label className="pb-field">
-            Chicken &amp; rib combo rating
-            <select value={rating} onChange={(e) => setRating(e.target.value)}>
-              {["6 / 10", "7 / 10", "8 / 10", "9 / 10", "10 / 10"].map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-          </label>
-          <label className="pb-field">
-            Recorded complaints
-            <input type="number" min={0} max={999} value={complaints} onChange={(e) => setComplaints(Number(e.target.value))} />
-          </label>
+          <div className="pb-field">
+            Chicken and rib combo rating
+            <RatingSelector value={rating} label="Chicken and rib combo rating" onChange={setRating} caption="exact match wins" />
+            <p className="pb-small" style={{ marginTop: 6 }}>Victor scores the combo out of ten on camera when he submits the proof. Match it exactly to take the points.</p>
+          </div>
           <div className="pb-actions">
             <button className="pb-primary" type="button" onClick={predict}>{state.prediction ? "Update predictions" : "Lock in my predictions"}</button>
           </div>
@@ -576,8 +573,7 @@ export function DemoPredictions() {
           <h3>How the points work</h3>
           {[
             ["10", "Closest run time", "Measured against the approved watch export."],
-            ["5", "Exact meal rating", "Victor’s on-camera verdict is final."],
-            ["5", "Closest complaint count", "Commissioner counts distinct recorded complaints."],
+            ["5", "Exact rib rating", "The score Victor gives the chicken and rib combo when he submits the proof. His verdict is final."],
           ].map(([n, h2, p]) => (
             <div className="pb-challenge" key={h2}>
               <span className="pb-num">{n}</span>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
+import { RatingSelector } from "@/components/ui/RatingSelector";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime } from "@/lib/time";
@@ -38,21 +39,20 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
   );
 }
 
-export function ResultsForm({ results, timezone }: { results: Tables<"official_results"> | null; timezone: string }) {
+export function ResultsForm({ results, timezone, approvedRating }: { results: Tables<"official_results"> | null; timezone: string; /** Score on the approved rated proof, offered as the default. */ approvedRating: number | null }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [h, setH] = useState(results?.run_seconds != null ? Math.floor(results.run_seconds / 3600) : 0);
   const [m, setM] = useState(results?.run_seconds != null ? Math.floor((results.run_seconds % 3600) / 60) : 0);
   const [s, setS] = useState(results?.run_seconds != null ? results.run_seconds % 60 : 0);
   const [km, setKm] = useState(results?.run_distance_km != null ? String(results.run_distance_km) : "");
-  const [meal, setMeal] = useState(results?.meal_rating != null ? String(results.meal_rating) : "");
-  const [complaints, setComplaints] = useState(results?.complaint_count != null ? String(results.complaint_count) : "");
+  const [meal, setMeal] = useState<number | null>(results?.meal_rating ?? approvedRating ?? null);
   const hasRun = h + m + s > 0;
 
   return (
     <div style={{ marginTop: 18 }}>
       <h3>Official results</h3>
-      <p className="pb-small">Approved run stats and on-camera verdicts. Predictions resolve against these.</p>
+      <p className="pb-small">Approved run stats and the on-camera verdict. Predictions resolve against these.</p>
       <label className="pb-field">
         Run finish time (h / m / s)
         <div className="pb-inline-fields" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
@@ -61,20 +61,23 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
           <input type="number" min={0} max={59} value={s} onChange={(e) => setS(Number(e.target.value))} aria-label="Run seconds" />
         </div>
       </label>
-      <div className="pb-inline-fields">
-        <label className="pb-field">
-          Run distance (km)
-          <input type="number" step="0.01" min={0} value={km} onChange={(e) => setKm(e.target.value)} placeholder="from the watch export" />
-        </label>
-        <label className="pb-field">
-          Meal rating (1–10)
-          <input type="number" min={1} max={10} value={meal} onChange={(e) => setMeal(e.target.value)} />
-        </label>
-      </div>
       <label className="pb-field">
-        Recorded complaints
-        <input type="number" min={0} max={999} value={complaints} onChange={(e) => setComplaints(e.target.value)} />
+        Run distance (km)
+        <input type="number" step="0.01" min={0} value={km} onChange={(e) => setKm(e.target.value)} placeholder="from the watch export" />
       </label>
+      <div className="pb-field">
+        Chicken and rib combo rating
+        <RatingSelector value={meal} label="Chicken and rib combo rating" onChange={setMeal} caption="official" />
+        <p className="pb-small" style={{ marginTop: 6 }}>
+          {approvedRating != null ? `Prefilled from the approved proof (${approvedRating} / 10). Change it only if the clip says otherwise.` : "Defaults to the score on the approved rating clip once it is in. Leave it unset and the rating category is not scored."}
+          {meal != null ? (
+            <>
+              {" "}
+              <button type="button" className="pb-linklike" onClick={() => setMeal(null)}>Clear</button>
+            </>
+          ) : null}
+        </p>
+      </div>
       <div className="pb-actions">
         <button
           className="pb-secondary"
@@ -85,8 +88,7 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
               const res = await saveOfficialResults({
                 runSeconds: hasRun ? h * 3600 + m * 60 + s : null,
                 runDistanceKm: km === "" ? null : Number(km),
-                mealRating: meal === "" ? null : Number(meal),
-                complaintCount: complaints === "" ? null : Number(complaints),
+                mealRating: meal,
               });
               toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
