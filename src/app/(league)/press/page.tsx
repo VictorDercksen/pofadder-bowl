@@ -32,7 +32,7 @@ export default async function PressPage() {
       <TitleRow kicker={`${ctx.isParticipant ? "VICTOR’S VIEW" : "LEAGUE VIEW"} · MEDIA DUTY`} title="Face the press." blurb="Questions from a league that has absolutely no intention of helping." tag={midday.some((p) => p.open) ? "PROMPTS OPEN" : "TIME-GATED"} team={participant?.kit_team ?? ctx.profile.kit_team} />
       <div className="pb-split">
         <div>
-          <div className="pb-press kit" style={kitVars(participant?.kit_team) as CSSProperties}>
+          <div className="pb-press kit" style={kitVars(participant?.kit_team) as CSSProperties} data-tour="press-room">
             <div className="pb-press-sponsors" aria-hidden="true">
               <TeamLogo code={participant?.kit_team} decorative size={38} />
               <Shield size={26} height={35} />

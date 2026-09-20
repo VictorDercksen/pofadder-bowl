@@ -1,17 +1,17 @@
 # Pofadder Bowl 2026 · Handoff (2026-09-20, settlements gazetteer and place labels)
 
-Follow-on to `handoff_2026-09-17_nav-perf-sleeper-ui.md`. Infrastructure detail still lives in `handoff_2026-09-17.md`.
+Follow-on to `handoff_2026-09-20_tour-colours-sideline-claims.md` (state of `main`). Infrastructure detail still lives in `handoff_2026-09-17.md`; the automatic migration path is in `handoff_2026-09-19_supabase-integration-trigger.md`.
 
 ## State at handoff
 
 | Item | Value |
 |---|---|
-| Branch | `claude/nav-perf-sleeper-ui-poq21b` (same branch as the previous handoff; not merged, no PR opened) |
-| Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
-| Schema | **Three new migrations**, in order: `20260920000900_settlements.sql` (table, functions, `checkins.place_label`, new `record_checkin`), `20260920001000_settlements_data.sql` (generated, 1.1 MB, 12 613 rows), `20260920001100_settlements_backfill.sql` (labels existing check-ins and their feed posts). Run `npm run db:push` from the laptop after merge. Until it is pushed the app still works: `place_label` is simply absent and the screens print coordinates |
+| Branch | `claude/nav-perf-sleeper-ui-poq21b`, merged with `origin/main` at `88bd652` (tour colours, road routes, prop board, password gate, claim locks) and pushed to `main` at Victor's request |
+| Production | https://pofadder-bowl.vercel.app deploys from `main`, so this is live once Vercel builds. The Supabase GitHub integration applies the three migrations on the push to `main`; confirm under Database → Migrations |
+| Schema | **Three new migrations**, in order: `20260920000900_settlements.sql` (table, functions, `checkins.place_label`, new `record_checkin`), `20260920001000_settlements_data.sql` (generated, 1.1 MB, 12 613 rows), `20260920001100_settlements_backfill.sql` (labels existing check-ins and their feed posts). The integration applies them on merge; fallback is `npm run db:push` from the laptop or the manual `Supabase migrations` workflow. Until they are applied the app still works: `place_label` is simply absent and the screens print coordinates |
 | Types | `src/lib/database.types.ts` hand-edited: `checkins.place_label`, the `settlements` table, `pb_place_label`, `pb_nearest_settlement`, `pb_distance_km`, `pb_bearing_deg`, `pb_compass`. `supabase gen types` needs Docker, which the sandbox lacks; regenerate from the local stack when convenient |
 | Env | Unchanged |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (13 files, 62 vitest, 4 new) pass; `npx next build` passes |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (17 files, 107 vitest, 4 new) pass on the merged tree; `npx next build` passes |
 
 ## What was asked
 
@@ -47,7 +47,11 @@ Show check-in positions as "10 km N of Malmesbury" instead of latitude/longitude
 - `npm run typecheck && npm run lint && npm test` green; `npx next build` green.
 - Not verified: the migrations on hosted Supabase (`db:push` of a 1.1 MB file; the SQL is plain inserts and should be fine), the integration test additions (`scripts/integration-test.ts` now asserts `In Pofadder`, the feed body, `10 km N of Malmesbury` via RPC and member read of `settlements`; needs the local stack), and the screens in a browser against a backend.
 
-## Suggested checks on production (after merge and `db:push`)
+## Merge with main
+
+Conflicts were in three files, resolved by keeping main's version plus the label: the game-centre map panel keeps `data-tour="live-map"` and the road-route copy in `CheckinMap` keeps its wording with the GeoNames attribution appended; the README keeps the prop-board RPC list with the `record_checkin` and `settlements` lines updated. None of main's five newer migrations (`password_gate`, `prop_board`, `generate_props`, `tutorial`, `claim_locks`) touch `checkins` or `record_checkin`; all fourteen migrations plus the seed were re-applied in order on the sandbox cluster and `record_checkin` still labelled a point as `18 km N of Garies`.
+
+## Suggested checks on production (after the migrations are applied)
 
 1. `select count(*) from public.settlements` → 12 613; `select public.pb_place_label(-33.3708, 18.72714)` → `10 km N of Malmesbury`.
 2. Existing check-ins show a place on `/map` and their feed cards no longer say "Position shared".
@@ -56,6 +60,7 @@ Show check-in positions as "10 km N of Malmesbury" instead of latitude/longitude
 
 ## Still open
 
-1. Regenerate `database.types.ts` from the local stack and confirm no diff beyond the hand edits.
-2. GeoNames population data for the Northern Cape is sparse, so tier 3 covers real towns; if a label ever names an obscure hamlet over a known town, raise that town to tier 1 in `parseSettlements` (a name allow-list) and rebuild.
-3. Carried forward: run `scripts/fetch-sleeper-bracket.ts` and commit the snapshot; custom SMTP; invite Theo as commissioner; self-review guard; `memberships.invited_email` visibility.
+1. If the integration does not apply the migrations (no "Supabase" status on the merge commit within a few minutes), run `npm run db:push` from the laptop. The data migration is 1.1 MB of plain inserts; the CLI handles it as one statement batch.
+2. Regenerate `database.types.ts` from the local stack and confirm no diff beyond the hand edits.
+3. GeoNames population data for the Northern Cape is sparse, so tier 3 covers real towns; if a label ever names an obscure hamlet over a known town, raise that town to tier 1 in `parseSettlements` (a name allow-list) and rebuild.
+4. Carried forward: run `scripts/fetch-sleeper-bracket.ts` and commit the snapshot; custom SMTP; invite Theo as commissioner; self-review guard; `memberships.invited_email` visibility.

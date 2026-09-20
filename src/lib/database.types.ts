@@ -106,191 +106,6 @@ export type Database = {
           },
         ]
       }
-      bingo_cards: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          layout: number[]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          layout: number[]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          layout?: number[]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bingo_cards_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_scores"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "bingo_cards_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bingo_incidents: {
-        Row: {
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          event_id: string
-          id: string
-          note: string | null
-          proposed_by: string | null
-          square_id: string
-          status: Database["public"]["Enums"]["incident_status"]
-        }
-        Insert: {
-          created_at?: string
-          decided_at?: string | null
-          decided_by?: string | null
-          event_id: string
-          id?: string
-          note?: string | null
-          proposed_by?: string | null
-          square_id: string
-          status?: Database["public"]["Enums"]["incident_status"]
-        }
-        Update: {
-          created_at?: string
-          decided_at?: string | null
-          decided_by?: string | null
-          event_id?: string
-          id?: string
-          note?: string | null
-          proposed_by?: string | null
-          square_id?: string
-          status?: Database["public"]["Enums"]["incident_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bingo_incidents_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_scores"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "bingo_incidents_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bingo_incidents_square_id_fkey"
-            columns: ["square_id"]
-            isOneToOne: false
-            referencedRelation: "bingo_squares"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bingo_squares: {
-        Row: {
-          event_id: string
-          id: string
-          is_free: boolean
-          position: number
-          text: string
-        }
-        Insert: {
-          event_id: string
-          id?: string
-          is_free?: boolean
-          position: number
-          text: string
-        }
-        Update: {
-          event_id?: string
-          id?: string
-          is_free?: boolean
-          position?: number
-          text?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bingo_squares_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_scores"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "bingo_squares_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bingo_wins: {
-        Row: {
-          achieved_at: string
-          event_id: string
-          id: string
-          incident_id: string | null
-          line_key: string
-          user_id: string
-        }
-        Insert: {
-          achieved_at?: string
-          event_id: string
-          id?: string
-          incident_id?: string | null
-          line_key: string
-          user_id: string
-        }
-        Update: {
-          achieved_at?: string
-          event_id?: string
-          id?: string
-          incident_id?: string | null
-          line_key?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bingo_wins_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_scores"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "bingo_wins_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bingo_wins_incident_id_fkey"
-            columns: ["incident_id"]
-            isOneToOne: false
-            referencedRelation: "bingo_incidents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       certificates: {
         Row: {
           event_id: string
@@ -1091,6 +906,8 @@ export type Database = {
           id: string
           kit_number: number
           kit_team: string | null
+          tutorial_completed_at: string | null
+          tutorial_version: number | null
           updated_at: string
         }
         Insert: {
@@ -1099,6 +916,8 @@ export type Database = {
           id: string
           kit_number?: number
           kit_team?: string | null
+          tutorial_completed_at?: string | null
+          tutorial_version?: number | null
           updated_at?: string
         }
         Update: {
@@ -1107,9 +926,123 @@ export type Database = {
           id?: string
           kit_number?: number
           kit_team?: string | null
+          tutorial_completed_at?: string | null
+          tutorial_version?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      prop_picks: {
+        Row: {
+          created_at: string
+          event_id: string
+          prop_id: string
+          side: Database["public"]["Enums"]["prop_side"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          prop_id: string
+          side: Database["public"]["Enums"]["prop_side"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          prop_id?: string
+          side?: Database["public"]["Enums"]["prop_side"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prop_picks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_scores"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "prop_picks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prop_picks_prop_id_fkey"
+            columns: ["prop_id"]
+            isOneToOne: false
+            referencedRelation: "props"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      props: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event_id: string
+          id: string
+          kind: Database["public"]["Enums"]["prop_kind"]
+          line: number | null
+          locks_at: string
+          result: Database["public"]["Enums"]["prop_result"] | null
+          sequence: number
+          settled_at: string | null
+          settled_by: string | null
+          title: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event_id: string
+          id?: string
+          kind?: Database["public"]["Enums"]["prop_kind"]
+          line?: number | null
+          locks_at: string
+          result?: Database["public"]["Enums"]["prop_result"] | null
+          sequence: number
+          settled_at?: string | null
+          settled_by?: string | null
+          title: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["prop_kind"]
+          line?: number | null
+          locks_at?: string
+          result?: Database["public"]["Enums"]["prop_result"] | null
+          sequence?: number
+          settled_at?: string | null
+          settled_by?: string | null
+          title?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "props_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_scores"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "props_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reactions: {
         Row: {
@@ -1341,24 +1274,6 @@ export type Database = {
     }
     Functions: {
       activate_membership: { Args: never; Returns: undefined }
-      bingo_leaderboard: {
-        Args: { p_event: string }
-        Returns: {
-          display_name: string
-          first_line_at: string
-          full_house_at: string
-          kit_team: string
-          lines: number
-          marked: number
-          user_id: string
-        }[]
-      }
-      bingo_lines: {
-        Args: { p_marked_cells: number[] }
-        Returns: {
-          line_key: string
-        }[]
-      }
       claim_kit: {
         Args: { p_number: number; p_team: string }
         Returns: {
@@ -1464,42 +1379,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      decide_bingo_incident: {
-        Args: { p_confirm: boolean; p_incident: string }
-        Returns: {
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          event_id: string
-          id: string
-          note: string | null
-          proposed_by: string | null
-          square_id: string
-          status: Database["public"]["Enums"]["incident_status"]
-        }
-        SetofOptions: {
-          from: "*"
-          to: "bingo_incidents"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      ensure_bingo_card: {
-        Args: { p_event: string }
-        Returns: {
-          created_at: string
-          event_id: string
-          id: string
-          layout: number[]
-          user_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "bingo_cards"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       league_context: {
         Args: { p_event_slug: string; p_league_slug: string }
         Returns: Json
@@ -1559,25 +1438,16 @@ export type Database = {
         Returns: string
       }
       pb_shares_league: { Args: { p_user: string }; Returns: boolean }
-      propose_bingo_incident: {
-        Args: { p_event: string; p_note?: string; p_square: string }
+      prop_leaderboard: {
+        Args: { p_event: string }
         Returns: {
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          event_id: string
-          id: string
-          note: string | null
-          proposed_by: string | null
-          square_id: string
-          status: Database["public"]["Enums"]["incident_status"]
-        }
-        SetofOptions: {
-          from: "*"
-          to: "bingo_incidents"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+          correct: number
+          display_name: string
+          kit_team: string
+          picks: number
+          user_id: string
+          wrong: number
+        }[]
       }
       public_certificate: {
         Args: { p_event_slug: string; p_league_slug: string }
@@ -1745,6 +1615,33 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      settle_prop: {
+        Args: {
+          p_prop: string
+          p_result: Database["public"]["Enums"]["prop_result"]
+        }
+        Returns: {
+          created_at: string
+          detail: string | null
+          event_id: string
+          id: string
+          kind: Database["public"]["Enums"]["prop_kind"]
+          line: number | null
+          locks_at: string
+          result: Database["public"]["Enums"]["prop_result"] | null
+          sequence: number
+          settled_at: string | null
+          settled_by: string | null
+          title: string
+          unit: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "props"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_submission: {
         Args: { p_submission: string }
         Returns: {
@@ -1790,11 +1687,31 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      upsert_prop_pick: {
+        Args: {
+          p_prop: string
+          p_side: Database["public"]["Enums"]["prop_side"]
+        }
+        Returns: {
+          created_at: string
+          event_id: string
+          prop_id: string
+          side: Database["public"]["Enums"]["prop_side"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "prop_picks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      upsert_props: { Args: { p_event: string; p_props: Json }; Returns: number }
     }
     Enums: {
       certificate_status: "pending" | "issued"
       evidence_kind: "photo" | "video" | "audio" | "document" | "gps"
-      incident_status: "proposed" | "confirmed" | "rejected"
       membership_role: "participant" | "member"
       membership_status: "invited" | "active" | "removed"
       post_kind:
@@ -1802,10 +1719,13 @@ export type Database = {
         | "comment"
         | "submission"
         | "decision"
-        | "bingo"
+        | "prop"
         | "prediction"
         | "system"
       press_slot: "midday" | "sunset"
+      prop_kind: "over_under" | "yes_no"
+      prop_result: "over" | "under" | "yes" | "no" | "void"
+      prop_side: "over" | "under" | "yes" | "no"
       review_decision_kind: "approved" | "flagged" | "superseded"
       submission_status:
         | "draft"
@@ -1945,7 +1865,6 @@ export const Constants = {
     Enums: {
       certificate_status: ["pending", "issued"],
       evidence_kind: ["photo", "video", "audio", "document", "gps"],
-      incident_status: ["proposed", "confirmed", "rejected"],
       membership_role: ["participant", "member"],
       membership_status: ["invited", "active", "removed"],
       post_kind: [
@@ -1953,11 +1872,14 @@ export const Constants = {
         "comment",
         "submission",
         "decision",
-        "bingo",
+        "prop",
         "prediction",
         "system",
       ],
       press_slot: ["midday", "sunset"],
+      prop_kind: ["over_under", "yes_no"],
+      prop_result: ["over", "under", "yes", "no", "void"],
+      prop_side: ["over", "under", "yes", "no"],
       review_decision_kind: ["approved", "flagged", "superseded"],
       submission_status: [
         "draft",

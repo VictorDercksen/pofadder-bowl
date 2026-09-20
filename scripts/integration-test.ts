@@ -1,6 +1,6 @@
 /**
  * Integration tests against the LOCAL Supabase stack: RLS isolation across four accounts,
- * scoring idempotency, prediction locking, bingo wins and the storage policies.
+ * scoring idempotency, prediction locking, prop picks and settlement, and the storage policies.
  *
  *   npx supabase start && npm run db:reset && npm run test:integration
  */
@@ -37,9 +37,7 @@ async function main() {
   const admin = createClient<Database>(env("NEXT_PUBLIC_SUPABASE_URL"), env("SUPABASE_SECRET_KEY"), { auth: { persistSession: false } });
   // Fresh state for repeatable runs.
   await admin.from("evidence_submissions").delete().eq("event_id", event.id);
-  await admin.from("bingo_incidents").delete().eq("event_id", event.id);
-  await admin.from("bingo_wins").delete().eq("event_id", event.id);
-  await admin.from("bingo_cards").delete().eq("event_id", event.id);
+  await admin.from("prop_picks").delete().eq("event_id", event.id);
   await admin.from("predictions").delete().eq("event_id", event.id);
   await admin.from("prediction_awards").delete().eq("event_id", event.id);
   await admin.from("checkins").delete().eq("event_id", event.id);
@@ -269,46 +267,67 @@ async function main() {
     assert.ok(memberResolve);
   });
 
-  console.log("\nPunishment Bingo");
-  await test("cards are stable per member with the free centre; layouts hidden from others", async () => {
-    const { data: a } = await member.rpc("ensure_bingo_card", { p_event: event.id });
-    const { data: b } = await member.rpc("ensure_bingo_card", { p_event: event.id });
-    assert.deepEqual(a?.layout, b?.layout);
-    assert.equal(a?.layout[12], 12, "cell 12 is the free square");
-    assert.equal(new Set(a?.layout).size, 25);
-    await participant.rpc("ensure_bingo_card", { p_event: event.id });
-    const { data: visible } = await member.from("bingo_cards").select("user_id").eq("event_id", event.id);
-    assert.equal(visible?.length, 1, "member sees only their own card");
-    const { error } = await outsider.rpc("ensure_bingo_card", { p_event: event.id });
-    assert.ok(error);
+  console.log("\nProp board");
+  await test("members pick a side until the prop locks; other picks stay hidden until then", async () => {
+    // Open the board for this run.
+    await admin.from("props").update({ locks_at: "2099-01-01T00:00:00Z", result: null, settled_by: null, settled_at: null }).eq("event_id", event.id);
+    const { data: props } = await member.from("props").select("*").eq("event_id", event.id).order("sequence");
+    assert.ok(props && props.length >= 2, "props seeded");
+    const ou = props!.find((p) => p.kind === "over_under")!;
+    const yn = props!.find((p) => p.kind === "yes_no")!;
+    const { error: direct } = await member.from("prop_picks").insert({ event_id: event.id, prop_id: ou.id, user_id: ids.member, side: "over" });
+    assert.ok(direct, "members cannot insert picks directly");
+    const { error: e1 } = await member.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "over" });
+    assert.ok(!e1, e1?.message);
+    const { error: e2 } = await member.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "under" });
+    assert.ok(!e2, "a pick can be changed before lock");
+    const { error: bad } = await member.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "yes" });
+    assert.ok(bad, "side must fit the prop kind");
+    const { error: e3 } = await participant.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "over" });
+    assert.ok(!e3, e3?.message);
+    const { error: e4 } = await member.rpc("upsert_prop_pick", { p_prop: yn.id, p_side: "yes" });
+    assert.ok(!e4, e4?.message);
+    const { error: out } = await outsider.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "over" });
+    assert.ok(out, "outsider cannot pick");
+    const { data: visible } = await member.from("prop_picks").select("user_id").eq("event_id", event.id).eq("prop_id", ou.id);
+    assert.equal(visible?.length, 1, "only own pick visible before lock");
+    const { error: early } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
+    assert.ok(early, "cannot settle before lock");
   });
-  await test("member proposes, commissioner confirms, wins detected once, no client marking", async () => {
-    const { data: card } = await member.rpc("ensure_bingo_card", { p_event: event.id });
-    const { data: squares } = await member.from("bingo_squares").select("*").eq("event_id", event.id);
-    // Force a row-0 line for the member: confirm the squares at cells 0..4 of their layout.
-    const rowPositions = card!.layout.slice(0, 5).filter((p) => p !== 12);
-    const { error: direct } = await member.from("bingo_incidents").insert({ event_id: event.id, square_id: squares![0].id, status: "confirmed" });
-    assert.ok(direct, "members cannot insert incidents directly");
-    for (const pos of rowPositions) {
-      const sq = squares!.find((s) => s.position === pos)!;
-      const { data: inc, error } = await member.rpc("propose_bingo_incident", { p_event: event.id, p_square: sq.id, p_note: "seen it" });
-      assert.ok(!error && inc, error?.message);
-      const { error: me } = await member.rpc("decide_bingo_incident", { p_incident: inc!.id, p_confirm: true });
-      assert.ok(me, "member cannot confirm");
-      const { error: ce } = await commissioner.rpc("decide_bingo_incident", { p_incident: inc!.id, p_confirm: true });
-      assert.ok(!ce, ce?.message);
-      await commissioner.rpc("decide_bingo_incident", { p_incident: inc!.id, p_confirm: true }); // idempotent replay
-    }
-    const { data: wins } = await member.from("bingo_wins").select("*").eq("event_id", event.id).eq("user_id", ids.member);
-    assert.equal(wins?.length, 1, `expected exactly one line win, got ${wins?.length}`);
-    assert.equal(wins?.[0].line_key, "row0");
-    const { data: lb } = await member.rpc("bingo_leaderboard", { p_event: event.id });
+  await test("commissioner settles locked props; leaderboard scores one point per correct call; void scores nothing", async () => {
+    await admin.from("props").update({ locks_at: "2026-09-23T17:15:00Z" }).eq("event_id", event.id);
+    const { data: props } = await member.from("props").select("*").eq("event_id", event.id).order("sequence");
+    const ou = props!.find((p) => p.kind === "over_under")!;
+    const yn = props!.find((p) => p.kind === "yes_no")!;
+    const { error: late } = await member.rpc("upsert_prop_pick", { p_prop: ou.id, p_side: "over" });
+    assert.ok(late, "no picks after lock");
+    const { data: visible } = await member.from("prop_picks").select("user_id").eq("event_id", event.id).eq("prop_id", ou.id);
+    assert.equal(visible?.length, 2, "all picks visible after lock");
+    const { error: me } = await member.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
+    assert.ok(me, "member cannot settle");
+    const { error: wrongKind } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "yes" });
+    assert.ok(wrongKind, "result must fit the prop kind");
+    const { error: s1 } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
+    assert.ok(!s1, s1?.message);
+    await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" }); // idempotent replay
+    const { error: s2 } = await commissioner.rpc("settle_prop", { p_prop: yn.id, p_result: "void" });
+    assert.ok(!s2, s2?.message);
+    const { data: lb } = await member.rpc("prop_leaderboard", { p_event: event.id });
     const mine = lb?.find((r) => r.user_id === ids.member);
-    assert.equal(mine?.lines, 1);
-    assert.ok(mine?.first_line_at);
-    const { data: dup } = await admin.from("bingo_wins").select("*").eq("event_id", event.id);
-    const keys = new Set(dup?.map((w) => `${w.user_id}:${w.line_key}`));
-    assert.equal(keys.size, dup?.length, "no duplicate wins");
+    const theirs = lb?.find((r) => r.user_id === ids.participant);
+    assert.equal(mine?.correct, 1);
+    assert.equal(mine?.wrong, 0, "void prop is not counted");
+    assert.equal(theirs?.correct, 0);
+    assert.equal(theirs?.wrong, 1);
+    assert.equal(lb?.[0].user_id, ids.member, "leader first");
+    const { data: posts } = await member.from("activity_posts").select("kind, body").eq("event_id", event.id).eq("kind", "prop");
+    assert.equal(posts?.length, 2, "one feed post per settlement");
+    // Re-settling corrects the result and re-scores.
+    const { error: s3 } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "over" });
+    assert.ok(!s3, s3?.message);
+    const { data: lb2 } = await member.rpc("prop_leaderboard", { p_event: event.id });
+    assert.equal(lb2?.find((r) => r.user_id === ids.participant)?.correct, 1);
+    assert.equal(lb2?.[0].user_id, ids.participant, "corrected leader first");
   });
 
   console.log("\nKits");
@@ -329,6 +348,39 @@ async function main() {
     const { error: out } = await outsider.rpc("claim_kit", { p_team: "buf", p_number: 1 });
     assert.ok(out, "non-member cannot claim a kit");
     await member.rpc("claim_kit", { p_team: "cin", p_number: 9 });
+  });
+
+  console.log("\nSleeper teams");
+  await test("a Sleeper team can be confirmed by only one member; direct column edits are blocked", async () => {
+    const managers = [
+      { league_id: league.id, sleeper_user_id: "900000000001", display_name: "Fixture One", username: "fixture_one", team_name: "Fixture FC", avatar: null, is_owner: false, season: "2024" },
+      { league_id: league.id, sleeper_user_id: "900000000002", display_name: "Fixture Two", username: "fixture_two", team_name: "Fixture United", avatar: null, is_owner: false, season: "2024" },
+    ];
+    const { error: seed } = await admin.from("sleeper_league_users").upsert(managers, { onConflict: "league_id,sleeper_user_id" });
+    assert.ok(!seed, seed?.message);
+    await admin.from("memberships").update({ sleeper_user_id: null, sleeper_confirmed: false }).eq("league_id", league.id).in("user_id", [ids.member, ids.commissioner]);
+    try {
+      const { error: e1 } = await member.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000001" });
+      assert.ok(!e1, e1?.message);
+      const { error: e2 } = await commissioner.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000001" });
+      assert.ok(e2 && /already taken/.test(e2.message), "second claim of the same Sleeper team must fail");
+      const { error: e3 } = await commissioner.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000002" });
+      assert.ok(!e3, e3?.message);
+      const { error: e4 } = await member.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000009" });
+      assert.ok(e4, "a manager outside the imported league must fail");
+      const { error: e5 } = await participant.rpc("confirm_sleeper_link", { p_league: league.id, p_user: ids.participant, p_confirmed: true, p_sleeper_user_id: "900000000002" });
+      assert.ok(e5 && /already taken/.test(e5.message), "an admin link to a taken team must fail too");
+      const { data: direct } = await member.from("memberships").update({ sleeper_user_id: "900000000002" }).eq("user_id", ids.member).select();
+      assert.equal(direct?.length ?? 0, 0, "sleeper_user_id must not be editable directly");
+      const { error: out } = await outsider.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000002" });
+      assert.ok(out, "non-member cannot confirm a Sleeper team");
+      const { data: mine } = await member.from("memberships").select("sleeper_user_id, sleeper_confirmed").eq("user_id", ids.member).single();
+      assert.equal(mine?.sleeper_user_id, "900000000001");
+      assert.equal(mine?.sleeper_confirmed, true);
+    } finally {
+      await admin.from("memberships").update({ sleeper_user_id: null, sleeper_confirmed: false }).eq("league_id", league.id).in("user_id", [ids.member, ids.commissioner]);
+      await admin.from("sleeper_league_users").delete().eq("league_id", league.id).in("sleeper_user_id", managers.map((m) => m.sleeper_user_id));
+    }
   });
 
   console.log("\nFeed");

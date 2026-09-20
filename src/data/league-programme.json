@@ -404,132 +404,17 @@
     "verificationRequired": true,
     "note": "Source contains apparent player/team/result mismatches, notably David Montgomery labelled HOU and Jason Sanders labelled NYJ. Preserve supplied data pending verification. Do not seed it as newly verified NFL data."
   },
-  "bingo": [
-    {
-      "index": 0,
-      "free": false,
-      "text": "Someone asks why you’re here"
-    },
-    {
-      "index": 1,
-      "free": false,
-      "text": "Group chat shows zero sympathy"
-    },
-    {
-      "index": 2,
-      "free": false,
-      "text": "Bus sleep counted as recovery"
-    },
-    {
-      "index": 3,
-      "free": false,
-      "text": "“Never drafting him again”"
-    },
-    {
-      "index": 4,
-      "free": false,
-      "text": "First town-sign selfie is blurry"
-    },
-    {
-      "index": 5,
-      "free": false,
-      "text": "Regret at kilometre 9"
-    },
-    {
-      "index": 6,
-      "free": false,
-      "text": "A local has never heard of Sleeper"
-    },
-    {
-      "index": 7,
-      "free": false,
-      "text": "Find a shop that’s actually open"
-    },
-    {
-      "index": 8,
-      "free": false,
-      "text": "“It’s a fantasy football thing”"
-    },
-    {
-      "index": 9,
-      "free": false,
-      "text": "Watch says 13.99 km"
-    },
-    {
-      "index": 10,
-      "free": false,
-      "text": "Take a photo of absolutely nothing"
-    },
-    {
-      "index": 11,
-      "free": false,
-      "text": "League requests a VAR review"
-    },
-    {
-      "index": 12,
-      "free": true,
-      "text": "Dignity left in Malmesbury"
-    },
-    {
-      "index": 13,
-      "free": false,
-      "text": "Chicken and ribs get a full scouting report"
-    },
-    {
-      "index": 14,
-      "free": false,
-      "text": "Someone asks if you lost a bet"
-    },
-    {
-      "index": 15,
-      "free": false,
-      "text": "Phone battery enters the red zone"
-    },
-    {
-      "index": 16,
-      "free": false,
-      "text": "“At least the weather’s nice”"
-    },
-    {
-      "index": 17,
-      "free": false,
-      "text": "The standings hurt more out loud"
-    },
-    {
-      "index": 18,
-      "free": false,
-      "text": "Run gets called “character building”"
-    },
-    {
-      "index": 19,
-      "free": false,
-      "text": "A stranger offers more sympathy than the league"
-    },
-    {
-      "index": 20,
-      "free": false,
-      "text": "Check the return ticket for the fifth time"
-    },
-    {
-      "index": 21,
-      "free": false,
-      "text": "Sunset speech needs a second take"
-    },
-    {
-      "index": 22,
-      "free": false,
-      "text": "Someone suggests doing this annually"
-    },
-    {
-      "index": 23,
-      "free": false,
-      "text": "22:30 bus feels like a playoff win"
-    },
-    {
-      "index": 24,
-      "free": false,
-      "text": "“Same time next year?” in the chat"
-    }
+  "props": [
+    {"sequence": 1, "title": "Watch distance on the approved run trace", "kind": "over_under", "line": "14.25", "unit": "km"},
+    {"sequence": 2, "title": "Minutes the Intercape arrives late at KLK Garage", "kind": "over_under", "line": "20", "unit": "min late"},
+    {"sequence": 3, "title": "Chicken and rib combo finished on camera", "kind": "yes_no", "line": null, "unit": null},
+    {"sequence": 4, "title": "Locals approached before three agree to be filmed", "kind": "over_under", "line": "4.5", "unit": "locals"},
+    {"sequence": 5, "title": "Proof challenges approved by the final whistle", "kind": "over_under", "line": "8.5", "unit": "approved"},
+    {"sequence": 6, "title": "Sideline feed comments before the sunset speech", "kind": "over_under", "line": "60.5", "unit": "comments"},
+    {"sequence": 7, "title": "Map check-ins over the whole trip", "kind": "over_under", "line": "15.5", "unit": "check-ins"},
+    {"sequence": 8, "title": "Length of the sunset loser’s speech", "kind": "over_under", "line": "90", "unit": "seconds"},
+    {"sequence": 9, "title": "Rand spent in Pofadder on receipts", "kind": "over_under", "line": "150", "unit": "rand"},
+    {"sequence": 10, "title": "The 22:30 Intercape leaves within 15 minutes of schedule", "kind": "yes_no", "line": null, "unit": null}
   ],
   "pressQuestions": [
     "Has ownership lost confidence in your drafting strategy?",
@@ -553,7 +438,7 @@
     "approvedAfterSampleReview": 45,
     "recapScore": 100,
     "runDistanceKm": 14.03,
-    "sampleBingoWinner": "Tee’z Nuts",
+    "samplePropWinner": "Tee’z Nuts",
     "samplePredictionWinner": "LaPorta Potty",
     "note": "Illustrative mockup values; never seed these as production results."
   }

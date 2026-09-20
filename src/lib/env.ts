@@ -59,3 +59,22 @@ export function serverSecretKey(): string {
 export function sleeperLeagueId(): string {
   return clean(process.env.SLEEPER_LEAGUE_ID);
 }
+
+/**
+ * Public OSRM demo router: no key, car profile, fine for a private league's handful of
+ * legs (each leg is cached server-side once routed). Override with a self-hosted OSRM
+ * or set MAP_ROUTING_URL=none to draw straight lines between check-ins.
+ */
+export const DEFAULT_MAP_ROUTING_URL = "https://router.project-osrm.org";
+
+/** Empty string means "no road routing" (straight lines). Server only. */
+export function resolveRoutingUrl(configured: string | undefined): string {
+  const value = clean(configured);
+  if (value.toLowerCase() === "none" || value.toLowerCase() === "static" || value.toLowerCase() === "off") return "";
+  return value || DEFAULT_MAP_ROUTING_URL;
+}
+
+export function mapRoutingUrl(): string {
+  if (typeof window !== "undefined") throw new Error("mapRoutingUrl() called in the browser");
+  return resolveRoutingUrl(process.env.MAP_ROUTING_URL);
+}

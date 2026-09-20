@@ -119,7 +119,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   }
 
   return (
-    <div className="pb-panel">
+    <div className="pb-panel" data-tour="location-sharing">
       <h3>Location controls</h3>
       <label className="pb-check-row">
         <input type="checkbox" checked={settings.sharing_enabled} onChange={(e) => save({ ...settings, sharing_enabled: e.target.checked })} />

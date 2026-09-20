@@ -6,7 +6,7 @@ import { LeaguePatch } from "@/components/ui/Marks";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Recap" };
 
-type Summary = { participant?: string; approved_points?: number; max_points?: number; approved_challenges?: number; total_challenges?: number; run_distance_km?: number | null; bingo_winners?: string | null; prediction_winners?: string | null; issued_at?: string; event_name?: string; league_name?: string };
+type Summary = { participant?: string; approved_points?: number; max_points?: number; approved_challenges?: number; total_challenges?: number; run_distance_km?: number | null; prop_winners?: string | null; prediction_winners?: string | null; issued_at?: string; event_name?: string; league_name?: string };
 
 /** Public recap: only rendered when the commissioner published AND the participant consented. No media. */
 export default async function PublicRecapPage(props: PageProps<"/recap/public/[league]/[event]">) {
@@ -49,7 +49,7 @@ export default async function PublicRecapPage(props: PageProps<"/recap/public/[l
             </div>
           </div>
           <p className="pb-small">
-            Bingo: {s.bingo_winners || "no confirmed line"} · Predictions: {s.prediction_winners || "no awards"}
+            Prop board: {s.prop_winners || "not settled"} · Predictions: {s.prediction_winners || "no awards"}
           </p>
           <div className="pb-signature">The Commissioner</div>
           <p className="pb-small">Published with the participant’s consent. Unofficial fantasy league; no NFL affiliation.</p>

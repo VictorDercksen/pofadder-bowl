@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapPin } from "./CheckinMap";
+import { useRoutedPath } from "./useRoutedPath";
 
 const ROUTE_COLOUR = "#cc542b";
 
@@ -20,8 +21,10 @@ function icon(kind: MapPin["kind"]) {
 
 /**
  * Leaflet map: one marker per pin plus a line through the check-in path (oldest to
- * newest). The viewport is fitted when the plotted set changes, not on every refresh,
- * so a member who has zoomed in is not yanked back by the 45 s poll.
+ * newest) that follows real roads (useRoutedPath; a leg stays straight until its road
+ * geometry arrives or when the router has none). The viewport is fitted when the
+ * plotted set changes and once more when its road geometry settles, not on every
+ * refresh, so a member who has zoomed in is not yanked back by the 45 s poll.
  */
 export function LiveMap({
   pins,
@@ -46,6 +49,7 @@ export function LiveMap({
   const layerRef = useRef<L.LayerGroup | null>(null);
   const fittedKey = useRef<string | null>(null);
   const renderedKey = useRef<string | null>(null);
+  const route = useRoutedPath(path);
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
@@ -70,28 +74,31 @@ export function LiveMap({
 
     // Server refreshes hand over fresh arrays every time; only redraw when what they describe changed.
     const key = [...path.map((p) => p.join(",")), ...pins.map((p) => `${p.id}:${p.latitude},${p.longitude}`), focus ? `${focus.latitude},${focus.longitude}` : ""].join("|");
-    const renderKey = `${key}#${pins.map((p) => `${p.kind}:${p.label}`).join("|")}`;
+    const renderKey = `${key}#${route.routeKey}#${pins.map((p) => `${p.kind}:${p.label}`).join("|")}`;
     if (renderedKey.current !== renderKey) {
       renderedKey.current = renderKey;
       layer.clearLayers();
-      if (path.length > 1) {
+      if (route.line.length > 1) {
         // Soft casing under the route so it stays readable over roads, then the route itself.
-        L.polyline(path, { color: "#fffcf5", weight: 7, opacity: 0.9, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
-        L.polyline(path, { color: ROUTE_COLOUR, weight: 3.5, opacity: 0.95, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
+        L.polyline(route.line, { color: "#fffcf5", weight: 7, opacity: 0.9, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
+        L.polyline(route.line, { color: ROUTE_COLOUR, weight: 3.5, opacity: 0.95, lineJoin: "round", lineCap: "round", interactive: false }).addTo(layer);
       }
       for (const pin of pins) {
         L.marker([pin.latitude, pin.longitude], { icon: icon(pin.kind), title: pin.label, keyboard: true, zIndexOffset: pin.kind === "current" ? 1000 : 0 }).bindPopup(pin.label).addTo(layer);
       }
     }
 
-    if (fittedKey.current === key) return;
-    fittedKey.current = key;
-    const checkinPoints: [number, number][] = [...path, ...pins.filter((p) => p.kind !== "place").map((p) => [p.latitude, p.longitude] as [number, number])];
+    // Fit once per plotted set, and once more when its road geometry has settled (a road
+    // route can bulge well outside the box around the check-ins themselves).
+    const fitKey = `${key}#${route.settled ? "routed" : "straight"}`;
+    if (fittedKey.current === fitKey) return;
+    fittedKey.current = fitKey;
+    const checkinPoints: [number, number][] = [...(route.settled && route.line.length > 1 ? route.line : path), ...pins.filter((p) => p.kind !== "place").map((p) => [p.latitude, p.longitude] as [number, number])];
     if (checkinPoints.length > 1) map.fitBounds(L.latLngBounds(checkinPoints), { padding: [28, 28], maxZoom: 14, animate: false });
     else if (focus) map.setView([focus.latitude, focus.longitude], 13, { animate: false });
     else if (pins.length > 1) map.fitBounds(L.latLngBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number])), { padding: [24, 24], animate: false });
     else if (pins.length === 1) map.setView([pins[0].latitude, pins[0].longitude], 12, { animate: false });
-  }, [pins, path, focus]);
+  }, [pins, path, focus, route]);
 
   return <div className="pb-live-map" ref={ref} role="region" aria-label="Check-in map" />;
 }

@@ -33,7 +33,7 @@ export default async function MyTripPage() {
     <>
       <TitleRow kicker="VICTOR’S VIEW · MOBILE FIRST" title="Your next play." blurb="Check in. Get the proof. Survive the group chat." tag={ctx.isParticipant ? "PARTICIPANT" : "COMMISSIONER PREVIEW"} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-phone">
+        <div className="pb-phone" data-tour="trip-phone">
           <div className="pb-phone-top">
             <b>{formatTime(now, tz)}</b>
             <span>{formatDay(now, tz)} · SAST</span>
@@ -95,7 +95,7 @@ export default async function MyTripPage() {
           <div className="pb-phone-tabs">
             <Link href="/my-trip" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>My trip</Link>
             <Link href="/proof" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Proof</Link>
-            <Link href="/bingo" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Bingo</Link>
+            <Link href="/props" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Props</Link>
             <Link href="/game-centre" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Main feed</Link>
           </div>
         </div>
