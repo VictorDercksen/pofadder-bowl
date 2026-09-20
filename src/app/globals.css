@@ -584,3 +584,8 @@ a{color:inherit}
 .pb .pb-tour-test-option small{font-size:11px;color:var(--pb-muted);line-height:1.35}
 @media(max-width:580px){.pb .pb-tour-test{grid-template-columns:1fr}.pb .pb-tour-card h3{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.pb .pb-tour-spot,.pb .pb-tour-card,.pb .pb-tour-progress i{transition:none}}
+
+/* --- Tour preview card on the sideline (the viewer's own kit, never posted) ------------ */
+.pb .pb-sideline-preview{margin-bottom:22px;padding-bottom:18px;border-bottom:1px dashed var(--pb-line)}
+.pb .pb-sideline-preview .pb-kicker{margin-bottom:10px}
+.pb .pb-sideline-preview .pb-reaction[disabled]{cursor:default;opacity:.7}

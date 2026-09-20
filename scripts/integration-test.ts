@@ -343,6 +343,39 @@ async function main() {
     await member.rpc("claim_kit", { p_team: "cin", p_number: 9 });
   });
 
+  console.log("\nSleeper teams");
+  await test("a Sleeper team can be confirmed by only one member; direct column edits are blocked", async () => {
+    const managers = [
+      { league_id: league.id, sleeper_user_id: "900000000001", display_name: "Fixture One", username: "fixture_one", team_name: "Fixture FC", avatar: null, is_owner: false, season: "2024" },
+      { league_id: league.id, sleeper_user_id: "900000000002", display_name: "Fixture Two", username: "fixture_two", team_name: "Fixture United", avatar: null, is_owner: false, season: "2024" },
+    ];
+    const { error: seed } = await admin.from("sleeper_league_users").upsert(managers, { onConflict: "league_id,sleeper_user_id" });
+    assert.ok(!seed, seed?.message);
+    await admin.from("memberships").update({ sleeper_user_id: null, sleeper_confirmed: false }).eq("league_id", league.id).in("user_id", [ids.member, ids.commissioner]);
+    try {
+      const { error: e1 } = await member.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000001" });
+      assert.ok(!e1, e1?.message);
+      const { error: e2 } = await commissioner.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000001" });
+      assert.ok(e2 && /already taken/.test(e2.message), "second claim of the same Sleeper team must fail");
+      const { error: e3 } = await commissioner.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000002" });
+      assert.ok(!e3, e3?.message);
+      const { error: e4 } = await member.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000009" });
+      assert.ok(e4, "a manager outside the imported league must fail");
+      const { error: e5 } = await participant.rpc("confirm_sleeper_link", { p_league: league.id, p_user: ids.participant, p_confirmed: true, p_sleeper_user_id: "900000000002" });
+      assert.ok(e5 && /already taken/.test(e5.message), "an admin link to a taken team must fail too");
+      const { data: direct } = await member.from("memberships").update({ sleeper_user_id: "900000000002" }).eq("user_id", ids.member).select();
+      assert.equal(direct?.length ?? 0, 0, "sleeper_user_id must not be editable directly");
+      const { error: out } = await outsider.rpc("claim_sleeper_identity", { p_league: league.id, p_sleeper_user_id: "900000000002" });
+      assert.ok(out, "non-member cannot confirm a Sleeper team");
+      const { data: mine } = await member.from("memberships").select("sleeper_user_id, sleeper_confirmed").eq("user_id", ids.member).single();
+      assert.equal(mine?.sleeper_user_id, "900000000001");
+      assert.equal(mine?.sleeper_confirmed, true);
+    } finally {
+      await admin.from("memberships").update({ sleeper_user_id: null, sleeper_confirmed: false }).eq("league_id", league.id).in("user_id", [ids.member, ids.commissioner]);
+      await admin.from("sleeper_league_users").delete().eq("league_id", league.id).in("sleeper_user_id", managers.map((m) => m.sleeper_user_id));
+    }
+  });
+
   console.log("\nFeed");
   await test("comments and one reaction per member; outsider excluded", async () => {
     const { data: post, error } = await member.from("activity_posts").insert({ event_id: event.id, author_id: ids.member, kind: "comment", heading: "From the locker room", body: "<b>no sympathy</b>" }).select().single();

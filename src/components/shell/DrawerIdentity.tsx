@@ -44,10 +44,12 @@ export function DrawerIdentity({ name, kitTeam, kitNumber, roleLabel, sleeper, h
   );
   const label = `${name}, account, kit and Sleeper team`;
   return href ? (
-    <Link href={href} className="pb-drawer-identity" aria-label={label}>
+    <Link href={href} className="pb-drawer-identity" aria-label={label} data-tour="drawer-identity">
       {body}
     </Link>
   ) : (
-    <div className="pb-drawer-identity">{body}</div>
+    <div className="pb-drawer-identity" data-tour="drawer-identity">
+      {body}
+    </div>
   );
 }

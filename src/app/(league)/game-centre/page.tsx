@@ -96,7 +96,7 @@ export default async function GameCentrePage() {
           </div>
         </section>
       ) : (
-        <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} eventId={ctx.event.id} timezone={tz} />
+        <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} eventId={ctx.event.id} timezone={tz} viewer={{ name: ctx.profile.display_name, team: ctx.profile.kit_team, number: ctx.profile.kit_number }} />
       )}
     </>
   );

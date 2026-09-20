@@ -9,7 +9,12 @@ import { loadOlderPosts, postComment, toggleReaction } from "@/lib/actions/feed"
 import { FEED_PAGE_SIZE, appendFeedPosts, feedCursor, mergeFeedPosts } from "@/lib/feed-page";
 import { formatTime } from "@/lib/time";
 import { useOnline } from "@/lib/hooks";
+import { currentStepId } from "@/lib/tour";
+import { useTourRun } from "@/lib/tour-store";
 import type { FeedPost } from "@/lib/feed";
+
+/** The signed-in member's own kit, for the tour's preview card. */
+export type FeedViewer = { name: string; team: string | null; number: number };
 
 const KIND_LABEL: Record<string, string> = {
   checkin: "Check-in",
@@ -26,9 +31,15 @@ const KIND_LABEL: Record<string, string> = {
  * loads five more at a time through a server action. Live updates arrive through an
  * authorised Realtime subscription with a bounded polling fallback and are merged over
  * whatever is already on screen, so loaded history is never lost to a refresh.
+ *
+ * While the first-run tour is on its sideline step, a preview card in the viewer's own kit
+ * sits at the top of the feed so the member sees their jersey before they post. It lives
+ * only on this screen and is never written to the database.
  */
-export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, timezone, canComment = true }: { initialPosts: FeedPost[]; initialHasMore?: boolean; eventId: string; timezone: string; canComment?: boolean }) {
+export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, timezone, canComment = true, viewer }: { initialPosts: FeedPost[]; initialHasMore?: boolean; eventId: string; timezone: string; canComment?: boolean; viewer?: FeedViewer }) {
   const router = useRouter();
+  const tourRun = useTourRun();
+  const preview = viewer && currentStepId(tourRun) === "sideline" ? viewer : null;
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialHasMore);
   // Once "Earlier plays" has been used, the action result owns hasMore; until then the server's first page does.
@@ -139,6 +150,27 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
           {online ? "Live · updates as they land." : "Offline · showing the last loaded feed."}
         </p>
       </div>
+      {preview ? (
+        <div className="pb-sideline-preview" data-tour="sideline-preview">
+          <div className="pb-kicker">YOUR CARD · PREVIEW ONLY · NOT POSTED</div>
+          <div className="pb-jersey-feed">
+            <JerseyCard
+              team={preview.team}
+              displayName={preview.name}
+              number={preview.number}
+              message="This is how your take lands on the sideline: your franchise, your name, your number. Show absolutely no sympathy."
+              time="Not posted"
+              kind="Preview"
+              captain={false}
+              reaction={
+                <button className="pb-reaction" type="button" disabled aria-label="Preview reaction, disabled">
+                  😂 0 · No sympathy
+                </button>
+              }
+            />
+          </div>
+        </div>
+      ) : null}
       {posts.length === 0 ? (
         <EmptyState title="Nobody has said anything yet.">The first check-in, proof or comment will appear here as a jersey card.</EmptyState>
       ) : (

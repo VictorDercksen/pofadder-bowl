@@ -17,9 +17,11 @@ export type TourStep = {
   href: string | null;
   /** `data-tour` anchors to spotlight; the first visible one wins. Empty means a centred card. */
   targets: string[];
+  /** Open the phone navigation drawer for this step (the drawer holds the name, kit and Sleeper block and the programme). Desktop shows the same things in the header and sidebar, so it is left alone there. */
+  menu?: boolean;
 };
 
-const step = (id: string, kicker: string, title: string, body: string, href: string | null = null, targets: string[] = []): TourStep => ({ id, kicker, title, body, href, targets });
+const step = (id: string, kicker: string, title: string, body: string, href: string | null = null, targets: string[] = [], menu = false): TourStep => ({ id, kicker, title, body, href, targets, ...(menu ? { menu } : {}) });
 
 const welcome = (role: Role, participant: boolean): TourStep[] => [
   step(
@@ -30,8 +32,8 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
       ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 14 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
       : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 14 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
   ),
-  step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your franchise badge and your confirmed Sleeper team ride up here, next to your role. Tap them to open League access. On a phone they sit at the top of the Menu.", null, ["header-account", "menu"]),
-  step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown on the left lists the screens your role can open, in broadcast order. On a phone, Menu opens the same list. The number turns into a tumbling football while a screen loads.", null, ["nav", "menu"]),
+  step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a phone it sits at the top of the Menu, which is open for you now.", null, ["drawer-identity", "header-account", "menu"], true),
+  step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown lists the screens your role can open, in broadcast order. On a desktop it sits on the left; on a phone, Menu opens it. The number turns into a tumbling football while a screen loads.", null, ["drawer-nav", "nav", "menu"], true),
 ];
 
 const participantBlock: TourStep[] = [
@@ -56,7 +58,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("game-centre", "SCREEN 01", "Game centre. The broadcast.", "The scoreboard shows approved points only, the quarter we are in and who is up against the consequences. Points appear the moment the commissioner approves proof.", "/game-centre", ["scoreboard"]),
   step("live", "LAST KNOWN POSITION", "The latest check-in.", "Time, age and accuracy of the last shared position. Stale means older than 30 minutes. It is a check-in, not live tracking; open the map for the whole route.", "/game-centre", ["live-map"]),
   step("next-drive", "NEXT DRIVE", "What is up next, and the bus.", "The next item on the itinerary with its points, plus the countdown to the return bus from KLK Garage. There is no second bus.", "/game-centre", ["next-drive"]),
-  step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline"]),
+  step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. The card in the spotlight is yours: your franchise, your name, your number. It is a preview, nothing is posted. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline-preview", "sideline"]),
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
   step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 14 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
@@ -87,6 +89,13 @@ export function tourStepsFor(role: Role, isParticipant: boolean = role === "part
   if (participant) steps.push(...participantBlock);
   steps.push(...leagueBlock(participant));
   return steps;
+}
+
+/** Id of the step a run is on (clamped to the last step), or null without a run. Lets screens react to a step, like the sideline's preview card. */
+export function currentStepId(run: { role: Role; participant: boolean; step: number } | null): string | null {
+  if (!run) return null;
+  const steps = tourStepsFor(run.role, run.participant);
+  return steps[Math.min(Math.max(0, run.step), steps.length - 1)]?.id ?? null;
 }
 
 export type Rect = { top: number; left: number; width: number; height: number };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { navFor } from "@/components/shell/nav";
-import { placeCard, tourStepsFor } from "./tour";
+import { currentStepId, placeCard, tourStepsFor } from "./tour";
 
 const roles = ["member", "participant", "commissioner", "admin"] as const;
 
@@ -46,6 +46,42 @@ describe("tourStepsFor", () => {
       const steps = tourStepsFor(role);
       expect(steps[steps.length - 2].href).toBe("/account");
     }
+  });
+
+  it("opens the phone menu for the colours and programme steps and spotlights the drawer first", () => {
+    for (const role of roles) {
+      const byId = new Map(tourStepsFor(role).map((s) => [s.id, s]));
+      const header = byId.get("header")!;
+      expect(header.menu).toBe(true);
+      expect(header.targets[0]).toBe("drawer-identity");
+      expect(header.targets).toContain("header-account");
+      const nav = byId.get("nav")!;
+      expect(nav.menu).toBe(true);
+      expect(nav.targets[0]).toBe("drawer-nav");
+      expect(nav.targets).toContain("nav");
+      // Nothing else touches the drawer, so it closes as soon as the tour moves on.
+      for (const s of byId.values()) if (s.id !== "header" && s.id !== "nav") expect(s.menu, s.id).toBeUndefined();
+    }
+  });
+
+  it("spotlights the viewer's preview card on the sideline step for every role", () => {
+    for (const role of roles) {
+      const sideline = tourStepsFor(role).find((s) => s.id === "sideline")!;
+      expect(sideline.href).toBe("/game-centre");
+      expect(sideline.targets).toEqual(["sideline-preview", "sideline"]);
+      expect(sideline.body).toMatch(/preview/i);
+    }
+  });
+});
+
+describe("currentStepId", () => {
+  it("names the step a run is on and clamps out-of-range steps", () => {
+    expect(currentStepId(null)).toBeNull();
+    expect(currentStepId({ role: "member", participant: false, step: 0 })).toBe("welcome");
+    const sidelineIndex = tourStepsFor("member").findIndex((s) => s.id === "sideline");
+    expect(currentStepId({ role: "member", participant: false, step: sidelineIndex })).toBe("sideline");
+    expect(currentStepId({ role: "member", participant: false, step: 999 })).toBe("done");
+    expect(currentStepId({ role: "member", participant: false, step: -3 })).toBe("welcome");
   });
 });
 

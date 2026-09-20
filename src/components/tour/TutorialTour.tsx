@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Football } from "@/components/ui/Football";
 import { completeTutorial } from "@/lib/actions/tutorial";
+import { setDrawerOpen } from "@/lib/drawer-events";
 import type { Role } from "@/lib/roles";
 import { placeCard, TOUR_VERSION, tourStepsFor, type Rect } from "@/lib/tour";
 import { endTour, getTourRun, goToStep, markSeen, startTour, useTourRun, wasSeen, type TourRun } from "@/lib/tour-store";
@@ -71,6 +72,16 @@ function TourOverlay({ run }: { run: TourRun }) {
     pushedFor.current = step.id;
     router.push(step.href);
   }, [step.href, step.id, pathname, router]);
+
+  // Steps that talk about the Menu open the phone drawer so its identity block and programme
+  // can be spotlighted; every other step closes it again. On a desktop the Menu button is
+  // hidden and the same things sit in the header and sidebar, so the drawer stays shut.
+  useEffect(() => {
+    if (!onPage) return;
+    const phone = findTarget(["menu"]) !== null;
+    setDrawerOpen(Boolean(step.menu) && phone);
+  }, [step, onPage]);
+  useEffect(() => () => setDrawerOpen(false), []);
 
   // Find and measure the target, retrying while the screen streams in; follow scroll and resize.
   useEffect(() => {
