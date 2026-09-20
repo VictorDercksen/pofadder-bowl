@@ -534,6 +534,13 @@ export function DemoPredictions() {
   const [h, setH] = useState(1);
   const [m, setM] = useState(35);
   const [rating, setRating] = useState<number | null>(8);
+  const [finalScore, setFinalScore] = useState(75);
+  const [flags, setFlags] = useState(1);
+  const [signH, setSignH] = useState(9);
+  const [signM, setSignM] = useState(30);
+  const [distance, setDistance] = useState("10.25");
+  const [speechM, setSpeechM] = useState(1);
+  const [speechS, setSpeechS] = useState(30);
   function predict() {
     if (!Number.isInteger(h) || h < 0 || h > 8 || !Number.isInteger(m) || m < 0 || m > 59) {
       dispatch({ type: "notify", text: "Use whole hours (0–8) and minutes (0–59)." });
@@ -543,7 +550,11 @@ export function DemoPredictions() {
       dispatch({ type: "notify", text: "Pick a rib rating out of ten." });
       return;
     }
-    dispatch({ type: "predict", h, m, rating });
+    if (!Number.isInteger(finalScore) || finalScore < 0 || finalScore > 100 || !Number.isInteger(flags) || flags < 0 || flags > 99) {
+      dispatch({ type: "notify", text: "Final score 0–100 and a whole number of flags." });
+      return;
+    }
+    dispatch({ type: "predict", h, m, rating, finalScore, flags });
   }
   return (
     <>
@@ -564,6 +575,36 @@ export function DemoPredictions() {
             <RatingSelector value={rating} label="Chicken and rib combo rating" onChange={setRating} caption="exact match wins" />
             <p className="pb-small" style={{ marginTop: 6 }}>Victor scores the combo out of ten on camera when he submits the proof. Match it exactly to take the points.</p>
           </div>
+          <div className="pb-inline-fields">
+            <label className="pb-field">
+              Final score out of 100
+              <input type="number" min={0} max={100} value={finalScore} onChange={(e) => setFinalScore(Number(e.target.value))} />
+            </label>
+            <label className="pb-field">
+              Distance on the approved trace (km)
+              <input type="number" min={0} max={100} step="0.01" inputMode="decimal" value={distance} onChange={(e) => setDistance(e.target.value)} />
+            </label>
+          </div>
+          <label className="pb-field">
+            Time the daylight sign photo lands (SAST)
+            <div className="pb-inline-fields">
+              <input type="number" min={0} max={23} value={signH} onChange={(e) => setSignH(Number(e.target.value))} aria-label="Sign photo hour" />
+              <input type="number" min={0} max={59} value={signM} onChange={(e) => setSignM(Number(e.target.value))} aria-label="Sign photo minute" />
+            </div>
+          </label>
+          <div className="pb-inline-fields">
+            <label className="pb-field">
+              Versions the commissioner flags
+              <input type="number" min={0} max={99} value={flags} onChange={(e) => setFlags(Number(e.target.value))} />
+            </label>
+            <label className="pb-field">
+              Sunset speech length
+              <div className="pb-inline-fields">
+                <input type="number" min={0} max={60} value={speechM} onChange={(e) => setSpeechM(Number(e.target.value))} aria-label="Speech minutes" />
+                <input type="number" min={0} max={59} value={speechS} onChange={(e) => setSpeechS(Number(e.target.value))} aria-label="Speech seconds" />
+              </div>
+            </label>
+          </div>
           <div className="pb-actions">
             <button className="pb-primary" type="button" onClick={predict}>{state.prediction ? "Update predictions" : "Lock in my predictions"}</button>
           </div>
@@ -572,8 +613,13 @@ export function DemoPredictions() {
         <div className="pb-panel">
           <h3>How the points work</h3>
           {[
-            ["10", "Closest run time", "Measured against the approved watch export."],
+            ["10", "Closest 10 km finish time", "Measured against the approved watch export."],
             ["5", "Exact rib rating", "The score Victor gives the chicken and rib combo when he submits the proof. His verdict is final."],
+            ["5", "Closest final score", "Victor’s punishment score out of 100 when the certificate is issued."],
+            ["5", "Closest daylight sign time", "The clock time (SAST) the daylight welcome-sign photo is submitted."],
+            ["5", "Exact flag count", "Versions the commissioner sends back over the whole trip."],
+            ["5", "Closest run distance", "Kilometres on the approved GPS trace, to two decimals."],
+            ["5", "Closest speech length", "First word to last on the approved sunset clip."],
           ].map(([n, h2, p]) => (
             <div className="pb-challenge" key={h2}>
               <span className="pb-num">{n}</span>

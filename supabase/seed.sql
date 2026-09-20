@@ -90,8 +90,8 @@ insert into public.props (event_id, sequence, title, detail, kind, line, unit, l
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'The 22:30 Intercape leaves within 15 minutes of schedule', 'Settled from the boarding clip and the departure check-in.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00')
 on conflict (event_id, sequence) do update set title = excluded.title, detail = excluded.detail, kind = excluded.kind, line = excluded.line, unit = excluded.unit, locks_at = excluded.locks_at;
 
-insert into public.prediction_rules (event_id, run_points, meal_points)
-values ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 5)
+insert into public.prediction_rules (event_id, run_points, meal_points, final_score_points, sign_photo_points, flags_points, distance_points, speech_points)
+values ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 5, 5, 5, 5, 5, 5)
 on conflict (event_id) do nothing;
 
 -- Certificate starts pending. It is only issued by a commissioner decision.

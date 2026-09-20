@@ -6,7 +6,7 @@ import { toast } from "@/lib/toast-store";
 import { RatingSelector } from "@/components/ui/RatingSelector";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
-import { formatDateTime } from "@/lib/time";
+import { formatDateTime, minutesToClock } from "@/lib/time";
 
 export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] }) {
   const router = useRouter();
@@ -39,7 +39,11 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
   );
 }
 
-export function ResultsForm({ results, timezone, approvedRating }: { results: Tables<"official_results"> | null; timezone: string; /** Score on the approved rated proof, offered as the default. */ approvedRating: number | null }) {
+/** What the record already says, offered as defaults: the approved rating, the scoreboard, the sign photo's submit time and the flag tally. */
+export type ResultDefaults = { rating: number | null; finalScore: number | null; signPhotoMinutes: number | null; flagCount: number | null };
+
+export function ResultsForm({ results, timezone, defaults }: { results: Tables<"official_results"> | null; timezone: string; defaults: ResultDefaults }) {
+  const approvedRating = defaults.rating;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [h, setH] = useState(results?.run_seconds != null ? Math.floor(results.run_seconds / 3600) : 0);
@@ -47,12 +51,21 @@ export function ResultsForm({ results, timezone, approvedRating }: { results: Ta
   const [s, setS] = useState(results?.run_seconds != null ? results.run_seconds % 60 : 0);
   const [km, setKm] = useState(results?.run_distance_km != null ? String(results.run_distance_km) : "");
   const [meal, setMeal] = useState<number | null>(results?.meal_rating ?? approvedRating ?? null);
+  const [finalScore, setFinalScore] = useState(results?.final_score != null ? String(results.final_score) : defaults.finalScore != null ? String(defaults.finalScore) : "");
+  const sign = results?.sign_photo_minutes ?? defaults.signPhotoMinutes;
+  const [signH, setSignH] = useState(sign != null ? String(Math.floor(sign / 60)) : "");
+  const [signM, setSignM] = useState(sign != null ? String(sign % 60) : "");
+  const [flags, setFlags] = useState(results?.flag_count != null ? String(results.flag_count) : defaults.flagCount != null ? String(defaults.flagCount) : "");
+  const [speechM, setSpeechM] = useState(results?.speech_seconds != null ? String(Math.floor(results.speech_seconds / 60)) : "");
+  const [speechS, setSpeechS] = useState(results?.speech_seconds != null ? String(results.speech_seconds % 60) : "");
   const hasRun = h + m + s > 0;
+  const hasSign = signH !== "" || signM !== "";
+  const hasSpeech = speechM !== "" || speechS !== "";
 
   return (
     <div style={{ marginTop: 18 }}>
       <h3>Official results</h3>
-      <p className="pb-small">Approved run stats and the on-camera verdict. Predictions resolve against these.</p>
+      <p className="pb-small">Approved run stats, the on-camera verdict and the trip’s tallies. Predictions resolve against these; an empty field leaves that call unscored.</p>
       <label className="pb-field">
         Run finish time (h / m / s)
         <div className="pb-inline-fields" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
@@ -78,6 +91,35 @@ export function ResultsForm({ results, timezone, approvedRating }: { results: Ta
           ) : null}
         </p>
       </div>
+      <div className="pb-inline-fields">
+        <label className="pb-field">
+          Final score out of 100
+          <input type="number" min={0} max={100} value={finalScore} onChange={(e) => setFinalScore(e.target.value)} placeholder="from the scoreboard" />
+        </label>
+        <label className="pb-field">
+          Versions flagged
+          <input type="number" min={0} max={99} value={flags} onChange={(e) => setFlags(e.target.value)} placeholder="from the audit trail" />
+        </label>
+      </div>
+      <p className="pb-small" style={{ marginTop: 5 }}>
+        {defaults.finalScore != null ? `Scoreboard now: ${defaults.finalScore} / ${100}.` : ""} {defaults.flagCount != null ? `Flags on record: ${defaults.flagCount}.` : ""} Enter these at the final whistle.
+      </p>
+      <label className="pb-field">
+        Daylight sign photo submitted at (SAST, h / m)
+        <div className="pb-inline-fields">
+          <input type="number" min={0} max={23} value={signH} onChange={(e) => setSignH(e.target.value)} aria-label="Sign photo hour" />
+          <input type="number" min={0} max={59} value={signM} onChange={(e) => setSignM(e.target.value)} aria-label="Sign photo minute" />
+        </div>
+      </label>
+      <p className="pb-small" style={{ marginTop: 5 }}>{defaults.signPhotoMinutes != null ? `Challenge #03 was first submitted at ${minutesToClock(defaults.signPhotoMinutes)}.` : "Prefilled from the first submitted version of challenge #03 once it is in."}</p>
+      <label className="pb-field">
+        Sunset speech length (m / s)
+        <div className="pb-inline-fields">
+          <input type="number" min={0} max={60} value={speechM} onChange={(e) => setSpeechM(e.target.value)} aria-label="Speech minutes" />
+          <input type="number" min={0} max={59} value={speechS} onChange={(e) => setSpeechS(e.target.value)} aria-label="Speech seconds" />
+        </div>
+      </label>
+      <p className="pb-small" style={{ marginTop: 5 }}>First word to last on the approved N14 clip.</p>
       <div className="pb-actions">
         <button
           className="pb-secondary"
@@ -89,6 +131,10 @@ export function ResultsForm({ results, timezone, approvedRating }: { results: Ta
                 runSeconds: hasRun ? h * 3600 + m * 60 + s : null,
                 runDistanceKm: km === "" ? null : Number(km),
                 mealRating: meal,
+                finalScore: finalScore === "" ? null : Number(finalScore),
+                signPhotoMinutes: hasSign ? Number(signH || 0) * 60 + Number(signM || 0) : null,
+                flagCount: flags === "" ? null : Number(flags),
+                speechSeconds: hasSpeech ? Number(speechM || 0) * 60 + Number(speechS || 0) : null,
               });
               toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();

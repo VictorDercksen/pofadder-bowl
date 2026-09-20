@@ -645,32 +645,44 @@ export type Database = {
         Row: {
           complaint_count: number | null
           event_id: string
+          final_score: number | null
+          flag_count: number | null
           meal_rating: number | null
           resolved_at: string | null
           run_distance_km: number | null
           run_seconds: number | null
           set_at: string
           set_by: string | null
+          sign_photo_minutes: number | null
+          speech_seconds: number | null
         }
         Insert: {
           complaint_count?: number | null
           event_id: string
+          final_score?: number | null
+          flag_count?: number | null
           meal_rating?: number | null
           resolved_at?: string | null
           run_distance_km?: number | null
           run_seconds?: number | null
           set_at?: string
           set_by?: string | null
+          sign_photo_minutes?: number | null
+          speech_seconds?: number | null
         }
         Update: {
           complaint_count?: number | null
           event_id?: string
+          final_score?: number | null
+          flag_count?: number | null
           meal_rating?: number | null
           resolved_at?: string | null
           run_distance_km?: number | null
           run_seconds?: number | null
           set_at?: string
           set_by?: string | null
+          sign_photo_minutes?: number | null
+          speech_seconds?: number | null
         }
         Relationships: [
           {
@@ -779,23 +791,38 @@ export type Database = {
       prediction_rules: {
         Row: {
           complaints_points: number
+          distance_points: number
           event_id: string
+          final_score_points: number
+          flags_points: number
           meal_points: number
           run_points: number
+          sign_photo_points: number
+          speech_points: number
           updated_at: string
         }
         Insert: {
           complaints_points?: number
+          distance_points?: number
           event_id: string
+          final_score_points?: number
+          flags_points?: number
           meal_points?: number
           run_points?: number
+          sign_photo_points?: number
+          speech_points?: number
           updated_at?: string
         }
         Update: {
           complaints_points?: number
+          distance_points?: number
           event_id?: string
+          final_score_points?: number
+          flags_points?: number
           meal_points?: number
           run_points?: number
+          sign_photo_points?: number
+          speech_points?: number
           updated_at?: string
         }
         Relationships: [
@@ -820,8 +847,13 @@ export type Database = {
           complaint_count: number | null
           created_at: string
           event_id: string
+          final_score: number | null
+          flag_count: number | null
           meal_rating: number
+          run_distance_km: number | null
           run_seconds: number
+          sign_photo_minutes: number | null
+          speech_seconds: number | null
           updated_at: string
           user_id: string
         }
@@ -829,8 +861,13 @@ export type Database = {
           complaint_count?: number | null
           created_at?: string
           event_id: string
+          final_score?: number | null
+          flag_count?: number | null
           meal_rating: number
+          run_distance_km?: number | null
           run_seconds: number
+          sign_photo_minutes?: number | null
+          speech_seconds?: number | null
           updated_at?: string
           user_id: string
         }
@@ -838,8 +875,13 @@ export type Database = {
           complaint_count?: number | null
           created_at?: string
           event_id?: string
+          final_score?: number | null
+          flag_count?: number | null
           meal_rating?: number
+          run_distance_km?: number | null
           run_seconds?: number
+          sign_photo_minutes?: number | null
+          speech_seconds?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1254,9 +1296,14 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           event_id: string | null
+          final_score: number | null
+          flag_count: number | null
           kit_team: string | null
           meal_rating: number | null
+          run_distance_km: number | null
           run_seconds: number | null
+          sign_photo_minutes: number | null
+          speech_seconds: number | null
           updated_at: string | null
           user_id: string | null
         }
@@ -1679,12 +1726,27 @@ export type Database = {
               p_meal_rating: number
               p_run_seconds: number
             }
+          | {
+              p_event: string
+              p_final_score: number
+              p_flag_count: number
+              p_meal_rating: number
+              p_run_distance_km: number
+              p_run_seconds: number
+              p_sign_photo_minutes: number
+              p_speech_seconds: number
+            }
         Returns: {
           complaint_count: number | null
           created_at: string
           event_id: string
+          final_score: number | null
+          flag_count: number | null
           meal_rating: number
+          run_distance_km: number | null
           run_seconds: number
+          sign_photo_minutes: number | null
+          speech_seconds: number | null
           updated_at: string
           user_id: string
         }

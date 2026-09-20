@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageLabel, countdown, eventPhase, formatDateTime, formatTime, isStale, secondsToClock } from "./time";
+import { ageLabel, countdown, eventPhase, formatDateTime, formatTime, isStale, minuteOfDay, minutesToClock, secondsToClock } from "./time";
 
 const times = {
   timezone: "Africa/Johannesburg",
@@ -55,5 +55,18 @@ describe("unparseable instants fail closed", () => {
     expect(secondsToClock(-5)).toBe("0:00");
     expect(secondsToClock(90.5)).toBe("1:31");
     expect(secondsToClock(Number.NaN)).toBe("0:00");
+  });
+});
+
+describe("minute of day", () => {
+  it("reads the clock in the event timezone", () => {
+    expect(minuteOfDay("2026-09-24T07:40:00Z", "Africa/Johannesburg")).toBe(9 * 60 + 40);
+    expect(minuteOfDay("2026-09-24T22:30:00Z", "Africa/Johannesburg")).toBe(30);
+    expect(minuteOfDay("nope", "Africa/Johannesburg")).toBeNull();
+  });
+  it("prints a minute of the day as a clock", () => {
+    expect(minutesToClock(580)).toBe("09:40");
+    expect(minutesToClock(0)).toBe("00:00");
+    expect(minutesToClock(5000)).toBe("23:59");
   });
 });

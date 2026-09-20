@@ -5,14 +5,14 @@ import { TitleRow } from "@/components/ui/TitleRow";
 import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
-import { formatDateTime, nowMs } from "@/lib/time";
+import { formatDateTime, minuteOfDay, nowMs } from "@/lib/time";
 
 export const metadata = { title: "Commissioner" };
 
 export default async function ReviewPage() {
   const ctx = await requireCommissioner();
   const tz = ctx.event.timezone;
-  const [subs, score, { data: challenges }, { data: penalties }, { data: results }, { data: certificate }, { data: props }, { data: decisions }, { data: profiles }] = await Promise.all([
+  const [subs, score, { data: challenges }, { data: penalties }, { data: results }, { data: certificate }, { data: props }, { data: decisions }, { data: profiles }, { count: flagCount }] = await Promise.all([
     loadSubmissions(ctx),
     getEventScore(ctx),
     ctx.supabase.from("challenges").select("id, sequence, title, points").eq("event_id", ctx.event.id),
@@ -22,6 +22,7 @@ export default async function ReviewPage() {
     ctx.supabase.from("props").select("id, sequence, locks_at, result").eq("event_id", ctx.event.id).order("sequence"),
     ctx.supabase.from("review_decisions").select("*, submission:evidence_submissions!inner(event_id)").eq("submission.event_id", ctx.event.id).order("created_at", { ascending: false }).limit(8),
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
+    ctx.supabase.from("review_decisions").select("id, submission:evidence_submissions!inner(event_id)", { count: "exact", head: true }).eq("submission.event_id", ctx.event.id).eq("decision", "flagged"),
   ]);
   const byChallenge = new Map((challenges ?? []).map((c) => [c.id, c]));
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
@@ -30,6 +31,10 @@ export default async function ReviewPage() {
   const openProps = (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs());
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
   const approvedRating = subs.find((s) => s.status === "approved" && s.rating != null)?.rating ?? null;
+  // Defaults for the official results: the daylight sign photo (#03) settles on its first submission time.
+  const signChallenge = (challenges ?? []).find((c) => /daylight/i.test(c.title)) ?? (challenges ?? []).find((c) => c.sequence === 3);
+  const signSubmittedAt = subs.filter((s) => s.challenge_id === signChallenge?.id && s.submitted_at).map((s) => s.submitted_at as string).sort()[0];
+  const defaults = { rating: approvedRating, finalScore: score.approvedChallenges > 0 ? score.approved : null, signPhotoMinutes: signSubmittedAt ? minuteOfDay(signSubmittedAt, tz) : null, flagCount: flagCount ?? null };
 
   return (
     <>
@@ -141,7 +146,7 @@ export default async function ReviewPage() {
             );
           })}
           <PenaltyList penalties={penalties ?? []} />
-          <ResultsForm results={results ?? null} timezone={tz} approvedRating={approvedRating} />
+          <ResultsForm results={results ?? null} timezone={tz} defaults={defaults} />
           <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} timezone={tz} />
         </div>
       </div>

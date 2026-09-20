@@ -59,6 +59,10 @@ const resultsSchema = z.object({
   runSeconds: z.number().int().min(0).max(8 * 3600).nullable(),
   runDistanceKm: z.number().min(0).max(100).nullable(),
   mealRating: z.number().int().min(1).max(10).nullable(),
+  finalScore: z.number().int().min(0).max(100).nullable(),
+  signPhotoMinutes: z.number().int().min(0).max(1439).nullable(),
+  flagCount: z.number().int().min(0).max(99).nullable(),
+  speechSeconds: z.number().int().min(0).max(3600).nullable(),
 });
 
 export async function saveOfficialResults(input: z.input<typeof resultsSchema>): Promise<ActionResult> {
@@ -67,7 +71,7 @@ export async function saveOfficialResults(input: z.input<typeof resultsSchema>):
   const ctx = await getLeagueContext();
   if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
   const { error } = await ctx.supabase.from("official_results").upsert(
-    { event_id: ctx.event.id, run_seconds: parsed.data.runSeconds, run_distance_km: parsed.data.runDistanceKm, meal_rating: parsed.data.mealRating, complaint_count: null, set_by: ctx.user.id, set_at: new Date().toISOString() },
+    { event_id: ctx.event.id, run_seconds: parsed.data.runSeconds, run_distance_km: parsed.data.runDistanceKm, meal_rating: parsed.data.mealRating, complaint_count: null, final_score: parsed.data.finalScore, sign_photo_minutes: parsed.data.signPhotoMinutes, flag_count: parsed.data.flagCount, speech_seconds: parsed.data.speechSeconds, set_by: ctx.user.id, set_at: new Date().toISOString() },
     { onConflict: "event_id" },
   );
   if (error) return { ok: false, message: error.message };

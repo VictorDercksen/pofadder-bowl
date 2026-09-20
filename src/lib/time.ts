@@ -126,6 +126,23 @@ export function secondsToClock(seconds: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Minute of the day (0..1439) of an instant in the given timezone; null for an unparseable instant. */
+export function minuteOfDay(iso: string | Date, timezone: string): number | null {
+  const d = toDate(iso);
+  if (!d) return null;
+  const parts = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone }).formatToParts(d);
+  const h = Number(parts.find((p) => p.type === "hour")?.value);
+  const m = Number(parts.find((p) => p.type === "minute")?.value);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return (h % 24) * 60 + m;
+}
+
+/** "09:40" from a minute of the day. */
+export function minutesToClock(minutes: number): string {
+  const total = Number.isFinite(minutes) ? Math.min(1439, Math.max(0, Math.round(minutes))) : 0;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 /** Current time in ms. Wrapped so server components can read the clock without the purity lint. */
 export function nowMs(): number {
   return Date.now();
