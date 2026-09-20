@@ -6,8 +6,8 @@ Follow-on to `handoff_2026-09-20_upload-cap-direct-uploads.md` (state of `main`)
 
 | Item | Value |
 |---|---|
-| Branch | `claude/league-member-location-map-mfok52`, started from `origin/main` at `9ac61fc` (no PR opened) |
-| Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
+| Branch | `claude/league-member-location-map-mfok52`, started from `origin/main` at `bc1c3a1`, fast-forwarded into `main` at Victor's request (no PR) |
+| Production | https://pofadder-bowl.vercel.app deploys from `main`, so this is live once Vercel builds. The Supabase GitHub integration applies the migration on the push to `main`; confirm under Database → Migrations |
 | Schema | **One new migration**: `supabase/migrations/20260920001600_member_locations.sql` (table `member_locations`, RPCs `share_member_location`, `clear_member_location`, `event_member_locations`, realtime publication). Additive and idempotent (re-running is a no-op). The Supabase GitHub integration applies it on the push to `main`; confirm under Database → Migrations. Until it is applied the app still works: the reader RPC fails, the loader returns an empty list, the map shows no member pins and the share button reports "Could not share your location" |
 | Types | `src/lib/database.types.ts` hand-edited: `member_locations` table, the three functions. Regenerate from the local stack when convenient |
 | Env | Unchanged |
