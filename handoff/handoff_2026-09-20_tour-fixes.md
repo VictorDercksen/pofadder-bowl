@@ -63,6 +63,10 @@ Not changed, on purpose: Skip still records completion (open question carried fo
 5. League admin → First-run tour → Participant, as an admin who is not the event participant: the My trip step shows "This screen did not open for your account" after a few seconds and Next carries on.
 6. Desktop 1280 px: the card sits beside tall panels (phone card, proof locker, map) rather than as a sheet.
 
+## Merge notes
+
+`origin/main` moved on after the branch point (run distance 10 km, read-only proof locker for members with two new `proof-view` tour steps, alert snackbar, icon-only Skip button in the tour card). Merged main into the branch with no conflicts; typecheck, lint, 134 unit tests and `next build` re-run green on the merged tree. The Skip button is now an `IconButton`, which the card's Tab trap still covers (it looks for `button` elements). Merged into `main` at Victor's request (no PR).
+
 ## Still open
 
 1. Targets taller than a small phone's free zone still get their tail covered by the sheet. A "hide the card" affordance or shorter copy for the longest steps (sideline, location, member view) would remove the last overlaps.
