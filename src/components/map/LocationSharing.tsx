@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { recordCheckin, removeCheckins, updateLocationSettings } from "@/lib/actions/checkins";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 
 type Settings = { sharing_enabled: boolean; auto_update: boolean };
 
@@ -20,7 +20,6 @@ let lastAutoAttempt = 0;
 export function LocationSharing({ initial, checkinIds }: { initial: Settings; checkinIds: string[] }) {
   const router = useRouter();
   const [settings, setSettings] = useState(initial);
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
   const inFlight = useRef(false);
@@ -28,15 +27,15 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   const capture = useCallback(
     (manual: boolean) => {
       if (!settings.sharing_enabled) {
-        if (manual) setNote({ text: "Resume sharing before creating a check-in.", tone: "warn" });
+        if (manual) toast("Resume sharing before creating a check-in.", "warn");
         return;
       }
       if (!("geolocation" in navigator)) {
-        setNote({ text: "This browser has no geolocation support. Use a phone with GPS.", tone: "error" });
+        toast("This browser has no geolocation support. Use a phone with GPS.", "error");
         return;
       }
       if (!navigator.onLine) {
-        setNote({ text: "Offline: the check-in cannot reach the league right now. Try again when you have signal.", tone: "warn" });
+        toast("Offline: the check-in cannot reach the league right now. Try again when you have signal.", "warn");
         return;
       }
       if (inFlight.current) return;
@@ -53,15 +52,15 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
             try {
               const res = await recordCheckin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null, capturedAt, clientId });
               if (res.ok && res.duplicate) {
-                setNote({ text: res.message ?? "Nothing new recorded.", tone: "warn" });
+                toast(res.message ?? "Nothing new recorded.", "warn");
               } else if (res.ok) {
                 const where = res.placeLabel ? `${res.placeLabel} · ` : "";
-                setNote({ text: weak ? `${where}Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `${where}Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, tone: weak ? "warn" : "ok" });
+                toast(weak ? `${where}Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `${where}Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, weak ? "warn" : "ok");
                 router.refresh();
-              } else setNote({ text: res.message, tone: "error" });
+              } else toast(res.message, "error");
             } catch {
               // Network dropped mid-request (common on the N7): leave the button usable for a retry.
-              setNote({ text: "The check-in did not reach the league. Check your signal and try again.", tone: "error" });
+              toast("The check-in did not reach the league. Check your signal and try again.", "error");
             } finally {
               inFlight.current = false;
               setBusy(false);
@@ -77,7 +76,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
               : err.code === err.POSITION_UNAVAILABLE
                 ? "GPS position unavailable. Move somewhere with a clearer sky or signal."
                 : "Timed out waiting for a GPS fix. Try again.";
-          setNote({ text, tone: "error" });
+          toast(text, "error");
         },
         // A manual press must produce a fresh fix; a cached one repeats the client id and is dropped as a duplicate.
         { enableHighAccuracy: true, timeout: 20_000, maximumAge: manual ? 0 : 60_000 },
@@ -104,7 +103,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
     setSettings(next);
     startTransition(async () => {
       const res = await updateLocationSettings({ sharingEnabled: next.sharing_enabled, autoUpdate: next.auto_update });
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -113,7 +112,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
     if (checkinIds.length === 0) return;
     startTransition(async () => {
       const res = await removeCheckins({});
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -141,9 +140,8 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
         </button>
       </div>
       <p className="pb-small" style={{ marginTop: 12 }}>
-        Check-ins, not continuous tracking. Nothing is recorded while the browser is closed or the phone is locked. Pausing stops new writes; existing timestamped check-ins stay visible until you remove them. This map is not proof of the 14 km run: upload the watch export in the proof locker.
+        Check-ins, not continuous tracking. Nothing is recorded while the browser is closed or the phone is locked. Pausing stops new writes; existing timestamped check-ins stay visible until you remove them. This map is not proof of the 10 km run: upload the watch export in the proof locker.
       </p>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }

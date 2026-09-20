@@ -1,6 +1,6 @@
 # Pofadder Bowl 2026 · project instructions
 
-Private fantasy-league punishment app ("Show Us Your TD's"). One participant travels Malmesbury → Pofadder → Malmesbury on 23–25 September 2026, runs 14 km and completes ten proof challenges while the league watches, reacts, plays the prop board and predicts results. Next.js 16 App Router on Vercel, Supabase (Postgres, Auth, Storage, Realtime), Leaflet map, hand-written CSS design system.
+Private fantasy-league punishment app ("Show Us Your TD's"). One participant travels Malmesbury → Pofadder → Malmesbury on 23–25 September 2026, runs 10 km and completes ten proof challenges while the league watches, reacts, plays the prop board and predicts results. Next.js 16 App Router on Vercel, Supabase (Postgres, Auth, Storage, Realtime), Leaflet map, hand-written CSS design system.
 
 `AGENTS.md` holds the Next.js managed block that points at the version-matched docs in `node_modules/next/dist/docs/`. Read that guide before touching framework APIs; it is the source of truth over training data.
 

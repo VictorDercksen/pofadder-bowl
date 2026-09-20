@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MemberBadge } from "@/components/ui/Marks";
+import { IconLink } from "@/components/ui/IconButton";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { KitPanel } from "@/components/ui/KitPanel";
 import { getEventScore, getLeagueContext } from "@/lib/league";
@@ -98,11 +99,7 @@ export default async function ProofPage() {
                         {d.reason ? ` · ${d.reason}` : ""}
                       </p>
                     </div>
-                    {c ? (
-                      <Link className="pb-text-action" href={`/proof/${c.id}`} style={{ marginLeft: "auto", flexShrink: 0 }}>
-                        Open
-                      </Link>
-                    ) : null}
+                    {c ? <IconLink icon="versions" label={`Open ${c.title}`} href={`/proof/${c.id}`} small className="pb-locker-open" /> : null}
                   </div>
                 );
               })}

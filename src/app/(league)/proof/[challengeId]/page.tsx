@@ -1,11 +1,14 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MemberBadge } from "@/components/ui/Marks";
 import { EmptyState, TitleRow } from "@/components/ui/TitleRow";
+import { IconLink } from "@/components/ui/IconButton";
 import { EvidenceUploader } from "@/components/proof/EvidenceUploader";
 import { MediaGallery } from "@/components/proof/MediaGallery";
+import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { getLeagueContext } from "@/lib/league";
 import { loadParticipantProfile, loadSubmissions, statusHeading } from "@/lib/evidence";
+import { trackFileOf } from "@/lib/run-track";
 import { formatDateTime } from "@/lib/time";
 
 export const metadata = { title: "Challenge proof" };
@@ -26,6 +29,16 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
   const { data: decisions } = current ? await ctx.supabase.from("review_decisions").select("*").in("submission_id", subs.map((s) => s.id)).order("created_at", { ascending: false }) : { data: [] };
   const tz = ctx.event.timezone;
   const seq = String(challenge.sequence).padStart(2, "0");
+
+  const isRun = challenge.proof_type.toLowerCase().includes("export");
+  const trace = current && isRun ? trackFileOf(current.files) : null;
+
+  const nav = (
+    <nav className="pb-icon-nav" aria-label="Proof navigation">
+      <IconLink icon="back" label="Back to the proof locker" href="/proof" />
+      <IconLink icon="feed" label="Main feed" href="/game-centre" />
+    </nav>
+  );
 
   const versions = (
     <div className="pb-panel">
@@ -58,9 +71,7 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
     return (
       <>
         <TitleRow kicker={`LEAGUE VIEW · CHALLENGE #${seq}`} title={challenge.title} blurb={<><MemberBadge code={participant?.kit_team} name={who} number={participant?.kit_number} /> · {challenge.proof_type} · {challenge.points} points.</>} tag={current ? statusHeading(current.status).toUpperCase() : "AWAITING PROOF"} team={participant?.kit_team} />
-        <p className="pb-small" style={{ marginBottom: 12 }}>
-          <Link href="/proof" className="pb-text-action">← Back to the locker</Link> · <Link href="/game-centre" className="pb-text-action">Main feed</Link>
-        </p>
+        {nav}
         <div className="pb-split">
           <div>
             {current ? (
@@ -72,6 +83,17 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
                     {current.files.length} FILE(S) · {current.submitted_at ? `SUBMITTED ${formatDateTime(current.submitted_at, tz).toUpperCase()}` : "NOT SUBMITTED"}
                   </small>
                 </div>
+                {isRun && trace ? (
+                  <div className="pb-panel pb-run-panel" style={{ marginTop: 15 }}>
+                    <div className="pb-panel-top">
+                      <h3>The route, as recorded</h3>
+                      <span className={`pb-tag ${current.status === "approved" ? "" : "orange"}`}>V{current.version} · {current.status.toUpperCase()}</span>
+                    </div>
+                    <Suspense fallback={<RunTrackSkeleton />}>
+                      <RunTrack files={current.files} participant={who} />
+                    </Suspense>
+                  </div>
+                ) : null}
                 <div className="pb-panel" style={{ marginTop: 15 }}>
                   <h3>Evidence</h3>
                   {current.files.length === 0 ? <p className="pb-small">No files on this version.</p> : <MediaGallery files={current.files.map((f) => ({ id: f.id, kind: f.kind, name: f.original_name ?? "file", mime: f.mime_type }))} />}
@@ -88,14 +110,12 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
     );
   }
 
-  const accept = challenge.proof_type.includes("photo") ? "image/*" : challenge.proof_type.includes("clip") ? "video/*" : challenge.proof_type.includes("export") ? ".gpx,.tcx,.fit,.csv,image/*,application/pdf" : "image/*,video/*,application/pdf";
+  const accept = challenge.proof_type.includes("photo") ? "image/*" : challenge.proof_type.includes("clip") ? "video/*" : isRun ? ".gpx,.tcx,.fit,.csv,image/*,application/pdf" : "image/*,video/*,application/pdf";
 
   return (
     <>
-      <TitleRow kicker={`VICTOR’S VIEW · CHALLENGE #${seq}`} title={challenge.title} blurb={`${challenge.proof_type} · ${challenge.points} points.`} tag={`${challenge.points} POINTS AVAILABLE`} team="phi" />
-      <p className="pb-small" style={{ marginBottom: 12 }}>
-        <Link href="/proof" className="pb-text-action">← Back to the locker</Link> · <Link href="/game-centre" className="pb-text-action">Main feed</Link>
-      </p>
+      <TitleRow kicker={`VICTOR’S VIEW · CHALLENGE #${seq}`} title={challenge.title} blurb={`${challenge.proof_type} · ${challenge.points} points.`} tag={`${challenge.points} POINTS AVAILABLE`} team={ctx.profile.kit_team} />
+      {nav}
       <div className="pb-split">
         <div>
           {!ctx.isParticipant ? (
@@ -107,9 +127,24 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
               targetTitle={challenge.title}
               accept={accept}
               current={current ? { id: current.id, version: current.version, status: current.status, caption: current.caption, files: current.files } : null}
-              captureHint={challenge.sequence === 2 ? "Upload the watch export (GPX/TCX/FIT) plus a screenshot. The check-in map is not proof of the run." : undefined}
+              captureHint={isRun ? "Upload the watch export (GPX or TCX, FIT as a backup) plus a screenshot. The GPX line is what the commissioner approves and what the league sees on the map." : undefined}
             />
           )}
+          {isRun && current ? (
+            <div className="pb-panel pb-run-panel" style={{ marginTop: 18 }}>
+              <div className="pb-panel-top">
+                <h3>Your route, as the league sees it</h3>
+                <span className={`pb-tag ${current.status === "approved" ? "" : "orange"}`}>V{current.version} · {current.status.toUpperCase()}</span>
+              </div>
+              {trace ? (
+                <Suspense fallback={<RunTrackSkeleton />}>
+                  <RunTrack files={current.files} participant={ctx.profile.display_name} />
+                </Suspense>
+              ) : (
+                <p className="pb-small">No GPX or TCX file on this version yet. Attach the watch export and it is drawn here before you submit.</p>
+              )}
+            </div>
+          ) : null}
         </div>
         <div>
           {versions}

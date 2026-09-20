@@ -50,7 +50,7 @@ export function generateProps(event: PropSourceEvent, challenges: PropSourceChal
   const locks_at = event.departure_at;
   const arrive = clockIn(event.away_arrival_at, event.timezone);
   const depart = clockIn(event.return_departure_at, event.timezone);
-  const runKm = Number.isFinite(event.required_run_km) && event.required_run_km > 0 ? event.required_run_km : 14;
+  const runKm = Number.isFinite(event.required_run_km) && event.required_run_km > 0 ? event.required_run_km : 10;
   const combo = find(challenges, "combo") ?? find(challenges, "rib") ?? find(challenges, "meal");
   const locals = challenges.find((c) => localsCount(c.title) != null);
   const localsN = locals ? localsCount(locals.title)! : 3;

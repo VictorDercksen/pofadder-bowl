@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LeaguePatch, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { IconTab } from "@/components/ui/IconButton";
 import { Countdown } from "@/components/ui/Countdown";
 import { OriginStory } from "@/components/trip/OriginStory";
 import { LocationSharing } from "@/components/map/LocationSharing";
@@ -92,12 +93,12 @@ export default async function MyTripPage() {
               Return bus · KLK Garage · <Countdown targetIso={ctx.event.return_departure_at} passedLabel="departed" />
             </p>
           </div>
-          <div className="pb-phone-tabs">
-            <Link href="/my-trip" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>My trip</Link>
-            <Link href="/proof" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Proof</Link>
-            <Link href="/props" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Props</Link>
-            <Link href="/game-centre" className="pb-text-action" style={{ color: "var(--pb-ink)", textDecoration: "none" }}>Main feed</Link>
-          </div>
+          <nav className="pb-phone-tabs" aria-label="Phone tabs">
+            <IconTab icon="flag" label="My trip" href="/my-trip" current />
+            <IconTab icon="camera" label="Proof" href="/proof" />
+            <IconTab icon="board" label="Props" href="/props" />
+            <IconTab icon="feed" label="Main feed" href="/game-centre" />
+          </nav>
         </div>
         <div>
           <div className="pb-panel">

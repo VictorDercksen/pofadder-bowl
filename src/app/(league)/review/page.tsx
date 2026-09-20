@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MemberBadge, Shield } from "@/components/ui/Marks";
+import { IconLink } from "@/components/ui/IconButton";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
@@ -40,7 +41,7 @@ export default async function ReviewPage() {
                 Awaiting review
                 {queue.length ? <span className="pb-badge-count">{queue.length}</span> : null}
               </h3>
-              {ctx.isAdmin ? <Link className="pb-text-action" href="/review/members">Members &amp; invites ↗</Link> : <span className="pb-small">Roster changes: admin only</span>}
+              {ctx.isAdmin ? <IconLink icon="members" label="Members and invites" href="/review/members" /> : <span className="pb-small">Roster changes: admin only</span>}
             </div>
             {queue.length === 0 ? <p className="pb-small">Nothing waiting. Submitted proof lands here with its version number.</p> : null}
             {queue.map((s) => {
@@ -85,8 +86,9 @@ export default async function ReviewPage() {
               {openProps.length ? <span className="pb-badge-count">{openProps.length}</span> : null}
             </h3>
             {openProps.length > 0 ? (
-              <p className="pb-small">
-                {openProps.length} locked and unsettled. <Link href="/props" className="pb-text-action">Settle on the prop board ↗</Link>
+              <p className="pb-small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span>{openProps.length} locked and unsettled.</span>
+                <IconLink icon="board" label="Settle on the prop board" href="/props" small />
               </p>
             ) : (props ?? []).some((p) => p.result == null) ? (
               <p className="pb-small">Props settle once the board locks.</p>

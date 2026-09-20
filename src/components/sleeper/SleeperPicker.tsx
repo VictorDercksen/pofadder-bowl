@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Football } from "@/components/ui/Football";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { SleeperTeamCard } from "@/components/sleeper/SleeperTeam";
 import { claimSleeperIdentity } from "@/lib/actions/account";
 
@@ -13,13 +13,12 @@ export type SleeperChoice = { id: string; teamName: string | null; displayName: 
 export function SleeperPicker({ choices, current, afterConfirm }: { choices: SleeperChoice[]; current: string | null; afterConfirm: string }) {
   const router = useRouter();
   const [picked, setPicked] = useState<string | null>(current);
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   const chosen = choices.find((c) => c.id === picked) ?? null;
 
   function confirm() {
     if (!picked) {
-      setNote({ text: "Pick your team first.", tone: "warn" });
+      toast("Pick your team first.", "warn");
       return;
     }
     startTransition(async () => {
@@ -28,7 +27,7 @@ export function SleeperPicker({ choices, current, afterConfirm }: { choices: Sle
         router.replace(afterConfirm);
         router.refresh();
       } else {
-        setNote({ text: res.message ?? "", tone: "error" });
+        toast(res.message ?? "", "error");
         router.refresh();
       }
     });
@@ -57,7 +56,6 @@ export function SleeperPicker({ choices, current, afterConfirm }: { choices: Sle
           {pending ? "Confirming…" : "Confirm my team"}
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }

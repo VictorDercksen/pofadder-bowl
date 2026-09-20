@@ -6,12 +6,12 @@ Follow-on to `handoff_2026-09-20_tour-colours-sideline-claims.md` and `handoff_2
 
 | Item | Value |
 |---|---|
-| Branch | `claude/proof-locker-readonly-view-celw4j`, started from `main` at `ed99c7e` (no PR opened) |
-| Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
+| Branch | `claude/proof-locker-readonly-view-celw4j`, started from `main` at `ed99c7e`, then `origin/main` (`62c84e2`, run route, icon buttons, alert snackbar) merged in and the result fast-forwarded onto `main` on request (no PR) |
+| Production | https://pofadder-bowl.vercel.app deploys from `main`; this merge triggers a Vercel deploy (no migration to apply) |
 | Schema | **Unchanged.** No migration. Row-level security already lets active members read submitted, approved, flagged and superseded submissions, their files, the review decisions and the signed media URLs (`20260917000700_stress_test_fixes.sql`, `pb_can_view_submission`). Drafts stay private to the submitter and commissioners |
 | Types | Unchanged |
 | Env | Unchanged |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (112 vitest, 9 new) pass; `npx next build` passes. `npm run test:integration` was **not** run (no local stack in the sandbox); it needs no change because no SQL or action changed |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (128 vitest after the merge, 9 new here) pass; `npx next build` passes. `npm run test:integration` was **not** run (no local stack in the sandbox); it needs no change because no SQL or action changed |
 
 ## What was asked
 
@@ -48,6 +48,15 @@ Normal league members should be able to open a read-only Proof Locker: see every
 ### Tour
 
 - `src/lib/tour.ts`: two new steps for non-participants in the league block, after the map and before the prop board: `proof-view` ("SCREEN 04 · The proof locker, read-only", target `proof-list`) and `proof-view-flow` ("THE WHISTLE", target `proof-flow`). Participants keep their own `proof` / `proof-flow` steps; a commissioner or admin who is the participant gets only those. `src/lib/tour.test.ts` asserts the split. `TOUR_VERSION` was left at 1 (bump it if every member should see the tour again).
+
+### Merge with main (same day)
+
+`origin/main` had moved (run route panel, round icon buttons, roster logos, alert snackbar). Conflicts resolved in three files:
+
+- `src/app/(league)/layout.tsx`: the read-only banner copy from this branch with main's `tone="orange"` toggle.
+- `src/app/globals.css`: both tails kept; the locker rules sit last, plus `.pb-locker-open` for the icon link on Latest calls.
+- `src/app/(league)/proof/[challengeId]/page.tsx`: main's icon navigation (`IconLink` back / feed), kit-coloured title row and run-route panel (`RunTrack` under `Suspense`, `trackFileOf`) carried into both branches. The league view draws the route too ("The route, as recorded") when the visible version carries a GPX/TCX file; `RunTrack` downloads through the caller's client, so RLS decides.
+- `src/app/(league)/proof/page.tsx`: the underlined "Open" links on Latest calls became `IconLink icon="versions"` to match main's icon-button convention.
 
 ## Verified
 

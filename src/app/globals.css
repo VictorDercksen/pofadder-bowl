@@ -590,5 +590,58 @@ a{color:inherit}
 .pb .pb-sideline-preview .pb-kicker{margin-bottom:10px}
 .pb .pb-sideline-preview .pb-reaction[disabled]{cursor:default;opacity:.7}
 
+/* --- Icon actions: every underlined text link is now a round icon button ------------- */
+.pb .pb-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1.5px solid var(--pb-green);background:var(--pb-panel);color:var(--pb-green);box-shadow:0 2px 0 #c9cfbf;cursor:pointer;padding:0;flex-shrink:0;text-decoration:none;transition:transform .08s ease,box-shadow .08s ease,background .12s ease}
+.pb .pb-icon-btn svg{width:18px;height:18px;display:block}
+.pb .pb-icon-btn:hover{background:#eef1e6}
+.pb .pb-icon-btn:active{transform:translateY(2px);box-shadow:none}
+.pb .pb-icon-btn:focus-visible{outline:3px solid var(--pb-gold);outline-offset:2px}
+.pb .pb-icon-btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.pb .pb-icon-btn.solid{background:var(--pb-green);color:var(--pb-paper);box-shadow:0 2px 0 #0f261c}
+.pb .pb-icon-btn.solid:hover{background:#1f4a3b}
+.pb .pb-icon-btn.orange{background:var(--pb-orange);border-color:var(--pb-orange);color:#fff8ef;box-shadow:0 2px 0 #8e3a1c}
+.pb .pb-icon-btn.orange:hover{background:#d9613a}
+.pb .pb-icon-btn.gold{background:transparent;border-color:var(--pb-gold);color:var(--pb-gold);box-shadow:none}
+.pb .pb-icon-btn.gold:hover{background:#ffffff14}
+.pb .pb-icon-btn.sm{width:30px;height:30px}
+.pb .pb-icon-btn.sm svg{width:15px;height:15px}
+.pb .pb-icon-row{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pb .pb-icon-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.pb .pb-drawer-foot .pb-icon-row{margin-top:4px}
+.pb .pb-phone-tabs{align-items:flex-start}
+.pb .pb-icon-tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--pb-ink);text-decoration:none;font:600 9px/1 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:2px 4px;border-radius:8px}
+.pb .pb-icon-tab svg{width:20px;height:20px}
+.pb .pb-icon-tab[aria-current=page]{color:var(--pb-orange)}
+.pb .pb-icon-tab:focus-visible{outline:3px solid var(--pb-gold);outline-offset:2px}
+.pb .pb-version-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--pb-line);font-size:12px}
+.pb .pb-version-row:last-child{border-bottom:0}
+
+/* --- Run route: the watch export drawn as recorded, with its numbers ------------------ */
+.pb .pb-track-map{aspect-ratio:4/3;min-height:220px}
+.pb .pb-run-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px;background:var(--pb-panel);border-top:1px solid var(--pb-line)}
+.pb .pb-run-stats strong{display:block;font:700 22px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--pb-green);white-space:nowrap}
+.pb .pb-run-stats small{display:block;font-size:9px;letter-spacing:1px;color:var(--pb-muted);margin-top:4px}
+.pb .pb-run-panel .pb-run-route{margin:0 -19px -19px}
+.pb .pb-run-panel .pb-map-source{border-radius:0 0 10px 10px}
+@media(max-width:580px){.pb .pb-run-stats{grid-template-columns:repeat(2,1fr)}.pb .pb-run-stats strong{font-size:19px}}
+
+/* --- Header strip: the franchises actually claimed by the roster ---------------------- */
+.pb .pb-badge-teams span{display:inline-flex}
+.pb .pb-badge-teams .pb-nfl-mark{width:24px;height:30px;opacity:.7}
+
+/* --- Alert snackbar: action feedback stacked at the bottom of the screen (src/components/ui/Toaster.tsx) --- */
+.pb-toast-stack{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 16px;pointer-events:none;font-family:var(--font-barlow),Barlow,Arial,sans-serif}
+/* Solid pastel pills in the button family: mint / apricot / rose fills, tone-coloured text, border and hard bottom shadow */
+.pb-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;width:100%;max-width:520px;padding:12px 10px 12px 16px;background:#cfe0cf;color:#183b2f;border:1.5px solid #183b2f;border-radius:999px;box-shadow:0 2px 0 #183b2f;font-size:13px;line-height:1.45;animation:pb-toast-in .22s ease}
+.pb-toast.warn{background:#f6d5b5;color:#8e3a1c;border-color:#cc542b;box-shadow:0 2px 0 #cc542b}
+.pb-toast.error{background:#f0c4bc;color:#8a2f22;border-color:#b3392a;box-shadow:0 2px 0 #b3392a}
+.pb-toast-text{flex:1;min-width:0;padding-top:1px;overflow-wrap:anywhere}
+.pb-toast-close{flex-shrink:0;width:30px;height:30px;min-height:0;margin:-5px -2px -5px 0;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font:400 22px/1 var(--font-barlow),Barlow,Arial,sans-serif;cursor:pointer;opacity:.8}
+.pb-toast-close:hover{opacity:1;background:#0000000f}
+.pb-toast-close:focus-visible{outline:3px solid #cc542b;outline-offset:1px;opacity:1}
+@keyframes pb-toast-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.pb-toast{animation:none}}
+
 /* --- Proof locker, league view (read-only) --------------------------------------------- */
 .pb .pb-locker-wait{margin-left:auto;flex-shrink:0;align-self:center;font:600 11px var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:var(--pb-muted);white-space:nowrap}
+.pb .pb-locker-open{margin-left:auto;align-self:center}
