@@ -73,7 +73,7 @@ export default async function RecapPage() {
         </div>
         <h2>{issued ? `${name.split(" ")[0]} survived Pofadder.` : "Not certified yet."}</h2>
         <p>
-          {issued ? "Two overnight buses. Fourteen kilometres. Ten plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
+          {issued ? "Two overnight buses. Ten kilometres. Ten plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
           <br />
           {issued ? "One outstanding contribution to league entertainment." : "Nothing here inherits demo values."}
         </p>

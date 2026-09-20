@@ -69,7 +69,7 @@ export default async function ReviewSubmissionPage(props: PageProps<"/review/[su
             <Shield />
           </div>
           <p className="pb-small">
-            {challenge ? `Required proof: ${challenge.proof_type}.` : "A real clip must exist and answer the prompt."} Does the evidence match the challenge? Is the timestamp plausible? {isRun ? "Does the trace cover the full 14 km including the R358 leg? " : ""}Anything missing goes in the flag reason.
+            {challenge ? `Required proof: ${challenge.proof_type}.` : "A real clip must exist and answer the prompt."} Does the evidence match the challenge? Is the timestamp plausible? {isRun ? "Does the trace cover the full 10 km including the R358 leg? " : ""}Anything missing goes in the flag reason.
           </p>
           <h3 style={{ marginTop: 16 }}>Audit trail</h3>
           {(decisions ?? []).length === 0 ? <p className="pb-small">No decisions on this version yet.</p> : null}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatPace, isTrackFile, parseTrack, thinTrack, trackStats, type LatLng } from "./gpx";
 
 const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="watch"><trk><name>Pofadder 14 km</name><trkseg>
+<gpx version="1.1" creator="watch"><trk><name>Pofadder 10 km</name><trkseg>
 <trkpt lat="-29.1283" lon="19.3949"><ele>980.0</ele><time>2026-09-24T03:05:00Z</time></trkpt>
 <trkpt lon="19.4049" lat="-29.1283"><ele>985.5</ele><time>2026-09-24T03:10:00Z</time></trkpt>
 <trkpt lat="-29.1383" lon="19.4049"><ele>984.0</ele><time>2026-09-24T03:16:00Z</time></trkpt>

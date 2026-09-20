@@ -56,7 +56,7 @@ export default async function MapPage() {
               <span className={`pb-tag ${runSub?.status === "approved" ? "" : "orange"}`}>{runTag}</span>
             </div>
             <p className="pb-small" style={{ marginBottom: 12 }}>
-              {runSub ? `${name}’s watch export, version ${runSub.version}${runSub.submitted_at ? `, submitted ${formatDay(runSub.submitted_at, tz)} ${formatTime(runSub.submitted_at, tz)}` : ""}. The commissioner approves it from the same trace.` : `The 14 km trace appears here once ${name.split(" ")[0]} uploads the watch export. The check-in map above is not proof of the run.`}
+              {runSub ? `${name}’s watch export, version ${runSub.version}${runSub.submitted_at ? `, submitted ${formatDay(runSub.submitted_at, tz)} ${formatTime(runSub.submitted_at, tz)}` : ""}. The commissioner approves it from the same trace.` : `The 10 km trace appears here once ${name.split(" ")[0]} uploads the watch export. The check-in map above is not proof of the run.`}
             </p>
             {runSub ? (
               <Suspense fallback={<RunTrackSkeleton />}>

@@ -3,7 +3,7 @@ import { generateProps, localsCount, randAmount } from "./prop-generator";
 import { isSideValid } from "./props";
 
 const event = {
-  required_run_km: 14,
+  required_run_km: 10,
   departure_at: "2026-09-23T17:15:00Z",
   away_arrival_at: "2026-09-24T02:45:00Z",
   return_departure_at: "2026-09-24T20:30:00Z",
@@ -11,7 +11,7 @@ const event = {
 };
 const challenges = [
   { sequence: 1, title: "Town welcome sign, in the dark, on arrival" },
-  { sequence: 2, title: "14 km run, full GPS trace including the R358 leg" },
+  { sequence: 2, title: "10 km run, full GPS trace including the R358 leg" },
   { sequence: 4, title: "Three locals asked what Pofadder is known for" },
   { sequence: 6, title: "Chicken and rib combo, rated out of ten" },
   { sequence: 8, title: "R50 spent in Pofadder on a public holiday" },
@@ -40,7 +40,7 @@ describe("generateProps", () => {
     expect(new Set(props.map((p) => p.locks_at))).toEqual(new Set([event.departure_at]));
   });
   it("derives lines from the programme", () => {
-    expect(props[0]).toMatchObject({ line: 14.25, unit: "km" });
+    expect(props[0]).toMatchObject({ line: 10.25, unit: "km" });
     expect(props[3]).toMatchObject({ title: "Locals approached before 3 agree to be filmed", line: 4.5 });
     expect(props[4]).toMatchObject({ line: 8.5 });
     expect(props[8]).toMatchObject({ line: 150, unit: "rand" });
@@ -61,7 +61,7 @@ describe("generateProps", () => {
   it("falls back to house lines when the programme is thin", () => {
     const bare = generateProps({ ...event, required_run_km: 0 }, []);
     expect(bare).toHaveLength(10);
-    expect(bare[0].line).toBe(14.25);
+    expect(bare[0].line).toBe(10.25);
     expect(bare[2].title).toBe("The rated meal finished on camera");
     expect(bare[3].line).toBe(4.5);
     expect(bare[4].line).toBe(8.5);

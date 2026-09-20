@@ -4,7 +4,7 @@ import type { Tables } from "@/lib/database.types";
 import { isTrackFile, parseTrack, type Track } from "@/lib/gpx";
 
 const BUCKET = "evidence";
-/** Bigger than any watch export for 14 km; keeps a stray upload from tying up a function. */
+/** Bigger than any watch export for 10 km; keeps a stray upload from tying up a function. */
 const MAX_TRACK_BYTES = 20 * 1024 * 1024;
 const CACHE_LIMIT = 8;
 

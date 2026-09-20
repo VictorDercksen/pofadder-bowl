@@ -8,7 +8,7 @@ Follow-on to `handoff_2026-09-20_settlements-place-labels.md` (state of `main`).
 |---|---|
 | Branch | `claude/run-activity-route-ui-6rgmv9`, started from `main` at `ed99c7e` (no PR opened) |
 | Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
-| Schema | **Unchanged.** No migration: the route is parsed from the evidence file already in storage, the roster strip uses the existing `claimed_kits` RPC |
+| Schema | **One new migration**: `supabase/migrations/20260920001200_run_distance_10km.sql` (data only, no columns). It updates the hosted event, itinerary, challenge and prop rows from 14 km to 10 km; the Supabase GitHub integration applies it on the push to `main`, confirm under Database → Migrations. The route feature itself needs no schema: the file is parsed from storage and the roster strip uses the existing `claimed_kits` RPC |
 | Types | Unchanged |
 | Env | Unchanged (`NEXT_PUBLIC_MAP_TILE_URL` drives the route map exactly as it drives the check-in map) |
 | Tests | `npm run typecheck`, `npm run lint`, `npm test` (18 files, 115 vitest, 8 new in `gpx.test.ts`) pass; `npx next build` passes |
@@ -28,7 +28,7 @@ Follow-on to `handoff_2026-09-20_settlements-place-labels.md` (state of `main`).
 - `src/components/map/TrackMap.tsx` (client, Leaflet): the line as recorded with a cream casing, a green start dot and an orange finish dot, fitted once per line. Nothing is road-routed or snapped; the map shows exactly what the file holds. `RunRoute.tsx` wraps it with `next/dynamic` (`ssr: false`), prints the four stats (distance, time, pace, climb) and the source line, and shows the static-fallback label when tiles are off. `RunTrackPanel.tsx` is the async server component (`RunTrack`) that does the download and parse; every page renders it under `Suspense` with `RunTrackSkeleton`, so a slow storage read never delays the screen.
 - **Hydration hazard found on the way:** Node and Chromium disagree on `en-GB` date punctuation (`formatDay` gives "Thu 24 Sept" on the server and "Thu, 24 Sept" in the browser). A date formatted inside a client component therefore fails hydration (React error 418). `RunRoute` gets its start and finish labels pre-formatted from the server (`runRouteLabels` in `RunTrackPanel.tsx`). Keep `formatDay`/`formatDateTime` out of client-rendered text elsewhere too, or pass strings down.
 - Screens:
-  - `/review/[submissionId]` (commissioner): a "The route, from the watch export" panel above the evidence list for the run challenge or any submission with a GPS file. The replay checklist now asks whether the trace covers the full 14 km including the R358 leg.
+  - `/review/[submissionId]` (commissioner): a "The route, from the watch export" panel above the evidence list for the run challenge or any submission with a GPS file. The replay checklist now asks whether the trace covers the full 10 km including the R358 leg.
   - `/map` (league): a "The run" panel under the check-in map with the status tag (APPROVED, IN REVIEW, FLAGGED, or NOT YET RUN with a note before any upload). Anchor `data-tour="run-route"`.
   - `/proof/[challengeId]` (participant): "Your route, as the league sees it" under the uploader for the run challenge, so Victor sees the line before submitting. The capture hint now says the GPX line is what gets approved.
   - `/recap`: "The run, as recorded" under the highlight reel once the run is approved.
@@ -65,9 +65,17 @@ Follow-on to `handoff_2026-09-20_settlements-place-labels.md` (state of `main`).
 - `TeamLogo` gained a `title` tooltip when not decorative.
 - Left alone on purpose: the `/login` logo wall and the demo (public, prerendered, no roster to read) and the 32-team kit picker.
 
+### 4. The run is 10 km, not 14 km (follow-up request)
+
+- Every mention was changed: `src/data/league-programme.json` (`requiredRunKm`, the itinerary block, challenge #02 title, prop #01 line 10.25, the demo-only `runDistanceKm` 10.03), `supabase/seed.sql` (event `required_run_km`, itinerary, challenge, prop detail and line), `src/lib/prop-generator.ts` (fallback distance 10, so the generated prop line is 10.25), the tour copy, the prediction slip label, the location-sharing note, the certificate and recap lines ("Ten kilometres"), the demo screens, the review checklist, the map panel, `README.md`, `CLAUDE.md` and the tests (`prop-generator`, `props`, `gpx`). The teaser reads `requiredRunKm` from the programme JSON and follows.
+- **Route description:** the Thursday itinerary read "R358 north 5 km, turn at 6.0 km on the watch, back to town, 2 km town loop" (6 + 6 + 2 = 14). It now reads "R358 north 3 km, turn at 4.0 km on the watch, back to town, 2 km town loop" (4 + 4 + 2 = 10). Those sub-distances are my arithmetic, not a supplied plan; confirm the turnaround point with Victor.
+- **Hosted data:** `seed.sql` is only run on a fresh database, so `20260920001200_run_distance_10km.sql` updates production: `events.required_run_km` 14 → 10 for `pofadder-bowl-2026`, the itinerary item (quarter 2, sequence 3) title and description, challenge #02 title, and prop #01 detail and line 14.25 → 10.25. Every update is guarded on the old value so a re-run is a no-op, and the prop is left alone if it has locked or anyone has already picked a side (the commissioner can regenerate the board from the app in that case; `upsert_props` refuses once picks exist, so the prop would then keep 14.25 until settled as void or re-created).
+- Older handoffs still say 14 km; they are historical records and were left as written.
+
 ## Verified
 
-- `npm run typecheck && npm run lint && npm test` green; `npx next build` green.
+- `npm run typecheck && npm run lint && npm test` green (115 vitest; the distance edits changed expected values, not the count); `npx next build` green.
+- The distance migration on a bare PostgreSQL 16 cluster in the sandbox with shimmed `auth`/`storage` schemas: all seventeen earlier migrations plus the new `seed.sql` applied cleanly; the rows were then rewound to production's 14 km values and the migration converted the event, itinerary item, challenge and prop; a second run changed nothing; with a pick inserted on prop #01 the prop kept 14.25 while the other three rows still converted.
 - Production server on port 3001 + headless Chromium through a temporary `/preview-tmp` page (deleted before commit) at 390 px and 1280 px: roster strip with seven claimed logos and the count label, every icon button tone, the run panel with a synthetic 140-point GPX (line, start and finish dots, stats row 4-up on desktop and 2-up on the phone), the phone tab bar with the active tab in orange, version rows, the member banner with the orange eye-off, the drawer footer with gold icons. No horizontal overflow, no console errors (tile requests are blocked in the sandbox, so the map background is grey; the line and markers draw regardless).
 - Not verified (no backend in the sandbox): the download and parse of a real watch export from storage under RLS as member, commissioner and participant; the Suspense streaming on `/map`, `/review/[id]`, `/proof/[id]` and `/recap` against a real submission; the roster strip against real `claimed_kits` rows; the sign-out and member-view forms behind the new icon buttons (they post the same forms and actions as before).
 
@@ -79,6 +87,7 @@ Follow-on to `handoff_2026-09-20_settlements-place-labels.md` (state of `main`).
 4. Header strip: one logo per member with a kit, count matching Review → Members; hover a logo for the team name.
 5. Every title row shows your own kit; switch to the member view and back with the eye icon in the header (phone: in the Menu drawer footer).
 6. Sign out from the header icon and from the drawer.
+7. After the migration: Review → the run challenge reads "10 km run…", My trip → Thursday 06:30 reads "10 km run", the prop board's first line is 10.25 km (unless it had picks), and the teaser says "A 10 km run".
 
 ## Still open
 
