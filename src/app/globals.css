@@ -683,3 +683,6 @@ a{color:inherit}
 .pb .pb-rating-badge.muted{background:#e4e2d5;color:var(--pb-muted);font:600 11px/1.5 var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.4px;text-transform:uppercase}
 @media(max-width:480px){.pb .pb-rating:not(.small){flex-wrap:wrap}.pb .pb-rating:not(.small) .pb-rating-cells{grid-template-columns:repeat(5,minmax(0,1fr));flex-basis:100%}.pb .pb-rating:not(.small) .pb-rating-score{display:flex;align-items:baseline;gap:7px;text-align:left;margin-left:2px}.pb .pb-rating:not(.small) .pb-rating-score b{font-size:28px}.pb .pb-rating:not(.small) .pb-rating-score small,.pb .pb-rating:not(.small) .pb-rating-score span{margin-top:0}}
 .pb .pb-linklike{display:inline;min-height:0;padding:0;border:0;background:none;color:var(--pb-orange);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+
+/* Proof locker: a failed file offers Retry and Remove side by side */
+.pb .pb-file-actions{display:flex;gap:6px;flex-shrink:0;align-self:center}

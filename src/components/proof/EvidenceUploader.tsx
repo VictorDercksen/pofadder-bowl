@@ -282,7 +282,10 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
               {row.handle ? (
                 <IconButton icon="close" label={`Cancel the upload of ${row.local.name}`} small onClick={() => cancel(row)} />
               ) : row.local.status === "failed" ? (
-                <IconButton icon="retry" label={`Retry uploading ${row.local.name}`} tone="orange" small onClick={uploadAll} disabled={uploading} />
+                <div className="pb-file-actions">
+                  <IconButton icon="retry" label={`Retry uploading ${row.local.name}`} tone="orange" small onClick={uploadAll} disabled={uploading} />
+                  <IconButton icon="trash" label={`Remove ${row.local.name} from the draft`} small onClick={() => removeLocal(row)} />
+                </div>
               ) : row.local.status !== "uploaded" ? (
                 <IconButton icon="trash" label={`Remove ${row.local.name} from the draft`} small onClick={() => removeLocal(row)} />
               ) : null}
