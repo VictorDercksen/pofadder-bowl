@@ -8,6 +8,7 @@ import { getEventScore, requireParticipant } from "@/lib/league";
 import { loadChallenges, loadItinerary } from "@/lib/itinerary";
 import { latestFor, loadSubmissions, statusLabel } from "@/lib/evidence";
 import { loadCheckins, loadLocationSettings } from "@/lib/checkins";
+import { placeLabel } from "@/lib/places";
 import { ageLabel, eventPhase, formatDay, formatTime, quarterNumber } from "@/lib/time";
 
 export const metadata = { title: "My trip" };
@@ -78,7 +79,7 @@ export default async function MyTripPage() {
             <Link className="pb-secondary" href="/map">Check in on the map ↗</Link>
           </div>
           <p className="pb-small" style={{ marginTop: 12 }}>
-            {latest ? `Last shared ${formatTime(latest.captured_at, tz)} (${ageLabel(latest.captured_at)})` : "No check-in shared yet"} · {settings.sharing_enabled ? "League can view" : "Sharing paused"}
+            {latest ? `${placeLabel(latest)} · shared ${formatTime(latest.captured_at, tz)} (${ageLabel(latest.captured_at)})` : "No check-in shared yet"} · {settings.sharing_enabled ? "League can view" : "Sharing paused"}
           </p>
           <div className="pb-chip-row" aria-label="Upload status">
             <span className={`pb-chip ${drafts ? "warn" : ""}`}>{drafts} draft{drafts === 1 ? "" : "s"}</span>

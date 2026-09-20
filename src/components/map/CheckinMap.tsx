@@ -50,7 +50,7 @@ export function CheckinMap({ pins, path = [], focus }: { pins: MapPin[]; path?: 
     <div>
       <LiveMap pins={pins} path={path} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={publicEnv.mapTileAttribution} fallbackLatitude={TOWN_PINS.pofadder.latitude} fallbackLongitude={TOWN_PINS.pofadder.longitude} />
       <div className="pb-map-source">
-        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the route through ${path.length} check-ins, oldest to newest.` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} Grey pins are itinerary venues, not check-ins.
+        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the route through ${path.length} check-ins, oldest to newest.` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} Grey pins are itinerary venues, not check-ins. Place names © <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0).
       </div>
     </div>
   );

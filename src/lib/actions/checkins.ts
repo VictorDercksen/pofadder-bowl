@@ -15,7 +15,8 @@ const checkinSchema = z.object({
 
 /** Participant-only. The RPC re-checks role, consent and de-duplicates by client id. */
 /** `duplicate` is set when the client id was already recorded (same GPS fix sent twice): nothing new was written. */
-export type CheckinResult = ActionResult & { id?: string; duplicate?: boolean };
+/** `placeLabel` is the gazetteer label stored on the row ("10 km N of Malmesbury"); null outside its reach. */
+export type CheckinResult = ActionResult & { id?: string; duplicate?: boolean; placeLabel?: string | null };
 
 export async function recordCheckin(input: z.input<typeof checkinSchema>): Promise<CheckinResult> {
   const parsed = checkinSchema.safeParse(input);
@@ -37,12 +38,12 @@ export async function recordCheckin(input: z.input<typeof checkinSchema>): Promi
   }
   // The RPC de-duplicates by client id and hands back the existing row for a replay.
   const duplicate = Boolean(data?.received_at) && Date.now() - Date.parse(data.received_at) > 10_000;
-  if (duplicate) return { ok: true, duplicate: true, message: "Same GPS fix as the last check-in. Nothing new recorded; move or wait for a fresh fix.", id: data?.id };
+  if (duplicate) return { ok: true, duplicate: true, message: "Same GPS fix as the last check-in. Nothing new recorded; move or wait for a fresh fix.", id: data?.id, placeLabel: data?.place_label ?? null };
   revalidatePath("/map");
   revalidatePath("/game-centre");
   revalidatePath("/my-trip");
   revalidatePath("/recap");
-  return { ok: true, message: "Check-in recorded.", id: data?.id };
+  return { ok: true, message: data?.place_label ? `Check-in recorded · ${data.place_label}.` : "Check-in recorded.", id: data?.id, placeLabel: data?.place_label ?? null };
 }
 
 const settingsSchema = z.object({ sharingEnabled: z.boolean(), autoUpdate: z.boolean() });

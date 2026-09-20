@@ -78,6 +78,7 @@ Prefer the top-level validators: `z.iso.datetime()`, `z.email()`, `z.uuid()`, `z
 - Tiles default to public OpenStreetMap (`resolveTileUrl` in `src/lib/env.ts`); `NEXT_PUBLIC_MAP_TILE_URL=static` shows the labelled regional preview. Attribution must stay visible.
 - The route line is `checkinPath` (oldest → newest). Fit the viewport only when the plotted set changes so viewers are not reset by the poll.
 - Check-ins are participant-only, consent-gated (`location_settings.sharing_enabled`), de-duplicated by client id, and each new one posts to the feed (`record_checkin`). The map is not proof of the run.
+- Positions are shown as a place, never as coordinates: `record_checkin` stores `checkins.place_label` ("10 km N of Malmesbury", "In Pofadder") from `pb_place_label`, which picks the nearest settlement weighted by importance from `public.settlements` (GeoNames, CC BY 4.0, generated migration from `scripts/build-settlements.ts`). Screens print `placeLabel()` from `src/lib/places.ts`, which falls back to coordinates only when the label is null. Keep the GeoNames attribution on the map.
 
 ## Design system
 
@@ -106,7 +107,7 @@ Prefer the top-level validators: `z.iso.datetime()`, `z.email()`, `z.uuid()`, `z
 | Map | `src/components/map/*`, `src/lib/checkin-path.ts` |
 | Schema, RPCs, RLS, storage | `supabase/migrations/*.sql`, `supabase/seed.sql`, `supabase/config.toml` |
 | Programme data and assets | `src/data/league-programme.json`, `public/brand`, `public/nfl`, `public/maps`, `src/fonts` |
-| Scripts | `scripts/` (bootstrap admin, seed fixtures, integration and auth-flow tests, screenshots, cloud setup) |
+| Scripts | `scripts/` (bootstrap admin, seed fixtures, integration and auth-flow tests, screenshots, cloud setup, settlements gazetteer build) |
 | Handoffs | `handoff/` (newest first by name) |
 
 @AGENTS.md

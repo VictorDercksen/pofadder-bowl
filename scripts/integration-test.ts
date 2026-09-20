@@ -110,6 +110,13 @@ async function main() {
     await admin.from("location_settings").update({ sharing_enabled: true }).eq("user_id", ids.participant);
     const { data, error: e3 } = await participant.rpc("record_checkin", args);
     assert.ok(!e3 && data?.id, e3?.message);
+    assert.equal(data?.place_label, "In Pofadder", "check-in must be labelled from the settlements gazetteer");
+    const { data: post } = await member.from("activity_posts").select("body").eq("ref_checkin_id", data!.id).single();
+    assert.ok(post?.body.startsWith("In Pofadder"), `feed post should carry the place label, got ${post?.body}`);
+    const { data: far } = await participant.rpc("pb_place_label", { p_latitude: -33.3708, p_longitude: 18.72714 });
+    assert.equal(far, "10 km N of Malmesbury");
+    const { data: gazetteer } = await member.from("settlements").select("geonames_id").limit(1);
+    assert.equal(gazetteer?.length, 1, "members read the settlements table");
     const { data: again } = await participant.rpc("record_checkin", args);
     assert.equal(again?.id, data?.id, "duplicate client id must not create a second check-in");
     const { data: visible } = await member.from("checkins").select("id").eq("event_id", event.id);

@@ -67,7 +67,8 @@ npm run screenshots      # Playwright: every screen × 3 roles × 360/390/1280 p
 Key server-side behaviour (`20260916000200_functions.sql`):
 
 - `review_submission` — transactional, idempotent approval/flag/supersede with row locks and version check; approving a newer version records an explicit `superseded` decision for the previously approved one. Score is the `event_scores` view over approved state, never a counter.
-- `record_checkin` — participant only, requires sharing consent, deduplicates by client id; `remove_checkins` hides history.
+- `record_checkin` — participant only, requires sharing consent, deduplicates by client id, and labels the position from the settlements gazetteer (`place_label`, e.g. “10 km N of Malmesbury”), which the feed post and every screen show instead of coordinates; `remove_checkins` hides history.
+- `settlements` — populated places of South Africa from [GeoNames](https://www.geonames.org) (CC BY 4.0), loaded by a generated migration (`npx tsx scripts/build-settlements.ts` rebuilds it from a fresh dump). `pb_nearest_settlement` picks the closest place weighted by importance (town 3, village 2, hamlet 1) and `pb_place_label` turns it into “In Pofadder” or “18 km N of Garies”.
 - `ensure_bingo_card`, `propose_bingo_incident`, `decide_bingo_incident` (commissioner; detects rows/columns/diagonals/full house for every card, first completion only), `bingo_leaderboard` (no layouts leak).
 - `upsert_prediction` — rejects writes at/after `events.prediction_lock_at` (departure); `predictions_revealed` hides others until `prediction_reveal_at`; `resolve_predictions` awards closest/exact with shared ties.
 - `issue_certificate` / `set_certificate_consent` / `public_certificate` — certificate stays pending until a commissioner issues it; a public recap needs commissioner publication **and** participant consent.
@@ -89,5 +90,6 @@ Storage: private bucket `evidence`, object path `{event_id}/{user_id}/{submissio
 
 - Event dates come from `supabase/seed.sql` / `data/league-programme.json` (user-supplied plans, not independently verified). Phase and countdowns derive from the configured event instants.
 - The 2024 standings and final-game roster are shown as supplied; apparent team/result mismatches are marked “supplied · unverified” rather than corrected.
+- Place names on check-ins come from the GeoNames gazetteer (CC BY 4.0); the attribution sits under the map.
 - The teaser poster is used whole (public teaser, share/download); the CSS “PB” shield covers tiny UI slots. Team marks are ESPN-hosted PNGs used as design references; the league is unofficial and not NFL-affiliated.
 - Barlow is supplied in weights 400/600 only; the mockup’s 500/700 body weights are mapped to those. Barlow Condensed 500/700/900 are supplied.

@@ -390,6 +390,7 @@ export type Database = {
           id: string
           latitude: number
           longitude: number
+          place_label: string | null
           received_at: string
           removed_at: string | null
           user_id: string
@@ -402,6 +403,7 @@ export type Database = {
           id?: string
           latitude: number
           longitude: number
+          place_label?: string | null
           received_at?: string
           removed_at?: string | null
           user_id: string
@@ -414,6 +416,7 @@ export type Database = {
           id?: string
           latitude?: number
           longitude?: number
+          place_label?: string | null
           received_at?: string
           removed_at?: string | null
           user_id?: string
@@ -1185,6 +1188,42 @@ export type Database = {
           },
         ]
       }
+      settlements: {
+        Row: {
+          ascii_name: string
+          feature_code: string
+          geonames_id: number
+          latitude: number
+          longitude: number
+          name: string
+          population: number
+          province: string | null
+          tier: number
+        }
+        Insert: {
+          ascii_name: string
+          feature_code: string
+          geonames_id: number
+          latitude: number
+          longitude: number
+          name: string
+          population?: number
+          province?: string | null
+          tier: number
+        }
+        Update: {
+          ascii_name?: string
+          feature_code?: string
+          geonames_id?: number
+          latitude?: number
+          longitude?: number
+          name?: string
+          population?: number
+          province?: string | null
+          tier?: number
+        }
+        Relationships: []
+      }
       sleeper_league_users: {
         Row: {
           avatar: string | null
@@ -1487,12 +1526,38 @@ export type Database = {
       my_event_role: { Args: { p_event: string }; Returns: string }
       pb_event_league: { Args: { p_event: string }; Returns: string }
       pb_is_admin: { Args: { p_league: string }; Returns: boolean }
+      pb_bearing_deg: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
+      pb_compass: { Args: { p_bearing: number }; Returns: string }
+      pb_distance_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       pb_is_commissioner: { Args: { p_league: string }; Returns: boolean }
       pb_is_event_admin: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_commissioner: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_member: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_participant: { Args: { p_event: string }; Returns: boolean }
       pb_is_member: { Args: { p_league: string }; Returns: boolean }
+      pb_nearest_settlement: {
+        Args: { p_latitude: number; p_longitude: number }
+        Returns: {
+          bearing_deg: number
+          compass: string
+          distance_km: number
+          geonames_id: number
+          name: string
+          population: number
+          province: string
+          tier: number
+        }[]
+      }
+      pb_place_label: {
+        Args: { p_latitude: number; p_longitude: number }
+        Returns: string
+      }
       pb_shares_league: { Args: { p_user: string }; Returns: boolean }
       propose_bingo_incident: {
         Args: { p_event: string; p_note?: string; p_square: string }
@@ -1535,6 +1600,7 @@ export type Database = {
           id: string
           latitude: number
           longitude: number
+          place_label: string | null
           received_at: string
           removed_at: string | null
           user_id: string

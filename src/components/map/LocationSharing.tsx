@@ -55,7 +55,8 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
               if (res.ok && res.duplicate) {
                 setNote({ text: res.message ?? "Nothing new recorded.", tone: "warn" });
               } else if (res.ok) {
-                setNote({ text: weak ? `Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, tone: weak ? "warn" : "ok" });
+                const where = res.placeLabel ? `${res.placeLabel} · ` : "";
+                setNote({ text: weak ? `${where}Check-in saved with weak accuracy (±${Math.round(pos.coords.accuracy)} m). Step outside for a better fix.` : `${where}Check-in saved (±${Math.round(pos.coords.accuracy)} m). It is on the league map now.`, tone: weak ? "warn" : "ok" });
                 router.refresh();
               } else setNote({ text: res.message, tone: "error" });
             } catch {

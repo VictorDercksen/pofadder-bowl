@@ -13,6 +13,7 @@ import { checkinPath } from "@/lib/checkin-path";
 import { sleeperLeagueId } from "@/lib/env";
 import { loadCheckins, participantName } from "@/lib/checkins";
 import { nextItinerary } from "@/lib/itinerary";
+import { placeLabel } from "@/lib/places";
 import { ageLabel, eventPhase, formatDay, formatTime, isStale, PHASE_HEADINGS, QUARTER_LABELS, quarterNumber } from "@/lib/time";
 
 export const metadata = { title: "Game centre" };
@@ -61,10 +62,10 @@ export default async function GameCentrePage() {
 
       <div className="pb-centre-top">
         <div className="pb-panel pb-plain-map">
-          <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+          <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
-              <b>{latest ? `Last check-in · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>
+              <b>{latest ? `${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>
               <span className="pb-small">{latest ? `${ageLabel(latest.captured_at)} · ±${latest.accuracy_m != null ? Math.round(latest.accuracy_m) : "?"} m${isStale(latest.captured_at) ? " · stale" : ""}` : "Waiting for the participant to share a position."}</span>
             </div>
             <Link className="pb-text-action" href="/map">Open map ↗</Link>

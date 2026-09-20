@@ -5,6 +5,7 @@ import { LocationSharing } from "@/components/map/LocationSharing";
 import { getLeagueContext } from "@/lib/league";
 import { checkinPath } from "@/lib/checkin-path";
 import { loadCheckins, loadLocationSettings, participantName } from "@/lib/checkins";
+import { placeLabel } from "@/lib/places";
 import { ageLabel, formatDay, formatTime, isStale } from "@/lib/time";
 
 export const metadata = { title: "Check-in map" };
@@ -19,8 +20,8 @@ export default async function MapPage() {
   const path = checkinPath(checkins);
 
   const pins: MapPin[] = [
-    ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []),
-    ...checkins.slice(1).map((c) => ({ id: c.id, latitude: c.latitude, longitude: c.longitude, label: `${formatDay(c.captured_at, tz)} ${formatTime(c.captured_at, tz)}`, kind: "history" as const })),
+    ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []),
+    ...checkins.slice(1).map((c) => ({ id: c.id, latitude: c.latitude, longitude: c.longitude, label: `${placeLabel(c)} · ${formatDay(c.captured_at, tz)} ${formatTime(c.captured_at, tz)}`, kind: "history" as const })),
     ...(places ?? []).filter((p) => p.latitude != null && p.longitude != null).map((p) => ({ id: p.id, latitude: p.latitude as number, longitude: p.longitude as number, label: p.title, kind: "place" as const })),
   ];
 
@@ -33,7 +34,7 @@ export default async function MapPage() {
           <CheckinMap pins={pins} path={path} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
-              <b>{latest ? `${name} · ${latest.latitude.toFixed(4)}, ${latest.longitude.toFixed(4)}` : "No device check-in yet"}</b>
+              <b>{latest ? `${name} · ${placeLabel(latest)}` : "No device check-in yet"}</b>
               <span className="pb-small">
                 {latest
                   ? `Captured ${formatDay(latest.captured_at, tz)} ${formatTime(latest.captured_at, tz)} SAST (${ageLabel(latest.captured_at)}) · accuracy ${latest.accuracy_m != null ? `±${Math.round(latest.accuracy_m)} m` : "unknown"}${isStale(latest.captured_at) ? " · stale" : ""}`
@@ -47,14 +48,12 @@ export default async function MapPage() {
           {ctx.isParticipant && settings ? <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} /> : null}
           <div className="pb-panel" style={ctx.isParticipant && settings ? { marginTop: 18 } : undefined}>
             <h3>Check-in history{checkins.length ? ` · ${checkins.length}` : ""}</h3>
-            {checkins.length === 0 ? <p className="pb-small">Nothing yet. Check-ins appear here with capture time, receive time and accuracy.</p> : null}
+            {checkins.length === 0 ? <p className="pb-small">Nothing yet. Check-ins appear here as a place (“10 km N of Malmesbury”) with capture time, receive time and accuracy.</p> : null}
             {checkins.slice(0, 12).map((c) => (
               <div className="pb-challenge" key={c.id}>
                 <span className="pb-time">{formatTime(c.captured_at, tz)}</span>
                 <div>
-                  <strong>
-                    {c.latitude.toFixed(4)}, {c.longitude.toFixed(4)}
-                  </strong>
+                  <strong>{placeLabel(c)}</strong>
                   <p>
                     {formatDay(c.captured_at, tz)} · captured {formatTime(c.captured_at, tz)} · received {formatTime(c.received_at, tz)} · {c.accuracy_m != null ? `±${Math.round(c.accuracy_m)} m` : "accuracy unknown"}
                     {c.accuracy_m != null && c.accuracy_m > 250 ? " · weak accuracy" : ""}
