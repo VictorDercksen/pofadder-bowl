@@ -163,16 +163,6 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     persist(next, caption, submissionId);
   }
 
-  /** Writes the score to the server draft as soon as it is picked; before a draft exists it waits for the first save or submit. */
-  function pickRating(n: number) {
-    setRating(n);
-    if (!submissionId) return;
-    startTransition(async () => {
-      const res = await updateRating({ submissionId, rating: n });
-      if (!res.ok) toast(res.message, "error");
-    });
-  }
-
   function saveCaption() {
     startTransition(async () => {
       await persist(rows, caption, submissionId);
@@ -316,8 +306,8 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       {rated && editable ? (
         <div className="pb-field" data-tour="proof-rating">
           {ratingLabel}
-          <RatingSelector value={rating} label={ratingLabel} onChange={pickRating} caption="your call" />
-          <p className="pb-small" style={{ marginTop: 6 }}>Pick the score before you submit. It goes on the record with the clip and settles the league’s rating predictions.</p>
+          <RatingSelector value={rating} label={ratingLabel} onChange={setRating} caption="your call" />
+          <p className="pb-small" style={{ marginTop: 6 }}>Pick the score before you submit. It is saved with Save draft or Submit, goes on the record with the clip and settles the league’s rating predictions.</p>
         </div>
       ) : null}
       {rated && !editable && current ? (
