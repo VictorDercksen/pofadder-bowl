@@ -15,13 +15,17 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
 }
 
-/** A league member's pin: kit-coloured badge with the team logo (or initials), faded when stale. */
-function memberIcon(pin: MapPin) {
+/**
+ * A badge pin: kit-coloured, with the team logo (or initials), faded when stale. Members and
+ * the participant's latest check-in share it; the latter adds the orange halo of the route.
+ */
+function badgeIcon(pin: MapPin) {
   const kit = kitFor(pin.team);
   const face = pin.team ? `<img src="${teamLogoSrc(pin.team)}" alt="" width="22" height="22" loading="lazy" />` : `<b>${escapeHtml(memberInitials(pin.name ?? ""))}</b>`;
+  const classes = ["pb-member-pin", pin.kind === "current" ? "current" : "", pin.stale ? "stale" : ""].filter(Boolean).join(" ");
   return L.divIcon({
     className: "",
-    html: `<span class="pb-member-pin${pin.stale ? " stale" : ""}" style="--kit:${kit.body};--kit-accent:${kit.accent}"><span class="pb-member-pin-head">${face}</span><span class="pb-member-pin-tail"></span></span>`,
+    html: `<span class="${classes}" style="--kit:${kit.body};--kit-accent:${kit.accent}"><span class="pb-member-pin-head">${face}</span><span class="pb-member-pin-tail"></span></span>`,
     iconSize: [36, 44],
     iconAnchor: [18, 42],
     popupAnchor: [0, -38],
@@ -29,13 +33,12 @@ function memberIcon(pin: MapPin) {
 }
 
 function icon(pin: MapPin) {
-  if (pin.kind === "member") return memberIcon(pin);
-  const kind = pin.kind;
-  const colour = kind === "current" ? ROUTE_COLOUR : kind === "history" ? "#183b2f" : "#687366";
-  const size = kind === "current" ? 18 : 12;
+  if (pin.kind === "member" || pin.kind === "current") return badgeIcon(pin);
+  const colour = pin.kind === "history" ? "#183b2f" : "#687366";
+  const size = 12;
   return L.divIcon({
     className: "",
-    html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:50%;background:${colour};border:3px solid #fffcf5;box-shadow:0 0 0 1px ${colour}${kind === "current" ? ",0 0 0 9px #d8643624" : ""}"></span>`,
+    html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:50%;background:${colour};border:3px solid #fffcf5;box-shadow:0 0 0 1px ${colour}"></span>`,
     iconSize: [size + 6, size + 6],
     iconAnchor: [(size + 6) / 2, (size + 6) / 2],
   });
@@ -179,7 +182,7 @@ export function LiveMap({
       </div>
       {full ? (
         <div className="pb-map-legend" aria-label="Legend">
-          <span><i className="pb-legend-dot current" /> Latest check-in</span>
+          <span><i className="pb-legend-badge current" /> Latest check-in (the participant’s kit)</span>
           {path.length > 1 ? <span><i className="pb-legend-line" /> Route, oldest to newest</span> : null}
           <span><i className="pb-legend-dot history" /> Earlier check-ins</span>
           {hasPlaces ? <span><i className="pb-legend-dot place" /> Itinerary venues</span> : null}

@@ -8,7 +8,7 @@ import { MemberBadge } from "@/components/ui/Marks";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { getLeagueContext } from "@/lib/league";
 import { checkinPath } from "@/lib/checkin-path";
-import { loadCheckins, loadLocationSettings, loadMemberLocations, ownMemberLocation, participantName } from "@/lib/checkins";
+import { loadCheckins, loadLocationSettings, loadMemberLocations, ownMemberLocation, participantProfile } from "@/lib/checkins";
 import { isMemberPinStale, memberPins } from "@/lib/member-locations";
 import { placeLabel } from "@/lib/places";
 import { loadRunSubmission } from "@/lib/run-track";
@@ -18,7 +18,8 @@ export const metadata = { title: "Check-in map" };
 
 export default async function MapPage() {
   const ctx = await getLeagueContext();
-  const [checkins, settings, name, run, members] = await Promise.all([loadCheckins(ctx), ctx.isParticipant ? loadLocationSettings(ctx) : null, participantName(ctx), loadRunSubmission(ctx), loadMemberLocations(ctx)]);
+  const [checkins, settings, participant, run, members] = await Promise.all([loadCheckins(ctx), ctx.isParticipant ? loadLocationSettings(ctx) : null, participantProfile(ctx), loadRunSubmission(ctx), loadMemberLocations(ctx)]);
+  const name = participant.name;
   const { data: places } = await ctx.supabase.from("itinerary_items").select("id, title, venue_text, latitude, longitude, location_verified").eq("event_id", ctx.event.id).eq("location_verified", true);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
@@ -32,7 +33,7 @@ export default async function MapPage() {
   const own = ownMemberLocation(ctx, members);
 
   const pins: MapPin[] = [
-    ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []),
+    ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const, team: participant.kitTeam, name }] : []),
     ...checkins.slice(1).map((c) => ({ id: c.id, latitude: c.latitude, longitude: c.longitude, label: `${placeLabel(c)} · ${formatDay(c.captured_at, tz)} ${formatTime(c.captured_at, tz)}`, kind: "history" as const })),
     ...(places ?? []).filter((p) => p.latitude != null && p.longitude != null).map((p) => ({ id: p.id, latitude: p.latitude as number, longitude: p.longitude as number, label: p.title, kind: "place" as const })),
     ...memberPinList,

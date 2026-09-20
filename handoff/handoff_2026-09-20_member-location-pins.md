@@ -53,6 +53,14 @@ League members (not only the participant) should be able to share their current 
 - `TOUR_VERSION` stays 1: the layout auto-starts the tour only while `tutorial_completed_at` is null, so members who already finished it are not replayed; they can replay from League access. Bumping the version would also need the comparison in `(league)/layout.tsx`.
 - Tests in `tour.test.ts` cover order, hrefs, targets and the role scoping of the three steps (149 vitest).
 
+## Follow-up in the same session: the latest check-in as a badge pin
+
+- Asked: the participant's latest location should show a pin like the members' pins.
+- `LiveMap` now draws the `current` pin with the same `badgeIcon` as members (kit colours, team logo or initials) plus the route's orange halo and an orange tail edge (`.pb-member-pin.current`), so it still reads as the head of the route. Earlier check-ins stay small green dots; venues grey.
+- `participantProfile(ctx)` in `src/lib/checkins.ts` returns name and `kit_team` (null until a franchise is claimed → initials); `participantName` wraps it. `/map` and `/game-centre` pass `team` and `name` on the current pin.
+- Legend, map source line and the tour's map step now describe "the badge with the orange halo" instead of "the orange pin".
+- Verified in headless Chromium through the temporary preview page: the current pin renders with the logo and halo at the route tip, members' badges and history dots unchanged, no console errors; typecheck, lint, 149 tests and `next build` pass.
+
 ## Verified
 
 - SQL on a bare PostgreSQL 16 cluster in the sandbox with shimmed `auth`/`storage` schemas: all twenty earlier migrations plus `seed.sql`, then the new migration twice (second run a no-op). As a member: share labels "10 km N of Malmesbury", a second share moves the same row to "In Pofadder" (still one row), the reader returns name and kit, direct insert/update/delete on the table are refused (`permission denied`), a 3-day-old `captured_at` is refused, clear returns true then false. As the participant: sharing works alongside check-ins. As an outsider: share refused, reader and table empty. `anon` is denied the reader. The table is in the publication.

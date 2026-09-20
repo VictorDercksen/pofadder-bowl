@@ -24,10 +24,15 @@ export async function loadLocationSettings(ctx: LeagueContext) {
   return { sharing_enabled: data?.sharing_enabled ?? false, auto_update: data?.auto_update ?? true };
 }
 
+/** The participant's name and kit (null until a franchise is claimed), for the latest check-in's badge pin. */
+export async function participantProfile(ctx: LeagueContext): Promise<{ name: string; kitTeam: string | null }> {
+  if (!ctx.event.participant_user_id) return { name: "Participant", kitTeam: null };
+  const { data } = await ctx.supabase.from("profiles").select("display_name, kit_team").eq("id", ctx.event.participant_user_id).maybeSingle();
+  return { name: data?.display_name ?? "Participant", kitTeam: data?.kit_team ?? null };
+}
+
 export async function participantName(ctx: LeagueContext): Promise<string> {
-  if (!ctx.event.participant_user_id) return "Participant";
-  const { data } = await ctx.supabase.from("profiles").select("display_name").eq("id", ctx.event.participant_user_id).maybeSingle();
-  return data?.display_name ?? "Participant";
+  return (await participantProfile(ctx)).name;
 }
 
 /** Every member pin of the event (latest shared position per member), newest first. Empty until the member-locations migration is applied. */

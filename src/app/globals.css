@@ -713,3 +713,8 @@ a{color:inherit}
 .pb .pb-legend-badge{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pb-green);border:2px solid #fffcf5;box-shadow:0 0 0 1px var(--pb-green);flex-shrink:0}
 @media (max-width:580px){.pb .pb-map-legend{bottom:24px;font-size:10px;padding:7px 9px}}
 
+/* The participant's latest check-in: the same badge pin, with the route's orange halo */
+.pb .pb-member-pin.current .pb-member-pin-head{box-shadow:0 0 0 1.5px #cc542b,0 0 0 9px #d8643624}
+.pb .pb-member-pin.current .pb-member-pin-tail{border-right-color:#cc542b;border-bottom-color:#cc542b}
+.pb .pb-legend-badge.current{box-shadow:0 0 0 1.5px #cc542b,0 0 0 4px #d8643624}
+

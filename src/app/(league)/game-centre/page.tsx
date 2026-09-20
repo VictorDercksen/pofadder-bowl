@@ -8,7 +8,7 @@ import { SidelineFeed } from "@/components/feed/SidelineFeed";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadFeed } from "@/lib/feed";
 import { checkinPath } from "@/lib/checkin-path";
-import { loadCheckins, loadMemberLocations, participantName } from "@/lib/checkins";
+import { loadCheckins, loadMemberLocations, participantProfile } from "@/lib/checkins";
 import { memberPins } from "@/lib/member-locations";
 import { nextItinerary } from "@/lib/itinerary";
 import { placeLabel } from "@/lib/places";
@@ -20,14 +20,15 @@ export default async function GameCentrePage() {
   const ctx = await getLeagueContext();
   const now = new Date();
   const phase = eventPhase(ctx.event, now);
-  const [score, checkins, name, next, feedResult, members] = await Promise.all([
+  const [score, checkins, participant, next, feedResult, members] = await Promise.all([
     getEventScore(ctx),
     loadCheckins(ctx),
-    participantName(ctx),
+    participantProfile(ctx),
     nextItinerary(ctx, now),
     loadFeed(ctx).then((page) => ({ ...page, error: null as string | null })).catch((e: Error) => ({ posts: [], hasMore: false, error: e.message })),
     loadMemberLocations(ctx),
   ]);
+  const name = participant.name;
   const latest = checkins[0];
   const tz = ctx.event.timezone;
   const q = quarterNumber(phase);
@@ -62,7 +63,7 @@ export default async function GameCentrePage() {
 
       <div className="pb-centre-top">
         <div className="pb-panel pb-plain-map" data-tour="live-map">
-          <CheckinMap pins={[...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []), ...memberPinList]} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+          <CheckinMap pins={[...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const, team: participant.kitTeam, name }] : []), ...memberPinList]} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
               <b>{latest ? `${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>

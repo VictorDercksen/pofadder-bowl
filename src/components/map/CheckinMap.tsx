@@ -6,9 +6,10 @@ import { publicEnv } from "@/lib/env";
 import { TOWN_PINS } from "@/lib/programme";
 
 /**
- * A plotted point. `current`/`history` are the participant's check-ins (the route), `place` an
- * itinerary venue, `member` a league member's shared position: a kit-coloured badge pin that is
- * never part of the route line and never drives the viewport.
+ * A plotted point. `current`/`history` are the participant's check-ins (the route; the latest
+ * one is a kit-badge pin with an orange halo), `place` an itinerary venue, `member` a league
+ * member's shared position: the same kit-badge pin, never part of the route line and never
+ * driving the viewport.
  */
 export type MapPin = {
   id: string;
@@ -16,9 +17,9 @@ export type MapPin = {
   longitude: number;
   label: string;
   kind: "current" | "history" | "place" | "member";
-  /** Member pins: kit code for the badge colours and logo (null → initials on league green). */
+  /** Badge pins (`current`, `member`): kit code for the colours and logo (null → initials on league green). */
   team?: string | null;
-  /** Member pins: display name, for the initials fallback. */
+  /** Badge pins: display name, for the initials fallback. */
   name?: string;
   /** Member pins: drawn faded when the position is hours old. */
   stale?: boolean;
@@ -68,7 +69,7 @@ export function CheckinMap({ pins, path = [], focus }: { pins: MapPin[]; path?: 
     <div>
       <LiveMap pins={pins} path={path} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={publicEnv.mapTileAttribution} fallbackLatitude={TOWN_PINS.pofadder.latitude} fallbackLongitude={TOWN_PINS.pofadder.longitude} />
       <div className="pb-map-source">
-        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the road route through ${path.length} check-ins, oldest to newest (a leg stays straight where no road was found).` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} Grey pins are itinerary venues, not check-ins.{memberCount > 0 ? ` Team-badge pins are ${memberCount === 1 ? "one league member's" : `${memberCount} league members'`} shared positions, not part of the route.` : ""} Place names © <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0).
+        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the road route through ${path.length} check-ins, oldest to newest (a leg stays straight where no road was found).` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} The badge with the orange halo is the latest check-in. Grey pins are itinerary venues, not check-ins.{memberCount > 0 ? ` Team-badge pins are ${memberCount === 1 ? "one league member's" : `${memberCount} league members'`} shared positions, not part of the route.` : ""} Place names © <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0).
       </div>
     </div>
   );
