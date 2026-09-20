@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MB, RESUMABLE_THRESHOLD, classify, formatBytes, safeExtension, validateFile } from "./evidence-rules";
+import { MB, RESUMABLE_THRESHOLD, STORAGE_MAX_BYTES, classify, formatBytes, safeExtension, validateFile } from "./evidence-rules";
 
 describe("upload validation", () => {
   it("classifies by mime and extension", () => {
@@ -13,11 +13,17 @@ describe("upload validation", () => {
   it("enforces size limits per kind", () => {
     expect(validateFile("image/png", "a.png", 26 * MB)).toMatchObject({ ok: false });
     expect(validateFile("image/png", "a.png", 2 * MB)).toMatchObject({ ok: true, kind: "photo" });
-    expect(validateFile("video/mp4", "a.mp4", 501 * MB)).toMatchObject({ ok: false });
     expect(validateFile("video/mp4", "a.mp4", 0)).toMatchObject({ ok: false });
   });
-  it("routes large files to resumable uploads", () => {
-    expect(RESUMABLE_THRESHOLD).toBe(6 * MB);
+  it("refuses clips over the storage cap with a hint, before any upload", () => {
+    const res = validateFile("video/quicktime", "IMG_7280.mov", 72 * MB);
+    expect(res).toMatchObject({ ok: false });
+    expect(res.ok ? "" : res.reason).toMatch(/50 MB.*72\.0 MB.*Trim/);
+    expect(validateFile("video/quicktime", "IMG_7281.mov", 49 * MB)).toMatchObject({ ok: true, kind: "video" });
+  });
+  it("sends everything the plan can take as one direct upload; resumable only above the cap", () => {
+    expect(STORAGE_MAX_BYTES).toBe(50 * MB);
+    expect(RESUMABLE_THRESHOLD).toBe(STORAGE_MAX_BYTES);
   });
   it("sanitises extensions", () => {
     expect(safeExtension("clip.MOV")).toBe("mov");

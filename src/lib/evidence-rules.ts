@@ -3,14 +3,23 @@
 export type EvidenceKind = "photo" | "video" | "audio" | "document" | "gps";
 
 export const MB = 1024 * 1024;
-/** Files at or below this size use a single signed upload; larger files use resumable TUS uploads. */
-export const RESUMABLE_THRESHOLD = 6 * MB;
+/**
+ * The project's upload cap: Supabase Storage refuses anything bigger with 413 before a byte is
+ * sent (Free plan maximum 50 MB; raise this together with the plan's "Upload file size limit").
+ */
+export const STORAGE_MAX_BYTES = 50 * MB;
+/**
+ * Files at or below this size go up as one direct signed upload (the path every photo takes);
+ * larger files use resumable TUS uploads. Set to the cap so the resumable path only carries
+ * files the plan can take once it is raised.
+ */
+export const RESUMABLE_THRESHOLD = STORAGE_MAX_BYTES;
 export const TUS_CHUNK_SIZE = 6 * MB; // required by Supabase Storage
 
 export const LIMITS: Record<EvidenceKind, { maxBytes: number; label: string }> = {
   photo: { maxBytes: 25 * MB, label: "Photos up to 25 MB" },
-  video: { maxBytes: 500 * MB, label: "Clips up to 500 MB" },
-  audio: { maxBytes: 50 * MB, label: "Audio up to 50 MB" },
+  video: { maxBytes: STORAGE_MAX_BYTES, label: "Clips up to 50 MB" },
+  audio: { maxBytes: STORAGE_MAX_BYTES, label: "Audio up to 50 MB" },
   document: { maxBytes: 25 * MB, label: "Receipts/PDFs up to 25 MB" },
   gps: { maxBytes: 25 * MB, label: "Watch exports up to 25 MB" },
 };
@@ -49,7 +58,10 @@ export function validateFile(mimeType: string, fileName: string, byteSize: numbe
   if (!c) return { ok: false, reason: `Unsupported file type (${mimeType || "unknown"}). Use photos, MP4/MOV clips, PDFs or watch exports (GPX/TCX/FIT).` };
   if (!Number.isFinite(byteSize) || byteSize <= 0) return { ok: false, reason: "The file is empty." };
   const limit = LIMITS[c.kind];
-  if (byteSize > limit.maxBytes) return { ok: false, reason: `${limit.label}. This file is ${(byteSize / MB).toFixed(1)} MB.` };
+  if (byteSize > limit.maxBytes) {
+    const hint = c.kind === "video" ? " Trim it in Photos or record at 1080p / 30 fps; a minute at that setting is about 60 MB, so keep clips short." : "";
+    return { ok: false, reason: `${limit.label}. This file is ${(byteSize / MB).toFixed(1)} MB.${hint}` };
+  }
   return { ok: true, kind: c.kind, mime: c.mime };
 }
 

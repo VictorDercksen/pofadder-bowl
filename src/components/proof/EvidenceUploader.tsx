@@ -7,7 +7,7 @@ import { RatingSelector } from "@/components/ui/RatingSelector";
 import { toast } from "@/lib/toast-store";
 import { createDraft, deleteDraftFile, submitDraft, updateCaption, updateRating } from "@/lib/actions/evidence";
 import { formatBytes, validateFile } from "@/lib/evidence-rules";
-import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
+import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle, type UploadStage } from "@/lib/uploads";
 import { useOnline } from "@/lib/hooks";
 import { newId } from "@/lib/ids";
 
@@ -33,7 +33,7 @@ type Props = {
 
 export type EvidenceUploaderHandle = { addFile: (file: File) => void };
 
-type Row = { local: LocalDraftFile; progress: number; handle?: UploadHandle };
+type Row = { local: LocalDraftFile; progress: number; stage?: UploadStage; handle?: UploadHandle };
 
 /**
  * Evidence locker: pick files, keep a local draft in IndexedDB, upload directly to
@@ -138,7 +138,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       for (const row of queue) {
         // The same name, type, size and lastModified give tus a stable fingerprint, so an interrupted large upload resumes.
         const file = new File([row.local.blob], row.local.name, { type: row.local.type, lastModified: row.local.lastModified ?? 0 });
-        const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0 } : r))));
+        const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0, stage: p.stage } : r))));
         setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
         const res = await handle.done;
         outcomes.set(row.local.id, { ok: res.ok, message: res.ok ? undefined : res.message });
@@ -251,7 +251,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
         <>
           <div className="pb-drop">
             <h3>Bring receipts. Literally.</h3>
-            <p>Photos, video, receipts and watch exports live here. Files stay on this device as a draft until you upload them.</p>
+            <p>Photos, video, receipts and watch exports live here. Files stay on this device as a draft until you upload them. Clips up to 50 MB: keep them short or record at 1080p.</p>
             <div className="pb-actions" style={{ justifyContent: "center" }}>
               <label className="pb-secondary" style={{ cursor: "pointer" }}>
                 Choose files
@@ -271,7 +271,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
                 <b style={{ overflowWrap: "anywhere" }}>{row.local.name}</b>
                 <br />
                 <span className="pb-small">
-                  {formatBytes(row.local.size)} · {row.local.status === "uploaded" ? "Uploaded" : row.local.status === "failed" ? `Failed · ${row.local.error}` : row.handle ? `Uploading ${Math.round(row.progress * 100)}%` : "Draft on this device"}
+                  {formatBytes(row.local.size)} · {row.local.status === "uploaded" ? "Uploaded" : row.local.status === "failed" ? `Failed · ${row.local.error}` : row.handle ? (row.stage === "preparing" ? "Preparing the upload…" : row.stage === "saving" ? "Saving to the locker…" : `Uploading ${Math.round(row.progress * 100)}%`) : "Draft on this device"}
                 </span>
                 {row.handle ? (
                   <div className="pb-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(row.progress * 100)} aria-label={`Upload progress for ${row.local.name}`}>
