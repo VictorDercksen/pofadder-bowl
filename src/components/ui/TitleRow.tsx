@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { TeamLogo } from "@/components/ui/Marks";
 
-export function TitleRow({ kicker, title, blurb, tag, team = "nyg", identity }: { kicker: string; title: string; blurb?: ReactNode; tag?: string; team?: string | null; identity?: ReactNode }) {
+/** Page header. `team` is the viewer's own kit (ctx.profile.kit_team); without one the league shield shows, never a stand-in franchise. */
+export function TitleRow({ kicker, title, blurb, tag, team = null, identity }: { kicker: string; title: string; blurb?: ReactNode; tag?: string; team?: string | null; identity?: ReactNode }) {
   return (
     <div className="pb-title-row">
       <div>

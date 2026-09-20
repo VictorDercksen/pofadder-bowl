@@ -6,6 +6,7 @@ import { useState } from "react";
 import { JerseyCard } from "@/components/ui/JerseyCard";
 import { LeaguePatch, PbShield, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { IconLink, IconTab } from "@/components/ui/IconButton";
 import { OriginStory } from "@/components/trip/OriginStory";
 import { formatLine, sideLabel, sidesFor, type PropKind } from "@/lib/props";
 import { DEMO_PROPS, DEMO_QUESTIONS, DemoStatus, useDemo } from "./DemoStore";
@@ -85,7 +86,7 @@ export function DemoCentre() {
                 {state.checkin} · {state.sharing ? "Sharing with the league" : "Sharing paused"}
               </span>
             </div>
-            <Link className="pb-text-action" href="/demo/map">Open map ↗</Link>
+            <IconLink icon="map" label="Open the check-in map" href="/demo/map" />
           </div>
         </div>
         <div className="pb-next-drive">
@@ -186,11 +187,12 @@ export function DemoTrip() {
             <h3>22:30. Don’t miss it.</h3>
             <p>Return bus · KLK Garage</p>
           </div>
-          <div className="pb-phone-tabs">
-            <Link href="/demo/my-trip">My trip</Link>
-            <Link href="/demo/proof">Proof</Link>
-            <Link href="/demo/props">Props</Link>
-          </div>
+          <nav className="pb-phone-tabs" aria-label="Phone tabs">
+            <IconTab icon="flag" label="My trip" href="/demo/my-trip" current />
+            <IconTab icon="camera" label="Proof" href="/demo/proof" />
+            <IconTab icon="board" label="Props" href="/demo/props" />
+            <IconTab icon="feed" label="Main feed" href="/demo" />
+          </nav>
         </div>
         <div>
           <div className="pb-panel">

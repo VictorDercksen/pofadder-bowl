@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
 import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
+import { IconButton } from "@/components/ui/IconButton";
 import { createDraft, deleteDraftFile, submitDraft, updateCaption } from "@/lib/actions/evidence";
 import { formatBytes, validateFile } from "@/lib/evidence-rules";
 import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
@@ -251,11 +252,11 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
                 ) : null}
               </div>
               {row.handle ? (
-                <button className="pb-text-action" type="button" onClick={() => cancel(row)}>Cancel</button>
+                <IconButton icon="close" label={`Cancel the upload of ${row.local.name}`} small onClick={() => cancel(row)} />
               ) : row.local.status === "failed" ? (
-                <button className="pb-text-action" type="button" onClick={uploadAll} disabled={uploading}>Retry</button>
+                <IconButton icon="retry" label={`Retry uploading ${row.local.name}`} tone="orange" small onClick={uploadAll} disabled={uploading} />
               ) : row.local.status !== "uploaded" ? (
-                <button className="pb-text-action" type="button" onClick={() => removeLocal(row)}>Remove</button>
+                <IconButton icon="trash" label={`Remove ${row.local.name} from the draft`} small onClick={() => removeLocal(row)} />
               ) : null}
             </div>
           ))}
@@ -274,7 +275,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
                 <span className="pb-small">{f.kind} · {formatBytes(f.byte_size)} · in private storage</span>
               </div>
               {current.status === "draft" || current.status === "flagged" ? (
-                <button className="pb-text-action" type="button" onClick={() => removeUploaded(f.id)} disabled={pending}>Remove</button>
+                <IconButton icon="trash" label={`Remove ${f.original_name ?? "this file"} from the draft`} small onClick={() => removeUploaded(f.id)} disabled={pending} />
               ) : null}
             </div>
           ))}

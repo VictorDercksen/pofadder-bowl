@@ -1,23 +1,28 @@
+import { Suspense } from "react";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { CheckinMap, type MapPin } from "@/components/map/CheckinMap";
 import { CheckinLive } from "@/components/map/CheckinLive";
 import { LocationSharing } from "@/components/map/LocationSharing";
+import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { getLeagueContext } from "@/lib/league";
 import { checkinPath } from "@/lib/checkin-path";
 import { loadCheckins, loadLocationSettings, participantName } from "@/lib/checkins";
 import { placeLabel } from "@/lib/places";
+import { loadRunSubmission } from "@/lib/run-track";
 import { ageLabel, formatDay, formatTime, isStale } from "@/lib/time";
 
 export const metadata = { title: "Check-in map" };
 
 export default async function MapPage() {
   const ctx = await getLeagueContext();
-  const [checkins, settings, name] = await Promise.all([loadCheckins(ctx), ctx.isParticipant ? loadLocationSettings(ctx) : null, participantName(ctx)]);
+  const [checkins, settings, name, run] = await Promise.all([loadCheckins(ctx), ctx.isParticipant ? loadLocationSettings(ctx) : null, participantName(ctx), loadRunSubmission(ctx)]);
   const { data: places } = await ctx.supabase.from("itinerary_items").select("id, title, venue_text, latitude, longitude, location_verified").eq("event_id", ctx.event.id).eq("location_verified", true);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
   // Oldest to newest: the line the league watches grow from Malmesbury to Pofadder and back.
   const path = checkinPath(checkins);
+  const runSub = run?.submission ?? null;
+  const runTag = runSub ? (runSub.status === "approved" ? "APPROVED" : runSub.status === "submitted" ? "IN REVIEW" : runSub.status.toUpperCase()) : "NOT YET RUN";
 
   const pins: MapPin[] = [
     ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []),
@@ -27,21 +32,37 @@ export default async function MapPage() {
 
   return (
     <>
-      <TitleRow kicker="CHECK-INS · LEAGUE ONLY" title={`Where’s ${name.split(" ")[0]}?`} blurb="A fresh check-in whenever the participant returns. A timestamp everyone can trust." tag={latest ? (isStale(latest.captured_at) ? "STALE CHECK-IN" : "RECENT CHECK-IN") : "NO CHECK-INS"} team="buf" />
+      <TitleRow kicker="CHECK-INS · LEAGUE ONLY" title={`Where’s ${name.split(" ")[0]}?`} blurb="A fresh check-in whenever the participant returns. A timestamp everyone can trust." tag={latest ? (isStale(latest.captured_at) ? "STALE CHECK-IN" : "RECENT CHECK-IN") : "NO CHECK-INS"} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <div className="pb-panel pb-plain-map" data-tour="map-panel">
-          <CheckinLive eventId={ctx.event.id} />
-          <CheckinMap pins={pins} path={path} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
-          <div className="pb-location">
-            <div>
-              <b>{latest ? `${name} · ${placeLabel(latest)}` : "No device check-in yet"}</b>
-              <span className="pb-small">
-                {latest
-                  ? `Captured ${formatDay(latest.captured_at, tz)} ${formatTime(latest.captured_at, tz)} SAST (${ageLabel(latest.captured_at)}) · accuracy ${latest.accuracy_m != null ? `±${Math.round(latest.accuracy_m)} m` : "unknown"}${isStale(latest.captured_at) ? " · stale" : ""}`
-                  : "The participant has not shared a position. Town pins are references only."}
-              </span>
+        <div>
+          <div className="pb-panel pb-plain-map" data-tour="map-panel">
+            <CheckinLive eventId={ctx.event.id} />
+            <CheckinMap pins={pins} path={path} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+            <div className="pb-location">
+              <div>
+                <b>{latest ? `${name} · ${placeLabel(latest)}` : "No device check-in yet"}</b>
+                <span className="pb-small">
+                  {latest
+                    ? `Captured ${formatDay(latest.captured_at, tz)} ${formatTime(latest.captured_at, tz)} SAST (${ageLabel(latest.captured_at)}) · accuracy ${latest.accuracy_m != null ? `±${Math.round(latest.accuracy_m)} m` : "unknown"}${isStale(latest.captured_at) ? " · stale" : ""}`
+                    : "The participant has not shared a position. Town pins are references only."}
+                </span>
+              </div>
+              <span className={`pb-tag ${latest && !isStale(latest.captured_at) ? "" : "orange"}`}>{latest ? (isStale(latest.captured_at) ? "OLDER THAN 30 MIN" : "FRESH") : "WAITING"}</span>
             </div>
-            <span className={`pb-tag ${latest && !isStale(latest.captured_at) ? "" : "orange"}`}>{latest ? (isStale(latest.captured_at) ? "OLDER THAN 30 MIN" : "FRESH") : "WAITING"}</span>
+          </div>
+          <div className="pb-panel pb-run-panel" style={{ marginTop: 18 }} data-tour="run-route">
+            <div className="pb-panel-top">
+              <h3>The run{run ? ` · ${run.challenge.points} points` : ""}</h3>
+              <span className={`pb-tag ${runSub?.status === "approved" ? "" : "orange"}`}>{runTag}</span>
+            </div>
+            <p className="pb-small" style={{ marginBottom: 12 }}>
+              {runSub ? `${name}’s watch export, version ${runSub.version}${runSub.submitted_at ? `, submitted ${formatDay(runSub.submitted_at, tz)} ${formatTime(runSub.submitted_at, tz)}` : ""}. The commissioner approves it from the same trace.` : `The 14 km trace appears here once ${name.split(" ")[0]} uploads the watch export. The check-in map above is not proof of the run.`}
+            </p>
+            {runSub ? (
+              <Suspense fallback={<RunTrackSkeleton />}>
+                <RunTrack files={runSub.files} participant={name} />
+              </Suspense>
+            ) : null}
           </div>
         </div>
         <div>
