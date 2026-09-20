@@ -40,15 +40,14 @@ describe("resolveAccess", () => {
 describe("navFor", () => {
   const labels = (role: Parameters<typeof navFor>[0]) => navFor(role, "").map((i) => i.label);
 
-  it("gives the participant progress screens the league never sees", () => {
+  it("gives the participant a trip screen the league never sees, and everyone the proof locker", () => {
     const admin = labels("admin");
     const participant = labels("participant");
     const plain = labels("member");
-    for (const screen of ["My trip", "Proof locker"]) {
-      expect(participant).toContain(screen);
-      expect(admin).toContain(screen);
-      expect(plain).not.toContain(screen);
-    }
+    expect(participant).toContain("My trip");
+    expect(admin).toContain("My trip");
+    expect(plain).not.toContain("My trip");
+    for (const role of [admin, participant, plain]) expect(role).toContain("Proof locker");
     expect(admin).toContain("Commissioner");
     expect(admin).toContain("League admin");
     expect(participant).not.toContain("Commissioner");

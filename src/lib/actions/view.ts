@@ -23,6 +23,6 @@ export async function setMemberView(formData: FormData): Promise<void> {
     store.delete(MEMBER_VIEW_COOKIE);
   }
   revalidatePath("/", "layout");
-  // Member view has no My trip / Proof locker / Commissioner screens: those pages redirect on their own.
+  // Member view has no My trip / Commissioner screens (those pages redirect on their own) and a read-only proof locker.
   redirect(safeInternalPath(formData.get("next"), mode === "member" ? "/game-centre" : homeFor(ctx)));
 }

@@ -29,8 +29,8 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
     "FIRST DOWN",
     participant ? "Welcome to your own away game." : "Welcome to the Pofadder Bowl.",
     participant
-      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 14 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
-      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 14 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
+      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 10 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
+      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 10 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
   ),
   step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a desktop it sits top right; on a phone, at the top of the Menu.", null, ["drawer-identity", "header-account", "menu"], true),
   step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown lists the screens your role can open, in broadcast order. On a desktop it sits on the left; on a phone, Menu opens it. The number turns into a tumbling football while a screen loads.", null, ["drawer-nav", "nav", "menu"], true),
@@ -60,8 +60,14 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("next-drive", "NEXT DRIVE", "What is up next, and the bus.", "The next item on the itinerary with its points, plus the countdown to the return bus from KLK Garage. There is no second bus.", "/game-centre", ["next-drive"]),
   step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. The card in the spotlight is yours: your franchise, your name, your number. It is a preview, nothing is posted. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline-preview", "sideline"]),
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
+  ...(participant
+    ? []
+    : [
+        step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Ten plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
+        step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),
+      ]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
-  step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 14 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
+  step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 10 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
   step(
     "press",
     "SCREEN 08",

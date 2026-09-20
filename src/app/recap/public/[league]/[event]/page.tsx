@@ -26,7 +26,7 @@ export default async function PublicRecapPage(props: PageProps<"/recap/public/[l
           </div>
           <h2>{s.participant.split(" ")[0]} survived Pofadder.</h2>
           <p>
-            {s.event_name}. Two overnight buses. Fourteen kilometres. Ten plays.
+            {s.event_name}. Two overnight buses. Ten kilometres. Ten plays.
             <br />
             One outstanding contribution to league entertainment.
           </p>

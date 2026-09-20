@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { barlow, barlowCondensed } from "@/lib/fonts";
+import { Toaster } from "@/components/ui/Toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Alert snackbar for action feedback on every route; empty until a component calls toast(). */}
+        <Toaster />
+      </body>
     </html>
   );
 }

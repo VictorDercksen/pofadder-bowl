@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { savePropPick, settleProp } from "@/lib/actions/props";
 import { pickOutcome, sideLabel, sidesFor, type PropKind, type PropResult, type PropSide } from "@/lib/props";
 
@@ -27,13 +27,12 @@ export type BoardProp = {
  */
 export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCommissioner: boolean }) {
   const router = useRouter();
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function pick(propId: string, side: PropSide) {
     startTransition(async () => {
       const res = await savePropPick({ propId, side });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -41,7 +40,7 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
   function settle(propId: string, result: PropResult) {
     startTransition(async () => {
       const res = await settleProp({ propId, result });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -112,7 +111,6 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
           );
         })}
       </div>
-      <Status tone={msg?.tone}>{msg?.text}</Status>
     </>
   );
 }

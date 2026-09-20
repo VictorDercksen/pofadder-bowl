@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Football } from "@/components/ui/Football";
+import { IconButton } from "@/components/ui/IconButton";
 import { completeTutorial } from "@/lib/actions/tutorial";
 import { setDrawerOpen } from "@/lib/drawer-events";
 import type { Role } from "@/lib/roles";
@@ -310,9 +311,7 @@ function TourOverlay({ run }: { run: TourRun }) {
           </p>
         ) : null}
         <div className="pb-tour-actions">
-          <button type="button" className="pb-text-action" onClick={finish}>
-            {last ? "Close" : "Skip the tour"}
-          </button>
+          <IconButton icon="close" label={last ? "Close the tour" : "Skip the tour"} onClick={finish} small />
           <span className="pb-tour-nav">
             {index > 0 ? (
               <button type="button" className="pb-secondary" onClick={back}>

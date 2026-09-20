@@ -25,7 +25,12 @@ describe("tourStepsFor", () => {
     const ids = (role: (typeof roles)[number], participant?: boolean) => tourStepsFor(role, participant).map((s) => s.id);
     expect(ids("member")).not.toContain("my-trip");
     expect(ids("member")).not.toContain("review");
+    expect(ids("member")).toContain("proof-view");
+    expect(ids("member")).not.toContain("proof");
+    expect(ids("commissioner")).toContain("proof-view");
     expect(ids("participant")).toContain("proof");
+    expect(ids("participant")).not.toContain("proof-view");
+    expect(ids("admin", true)).not.toContain("proof-view");
     expect(ids("participant")).not.toContain("review");
     expect(ids("commissioner")).toContain("review");
     expect(ids("commissioner")).not.toContain("members");

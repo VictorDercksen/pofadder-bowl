@@ -7,7 +7,8 @@ export function navFor(role: ShellRole, base: string): NavItem[] {
     { n: "01", label: "Game centre", href: `${base}/game-centre` },
     { n: "02", label: "My trip", href: `${base}/my-trip`, roles: ["participant", "commissioner", "admin", "demo"] },
     { n: "03", label: "Check-in map", href: `${base}/map` },
-    { n: "04", label: "Proof locker", href: `${base}/proof`, roles: ["participant", "commissioner", "admin", "demo"] },
+    // Every member gets the locker: the participant works it, everyone else reads it.
+    { n: "04", label: "Proof locker", href: `${base}/proof` },
     { n: "05", label: "Commissioner", href: `${base}/review`, roles: ["commissioner", "admin", "demo"] },
     { n: "06", label: "Prop board", href: `${base}/props` },
     { n: "07", label: "Predictions", href: `${base}/predictions` },

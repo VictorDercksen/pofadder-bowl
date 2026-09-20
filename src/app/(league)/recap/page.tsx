@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import { LeaguePatch, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { CertificateExport, ConsentToggle } from "@/components/recap/CertificateExport";
 import { MediaGallery } from "@/components/proof/MediaGallery";
+import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
+import { trackFileOf } from "@/lib/run-track";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
 import { propWinners } from "@/lib/props";
@@ -40,6 +43,8 @@ export default async function RecapPage() {
   const predWinners = [...predTotals.entries()].sort((a, b) => b[1] - a[1]);
   const topPred = predWinners.length ? predWinners.filter(([, p]) => p === predWinners[0][1]).map(([id]) => names.get(id) ?? "member") : [];
   const highlightFiles = approved.flatMap((s) => s.files.filter((f) => f.kind === "photo" || f.kind === "video").slice(0, 1)).slice(0, 6);
+  // The approved run trace, if the watch export was a readable GPX/TCX.
+  const runProof = approved.find((s) => (challenges ?? []).find((c) => c.id === s.challenge_id)?.proof_type.toLowerCase().includes("export") && trackFileOf(s.files)) ?? null;
   const summary = {
     participant: name,
     approved: score.approved,
@@ -58,7 +63,7 @@ export default async function RecapPage() {
 
   return (
     <>
-      <TitleRow kicker={`POSTGAME VIEW · ${issued ? "COMMISSIONER CERTIFIED" : phase === "postgame" ? "AWAITING CERTIFICATION" : "IN PROGRESS"}`} title={issued ? "Sentence served." : "The final whistle."} blurb={issued ? "The bus made it home. The group chat will never let this go." : "The recap builds itself from approved evidence, real check-ins and confirmed results."} tag={issued ? "CERTIFIED" : "PENDING"} team="sf" />
+      <TitleRow kicker={`POSTGAME VIEW · ${issued ? "COMMISSIONER CERTIFIED" : phase === "postgame" ? "AWAITING CERTIFICATION" : "IN PROGRESS"}`} title={issued ? "Sentence served." : "The final whistle."} blurb={issued ? "The bus made it home. The group chat will never let this go." : "The recap builds itself from approved evidence, real check-ins and confirmed results."} tag={issued ? "CERTIFIED" : "PENDING"} team={ctx.profile.kit_team} />
       <div className="pb-certificate" id="certificate" data-tour="certificate">
         <div className="pb-kicker">SHOW US YOUR TD’S · {issued ? "COMMISSIONER CERTIFIED" : "CERTIFICATE PENDING"}</div>
         <div className="pb-champion-crest">
@@ -68,7 +73,7 @@ export default async function RecapPage() {
         </div>
         <h2>{issued ? `${name.split(" ")[0]} survived Pofadder.` : "Not certified yet."}</h2>
         <p>
-          {issued ? "Two overnight buses. Fourteen kilometres. Ten plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
+          {issued ? "Two overnight buses. Ten kilometres. Ten plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
           <br />
           {issued ? "One outstanding contribution to league entertainment." : "Nothing here inherits demo values."}
         </p>
@@ -163,6 +168,15 @@ export default async function RecapPage() {
           <h3>The highlight reel</h3>
           <p className="pb-small" style={{ marginTop: 10 }}>Approved clips and photos, private to the league. Links are signed for a few minutes at a time.</p>
           {highlightFiles.length ? <MediaGallery files={highlightFiles.map((f) => ({ id: f.id, kind: f.kind, name: f.original_name ?? "file", mime: f.mime_type }))} /> : <p className="pb-small">No approved media yet.</p>}
+          {runProof ? (
+            <div style={{ marginTop: 16 }}>
+              <h3>The run, as recorded</h3>
+              <p className="pb-small" style={{ margin: "6px 0 10px" }}>Approved v{runProof.version}. The watch export drawn as uploaded.</p>
+              <Suspense fallback={<RunTrackSkeleton />}>
+                <RunTrack files={runProof.files} participant={name} />
+              </Suspense>
+            </div>
+          ) : null}
           <CertificateExport summary={summary} issued={issued} kitTeam={ctx.profile.kit_team} />
           {ctx.isParticipant ? <ConsentToggle consent={cert?.participant_consent ?? false} isPublic={cert?.is_public ?? false} publicUrl={publicUrl} /> : null}
           {ctx.isCommissioner ? (

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { setCertificateConsent } from "@/lib/actions/account";
 import { teamLogoSrc } from "@/lib/nfl";
 
@@ -98,7 +98,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   c.fillText(issued ? `${summary.participant.split(" ")[0].toUpperCase()} SURVIVED POFADDER.` : "NOT CERTIFIED YET.", W / 2, 380);
   c.fillStyle = "#192e25";
   c.font = `400 30px ${barlow}, Arial, sans-serif`;
-  c.fillText(issued ? "Two overnight buses. Fourteen kilometres. Ten plays." : "Pending the commissioner’s decision.", W / 2, 440);
+  c.fillText(issued ? "Two overnight buses. Ten kilometres. Ten plays." : "Pending the commissioner’s decision.", W / 2, 440);
   c.fillText(issued ? "One outstanding contribution to league entertainment." : "Built only from approved evidence.", W / 2, 484);
 
   const stats: [string, string][] = [
@@ -152,7 +152,6 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
 }
 
 export function CertificateExport({ summary, issued, kitTeam }: { summary: CertificateSummary; issued: boolean; kitTeam: string | null }) {
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function exportPng(share: boolean) {
@@ -166,7 +165,7 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
       const file = new File([blob], `pofadder-bowl-2026-${issued ? "certificate" : "progress"}.png`, { type: "image/png" });
       if (share && navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "Pofadder Bowl 2026", text: `${summary.participant}: ${summary.approved}/${summary.max} approved. League media stays private.` });
-        setNote({ text: "Shared.", tone: "ok" });
+        toast("Shared.", "ok");
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -174,10 +173,10 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
         a.download = file.name;
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
-        setNote({ text: `${issued ? "Certificate" : "Progress card"} PNG downloaded.`, tone: "ok" });
+        toast(`${issued ? "Certificate" : "Progress card"} PNG downloaded.`, "ok");
       }
     } catch (err) {
-      if ((err as Error).name !== "AbortError") setNote({ text: "Could not render the image in this browser.", tone: "error" });
+      if ((err as Error).name !== "AbortError") toast("Could not render the image in this browser.", "error");
     } finally {
       setBusy(false);
     }
@@ -194,7 +193,6 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
         </button>
       </div>
       <p className="pb-small" style={{ marginTop: 8 }}>{issued ? "Rendered from the certified summary." : "Clearly marked as pending until the commissioner issues the certificate."}</p>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
@@ -202,7 +200,6 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
 export function ConsentToggle({ consent, isPublic, publicUrl }: { consent: boolean; isPublic: boolean; publicUrl: string }) {
   const router = useRouter();
   const [value, setValue] = useState(consent);
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div style={{ marginTop: 14 }}>
@@ -215,7 +212,7 @@ export function ConsentToggle({ consent, isPublic, publicUrl }: { consent: boole
             setValue(e.target.checked);
             startTransition(async () => {
               const res = await setCertificateConsent({ consent: e.target.checked });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             });
           }}
@@ -231,7 +228,6 @@ export function ConsentToggle({ consent, isPublic, publicUrl }: { consent: boole
           "The commissioner must also allow publication. Until both agree, the recap stays private."
         )}
       </p>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
