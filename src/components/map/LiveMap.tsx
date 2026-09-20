@@ -173,7 +173,7 @@ export function LiveMap({
   return (
     <div className={full ? "pb-live-map full" : "pb-live-map"} role="region" aria-label={full ? "Check-in map, fullscreen" : "Check-in map"}>
       <div className="pb-live-map-canvas" ref={ref} />
-      <div className="pb-map-tools">
+      <div className="pb-map-tools" data-tour="map-fullscreen">
         {full ? <IconButton icon="map" label="Fit everything" onClick={fitEverything} /> : null}
         <IconButton icon={full ? "collapse" : "expand"} label={full ? "Exit fullscreen" : "Fullscreen map"} tone={full ? "solid" : "outline"} onClick={() => setFull((v) => !v)} />
       </div>

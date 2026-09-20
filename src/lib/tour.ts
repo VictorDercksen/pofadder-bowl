@@ -62,6 +62,20 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
   ...(participant
     ? []
+    : [step("your-pin", "YOUR PIN", "Put yourself on the map.", "Share my location drops one pin in your kit colours where you are, so the league sees who is watching from where. Press it again to move the pin, Remove to take it off. One pin, only when you press the button: no tracking, no history, no feed post.", "/map", ["member-location"])]),
+  step(
+    "league-pins",
+    "WHERE THE LEAGUE IS",
+    "Everyone who shared, in one list.",
+    participant
+      ? "League members can drop a pin of their own in their kit colours. They show here and on the map with place, time and age; a pin older than six hours fades. Pins only: your check-ins stay the one route on the map."
+      : "Every shared pin with its place, time and age, yours marked. A pin older than six hours fades on the map. Pins only: Victor’s check-ins stay the one route.",
+    "/map",
+    ["league-pins"],
+  ),
+  step("map-fullscreen", "THE BIG SCREEN", "Fullscreen, with everything on.", "The expand button takes the map to the whole screen and frames everything at once: the route, every check-in, the itinerary venues and all the members’ pins, with a legend. Scroll or pinch to zoom, Fit everything to reframe, Escape or the collapse button to come back.", "/map", ["map-fullscreen"]),
+  ...(participant
+    ? []
     : [
         step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Ten plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
         step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),

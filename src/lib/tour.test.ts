@@ -46,6 +46,23 @@ describe("tourStepsFor", () => {
     expect(tourStepsFor("member").find((s) => s.id === "press")?.body).toMatch(/Victor answers/);
   });
 
+  it("walks the map's member pins and fullscreen for every role, the share panel for non-participants only", () => {
+    for (const role of roles) {
+      const byId = new Map(tourStepsFor(role).map((s) => [s.id, s]));
+      const ids = [...byId.keys()];
+      expect(ids.indexOf("league-pins")).toBeGreaterThan(ids.indexOf("map"));
+      expect(ids.indexOf("map-fullscreen")).toBeGreaterThan(ids.indexOf("league-pins"));
+      expect(byId.get("league-pins")).toMatchObject({ href: "/map", targets: ["league-pins"] });
+      expect(byId.get("map-fullscreen")).toMatchObject({ href: "/map", targets: ["map-fullscreen"] });
+      expect(byId.get("map-fullscreen")!.body).toMatch(/everything/i);
+    }
+    expect(tourStepsFor("member").find((s) => s.id === "your-pin")).toMatchObject({ href: "/map", targets: ["member-location"] });
+    expect(tourStepsFor("participant").map((s) => s.id)).not.toContain("your-pin");
+    expect(tourStepsFor("admin", true).map((s) => s.id)).not.toContain("your-pin");
+    expect(tourStepsFor("participant").find((s) => s.id === "league-pins")!.body).toMatch(/your check-ins/);
+    expect(tourStepsFor("member").find((s) => s.id === "league-pins")!.body).toMatch(/Victor/);
+  });
+
   it("ends every role on League access, where the replay button lives", () => {
     for (const role of roles) {
       const steps = tourStepsFor(role);

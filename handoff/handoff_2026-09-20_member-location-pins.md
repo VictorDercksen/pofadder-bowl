@@ -11,7 +11,7 @@ Follow-on to `handoff_2026-09-20_upload-cap-direct-uploads.md` (state of `main`)
 | Schema | **One new migration**: `supabase/migrations/20260920001600_member_locations.sql` (table `member_locations`, RPCs `share_member_location`, `clear_member_location`, `event_member_locations`, realtime publication). Additive and idempotent (re-running is a no-op). The Supabase GitHub integration applies it on the push to `main`; confirm under Database → Migrations. Until it is applied the app still works: the reader RPC fails, the loader returns an empty list, the map shows no member pins and the share button reports "Could not share your location" |
 | Types | `src/lib/database.types.ts` hand-edited: `member_locations` table, the three functions. Regenerate from the local stack when convenient |
 | Env | Unchanged |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (21 files, 148 vitest, 4 new in `member-locations.test.ts`) pass; `npx next build` passes (re-run after the fullscreen follow-up) |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (21 files, 149 vitest, 4 new in `member-locations.test.ts`, 1 new in `tour.test.ts`) pass; `npx next build` passes (re-run after the fullscreen follow-up) |
 
 ## What was asked
 
@@ -46,6 +46,12 @@ League members (not only the participant) should be able to share their current 
 - The fit key carries `all` or `route`: entering fullscreen fits the route line, the check-ins, the venues **and** the member pins; leaving refits to the route as before. A "Fit everything" button (map-pin icon) re-frames after panning. `Icons.tsx` gained `expand` and `collapse`.
 - Both check-in maps get it (`/map` and the game-centre panel) since they share the component; the static fallback has no fullscreen.
 - Verified in headless Chromium at 1280×800 and 390×780 through the temporary preview page: the overlay covers the viewport, every member pin (one placed in Johannesburg) is inside the frame after entering, tools and legend render, Escape restores the page and body overflow, no console errors.
+
+## Follow-up in the same session: tutorial steps
+
+- Three steps in `leagueBlock` (`src/lib/tour.ts`) right after the "map" step, on `/map`: `your-pin` (non-participants only; spotlights the "Your pin" panel, `data-tour="member-location"`), `league-pins` (everyone; the "Where the league is" panel, wording differs for the participant) and `map-fullscreen` (everyone; the tools cluster on the live map, new `data-tour="map-fullscreen"` in `LiveMap`). The static-tile fallback has no fullscreen button, so that step shows a centred card there.
+- `TOUR_VERSION` stays 1: the layout auto-starts the tour only while `tutorial_completed_at` is null, so members who already finished it are not replayed; they can replay from League access. Bumping the version would also need the comparison in `(league)/layout.tsx`.
+- Tests in `tour.test.ts` cover order, hrefs, targets and the role scoping of the three steps (149 vitest).
 
 ## Verified
 
