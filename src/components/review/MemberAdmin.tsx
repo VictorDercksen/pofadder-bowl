@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
 import { TeamLogo } from "@/components/ui/Marks";
+import { IconButton } from "@/components/ui/IconButton";
 import { confirmSleeperLink, importSleeperLeague, inviteMember, sendSignInLink, setEventParticipant, setMemberRole } from "@/lib/actions/members";
 
 export function InviteForm() {
@@ -120,11 +121,13 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
               <option value="removed">removed</option>
             </select>
           </label>
-          <button className="pb-text-action" type="button" disabled={pending} onClick={save}>Save</button>
+          <IconButton icon="check" label="Save role and status" tone="solid" small disabled={pending} onClick={save} />
           {role === "participant" && status === "active" && !isEventParticipant ? (
-            <button
-              className="pb-text-action"
-              type="button"
+            <IconButton
+              icon="userCheck"
+              label="Make event participant"
+              tone="orange"
+              small
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
@@ -133,16 +136,14 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
                   router.refresh();
                 })
               }
-            >
-              Make event participant
-            </button>
+            />
           ) : null}
         </div>
         {membership.status !== "removed" ? (
           <div className="pb-inline-list">
             <span className="pb-small">Sign-in:</span>
-            <button className="pb-text-action" type="button" disabled={pending} onClick={() => signInLink("email")}>Email a new link</button>
-            <button className="pb-text-action" type="button" disabled={pending} onClick={() => signInLink("link")}>Copy a link to hand over</button>
+            <IconButton icon="mail" label="Email a new sign-in link" small disabled={pending} onClick={() => signInLink("email")} />
+            <IconButton icon="copy" label="Mint a one-time link to hand over" small disabled={pending} onClick={() => signInLink("link")} />
           </div>
         ) : null}
         {link ? (
@@ -164,9 +165,11 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
                 ))}
               </select>
             </label>
-            <button
-              className="pb-text-action"
-              type="button"
+            <IconButton
+              icon={sleeper ? "link" : "unlink"}
+              label={sleeper ? "Confirm the Sleeper link" : "Clear the Sleeper link"}
+              tone={sleeper ? "solid" : "outline"}
+              small
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
@@ -175,9 +178,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
                   router.refresh();
                 })
               }
-            >
-              {sleeper ? "Confirm link" : "Clear link"}
-            </button>
+            />
           </div>
         ) : null}
       </div>

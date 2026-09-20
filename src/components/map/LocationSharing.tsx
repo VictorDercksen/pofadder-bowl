@@ -140,7 +140,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
         </button>
       </div>
       <p className="pb-small" style={{ marginTop: 12 }}>
-        Check-ins, not continuous tracking. Nothing is recorded while the browser is closed or the phone is locked. Pausing stops new writes; existing timestamped check-ins stay visible until you remove them. This map is not proof of the 14 km run: upload the watch export in the proof locker.
+        Check-ins, not continuous tracking. Nothing is recorded while the browser is closed or the phone is locked. Pausing stops new writes; existing timestamped check-ins stay visible until you remove them. This map is not proof of the 10 km run: upload the watch export in the proof locker.
       </p>
     </div>
   );

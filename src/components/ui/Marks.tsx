@@ -9,7 +9,8 @@ export function Shield({ className = "pb-nfl-mark", size = 35, height }: { class
 /** Franchise badge. A member without a kit shows the league shield. */
 export function TeamLogo({ code, decorative = false, className = "pb-team-logo", size = 36 }: { code: string | null | undefined; decorative?: boolean; className?: string; size?: number }) {
   const c = code ?? "nfl";
-  return <Image className={className} src={teamLogoSrc(c)} alt={decorative ? "" : c === "nfl" ? "No kit chosen" : teamName(c)} width={size} height={size} />;
+  const name = c === "nfl" ? "No kit chosen" : teamName(c);
+  return <Image className={className} src={teamLogoSrc(c)} alt={decorative ? "" : name} title={decorative ? undefined : name} width={size} height={size} />;
 }
 
 /** A member's insignia: badge + name, used wherever a member appears. */

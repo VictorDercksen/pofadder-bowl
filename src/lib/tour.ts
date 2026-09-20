@@ -29,8 +29,8 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
     "FIRST DOWN",
     participant ? "Welcome to your own away game." : "Welcome to the Pofadder Bowl.",
     participant
-      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 14 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
-      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 14 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
+      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 10 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
+      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 10 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
   ),
   step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a phone it sits at the top of the Menu, which is open for you now.", null, ["drawer-identity", "header-account", "menu"], true),
   step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown lists the screens your role can open, in broadcast order. On a desktop it sits on the left; on a phone, Menu opens it. The number turns into a tumbling football while a screen loads.", null, ["drawer-nav", "nav", "menu"], true),
@@ -61,7 +61,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. The card in the spotlight is yours: your franchise, your name, your number. It is a preview, nothing is posted. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline-preview", "sideline"]),
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
-  step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 14 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
+  step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 10 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
   step(
     "press",
     "SCREEN 08",

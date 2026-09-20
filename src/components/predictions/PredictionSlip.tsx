@@ -31,7 +31,7 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
   return (
     <div>
       <label className="pb-field">
-        Victor’s 14 km finish time
+        Victor’s 10 km finish time
         <div className="pb-inline-fields">
           <input type="number" min={0} max={8} value={hours} disabled={locked} onChange={(e) => setHours(Number(e.target.value))} aria-label="Run hours" />
           <input type="number" min={0} max={59} value={minutes} disabled={locked} onChange={(e) => setMinutes(Number(e.target.value))} aria-label="Run minutes" />

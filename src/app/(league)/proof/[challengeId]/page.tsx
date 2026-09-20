@@ -1,10 +1,13 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { IconLink } from "@/components/ui/IconButton";
 import { EvidenceUploader } from "@/components/proof/EvidenceUploader";
 import { MediaGallery } from "@/components/proof/MediaGallery";
+import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { requireParticipant } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
+import { trackFileOf } from "@/lib/run-track";
 import { formatDateTime } from "@/lib/time";
 
 export const metadata = { title: "Challenge proof" };
@@ -18,14 +21,17 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
   const current = subs[0] ?? null;
   const { data: decisions } = current ? await ctx.supabase.from("review_decisions").select("*").in("submission_id", subs.map((s) => s.id)).order("created_at", { ascending: false }) : { data: [] };
 
-  const accept = challenge.proof_type.includes("photo") ? "image/*" : challenge.proof_type.includes("clip") ? "video/*" : challenge.proof_type.includes("export") ? ".gpx,.tcx,.fit,.csv,image/*,application/pdf" : "image/*,video/*,application/pdf";
+  const isRun = challenge.proof_type.toLowerCase().includes("export");
+  const accept = challenge.proof_type.includes("photo") ? "image/*" : challenge.proof_type.includes("clip") ? "video/*" : isRun ? ".gpx,.tcx,.fit,.csv,image/*,application/pdf" : "image/*,video/*,application/pdf";
+  const trace = current && isRun ? trackFileOf(current.files) : null;
 
   return (
     <>
-      <TitleRow kicker={`VICTOR’S VIEW · CHALLENGE #${String(challenge.sequence).padStart(2, "0")}`} title={challenge.title} blurb={`${challenge.proof_type} · ${challenge.points} points.`} tag={`${challenge.points} POINTS AVAILABLE`} team="phi" />
-      <p className="pb-small" style={{ marginBottom: 12 }}>
-        <Link href="/proof" className="pb-text-action">← Back to the locker</Link> · <Link href="/game-centre" className="pb-text-action">Main feed</Link>
-      </p>
+      <TitleRow kicker={`VICTOR’S VIEW · CHALLENGE #${String(challenge.sequence).padStart(2, "0")}`} title={challenge.title} blurb={`${challenge.proof_type} · ${challenge.points} points.`} tag={`${challenge.points} POINTS AVAILABLE`} team={ctx.profile.kit_team} />
+      <nav className="pb-icon-nav" aria-label="Proof navigation">
+        <IconLink icon="back" label="Back to the proof locker" href="/proof" />
+        <IconLink icon="feed" label="Main feed" href="/game-centre" />
+      </nav>
       <div className="pb-split">
         <div>
           {!ctx.isParticipant ? (
@@ -37,9 +43,24 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
               targetTitle={challenge.title}
               accept={accept}
               current={current ? { id: current.id, version: current.version, status: current.status, caption: current.caption, files: current.files } : null}
-              captureHint={challenge.sequence === 2 ? "Upload the watch export (GPX/TCX/FIT) plus a screenshot. The check-in map is not proof of the run." : undefined}
+              captureHint={isRun ? "Upload the watch export (GPX or TCX, FIT as a backup) plus a screenshot. The GPX line is what the commissioner approves and what the league sees on the map." : undefined}
             />
           )}
+          {isRun && current ? (
+            <div className="pb-panel pb-run-panel" style={{ marginTop: 18 }}>
+              <div className="pb-panel-top">
+                <h3>Your route, as the league sees it</h3>
+                <span className={`pb-tag ${current.status === "approved" ? "" : "orange"}`}>V{current.version} · {current.status.toUpperCase()}</span>
+              </div>
+              {trace ? (
+                <Suspense fallback={<RunTrackSkeleton />}>
+                  <RunTrack files={current.files} participant={ctx.profile.display_name} />
+                </Suspense>
+              ) : (
+                <p className="pb-small">No GPX or TCX file on this version yet. Attach the watch export and it is drawn here before you submit.</p>
+              )}
+            </div>
+          ) : null}
         </div>
         <div>
           <div className="pb-panel">

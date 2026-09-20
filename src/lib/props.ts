@@ -31,7 +31,7 @@ export function isPropLocked(locksAtIso: string, now: Date = new Date()): boolea
   return !Number.isFinite(lock) || now.getTime() >= lock;
 }
 
-/** "14.25 km", "90 seconds", "20 min late". Trailing zeros are dropped. */
+/** "10.25 km", "90 seconds", "20 min late". Trailing zeros are dropped. */
 export function formatLine(line: number | string | null, unit: string | null): string {
   if (line == null) return "";
   const n = typeof line === "string" ? Number(line) : line;

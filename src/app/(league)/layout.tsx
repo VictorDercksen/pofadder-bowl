@@ -2,16 +2,19 @@ import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
 import { MemberViewToggle } from "@/components/shell/MemberViewToggle";
 import { TeamLogo } from "@/components/ui/Marks";
+import { IconButton } from "@/components/ui/IconButton";
 import { DrawerIdentity } from "@/components/shell/DrawerIdentity";
 import { SleeperTeamChip } from "@/components/sleeper/SleeperTeam";
 import { TutorialTour } from "@/components/tour/TutorialTour";
 import { describeRole, getLeagueContext, homeFor } from "@/lib/league";
+import { loadClaimedTeams } from "@/lib/roster";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeagueLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getLeagueContext();
+  const teams = await loadClaimedTeams(ctx);
   const roleLabel = describeRole(ctx);
   const toggle = ctx.canViewAsMember ? <MemberViewToggle viewing={ctx.viewingAsMember} /> : null;
   const sleeper = ctx.sleeper;
@@ -20,6 +23,7 @@ export default async function LeagueLayout({ children }: { children: React.React
     <AppShell
       role={ctx.role}
       base=""
+      teams={teams}
       badge={
         <span className="pb-role-badge">
           <span className={`pb-demo ${ctx.viewingAsMember ? "on" : ""}`} title={ctx.viewingAsMember ? "You are seeing what a league member sees" : "Signed-in league view"}>
@@ -41,7 +45,7 @@ export default async function LeagueLayout({ children }: { children: React.React
             </Link>
           )}
           <form action="/auth/signout" method="post">
-            <button className="pb-text-action" type="submit">Sign out</button>
+            <IconButton icon="signout" label="Sign out" type="submit" small />
           </form>
         </>
       }
@@ -58,17 +62,19 @@ export default async function LeagueLayout({ children }: { children: React.React
       drawerFooter={
         <>
           <span>2024 season. 2026 consequences. 23–25 September.</span>
-          {toggle}
-          <form action="/auth/signout" method="post">
-            <button className="pb-text-action" type="submit">Sign out</button>
-          </form>
+          <span className="pb-icon-row">
+            {ctx.canViewAsMember ? <MemberViewToggle viewing={ctx.viewingAsMember} tone="gold" /> : null}
+            <form action="/auth/signout" method="post">
+              <IconButton icon="signout" label="Sign out" type="submit" tone="gold" />
+            </form>
+          </span>
         </>
       }
     >
       {ctx.viewingAsMember ? (
         <div className="pb-demo-banner pb-member-banner" role="status">
           <span>LEAGUE MEMBER VIEW · This is what the league sees. Your own screens (My trip, Proof locker, Commissioner) are hidden until you exit.</span>
-          <MemberViewToggle viewing />
+          <MemberViewToggle viewing tone="orange" />
         </div>
       ) : null}
       {children}

@@ -98,7 +98,7 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
   c.fillText(issued ? `${summary.participant.split(" ")[0].toUpperCase()} SURVIVED POFADDER.` : "NOT CERTIFIED YET.", W / 2, 380);
   c.fillStyle = "#192e25";
   c.font = `400 30px ${barlow}, Arial, sans-serif`;
-  c.fillText(issued ? "Two overnight buses. Fourteen kilometres. Ten plays." : "Pending the commissioner’s decision.", W / 2, 440);
+  c.fillText(issued ? "Two overnight buses. Ten kilometres. Ten plays." : "Pending the commissioner’s decision.", W / 2, 440);
   c.fillText(issued ? "One outstanding contribution to league entertainment." : "Built only from approved evidence.", W / 2, 484);
 
   const stats: [string, string][] = [
