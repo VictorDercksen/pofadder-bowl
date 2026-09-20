@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapPin } from "./CheckinMap";
 import { useRoutedPath } from "./useRoutedPath";
 import { kitFor, teamLogoSrc } from "@/lib/nfl";
 import { memberInitials } from "@/lib/member-locations";
+import { IconButton } from "@/components/ui/IconButton";
 
 const ROUTE_COLOUR = "#cc542b";
 
@@ -47,7 +48,9 @@ function icon(pin: MapPin) {
  * plotted set changes and once more when its road geometry settles, not on every
  * refresh, so a member who has zoomed in is not yanked back by the 45 s poll. Member pins
  * are drawn but never fitted: they move often and may sit anywhere in the country, and the
- * route is what the map is for.
+ * route is what the map is for. Fullscreen is the exception: it is a fixed full-viewport
+ * overlay (the element Fullscreen API is missing on iOS) with scroll-wheel zoom on and the
+ * viewport fitted to everything plotted, route, venues and member pins alike.
  */
 export function LiveMap({
   pins,
@@ -73,6 +76,7 @@ export function LiveMap({
   const fittedKey = useRef<string | null>(null);
   const renderedKey = useRef<string | null>(null);
   const route = useRoutedPath(path);
+  const [full, setFull] = useState(false);
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
@@ -89,6 +93,28 @@ export function LiveMap({
       layerRef.current = null;
     };
   }, [tileUrl, attribution, fallbackLatitude, fallbackLongitude]);
+
+  // Fullscreen: the container changes size in this commit, so tell Leaflet before the fit
+  // below runs; wheel zoom only while fullscreen (the page must stay scrollable otherwise);
+  // Escape leaves; the page behind does not scroll.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.invalidateSize({ animate: false });
+    if (full) map.scrollWheelZoom.enable();
+    else map.scrollWheelZoom.disable();
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFull(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [full]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -114,17 +140,52 @@ export function LiveMap({
     }
 
     // Fit once per plotted set, and once more when its road geometry has settled (a road
-    // route can bulge well outside the box around the check-ins themselves).
-    const fitKey = `${key}#${route.settled ? "routed" : "straight"}`;
+    // route can bulge well outside the box around the check-ins themselves). Fullscreen
+    // frames everything, member pins and venues included, and refits on the way back.
+    const fitKey = `${key}#${route.settled ? "routed" : "straight"}#${full ? "all" : "route"}`;
     if (fittedKey.current === fitKey) return;
     fittedKey.current = fitKey;
-    const checkinPoints: [number, number][] = [...(route.settled && route.line.length > 1 ? route.line : path), ...routePins.filter((p) => p.kind !== "place").map((p) => [p.latitude, p.longitude] as [number, number])];
+    const routeLine = route.settled && route.line.length > 1 ? route.line : path;
+    if (full) {
+      const everything: [number, number][] = [...routeLine, ...pins.map((p) => [p.latitude, p.longitude] as [number, number])];
+      if (everything.length > 1) map.fitBounds(L.latLngBounds(everything), { padding: [48, 48], maxZoom: 14, animate: false });
+      else if (everything.length === 1) map.setView(everything[0], 12, { animate: false });
+      return;
+    }
+    const checkinPoints: [number, number][] = [...routeLine, ...routePins.filter((p) => p.kind !== "place").map((p) => [p.latitude, p.longitude] as [number, number])];
     if (checkinPoints.length > 1) map.fitBounds(L.latLngBounds(checkinPoints), { padding: [28, 28], maxZoom: 14, animate: false });
     else if (focus) map.setView([focus.latitude, focus.longitude], 13, { animate: false });
     // No route yet: frame everything that is there (venues and any member pins) once, at mount.
     else if (pins.length > 1) map.fitBounds(L.latLngBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number])), { padding: [24, 24], maxZoom: 12, animate: false });
     else if (pins.length === 1) map.setView([pins[0].latitude, pins[0].longitude], 12, { animate: false });
-  }, [pins, path, focus, route]);
+  }, [pins, path, focus, route, full]);
 
-  return <div className="pb-live-map" ref={ref} role="region" aria-label="Check-in map" />;
+  function fitEverything() {
+    const map = mapRef.current;
+    if (!map) return;
+    const everything: [number, number][] = [...(route.line.length > 1 ? route.line : path), ...pins.map((p) => [p.latitude, p.longitude] as [number, number])];
+    if (everything.length > 1) map.fitBounds(L.latLngBounds(everything), { padding: [48, 48], maxZoom: 14, animate: true });
+    else if (everything.length === 1) map.setView(everything[0], 12, { animate: true });
+  }
+
+  const hasMembers = pins.some((p) => p.kind === "member");
+  const hasPlaces = pins.some((p) => p.kind === "place");
+  return (
+    <div className={full ? "pb-live-map full" : "pb-live-map"} role="region" aria-label={full ? "Check-in map, fullscreen" : "Check-in map"}>
+      <div className="pb-live-map-canvas" ref={ref} />
+      <div className="pb-map-tools">
+        {full ? <IconButton icon="map" label="Fit everything" onClick={fitEverything} /> : null}
+        <IconButton icon={full ? "collapse" : "expand"} label={full ? "Exit fullscreen" : "Fullscreen map"} tone={full ? "solid" : "outline"} onClick={() => setFull((v) => !v)} />
+      </div>
+      {full ? (
+        <div className="pb-map-legend" aria-label="Legend">
+          <span><i className="pb-legend-dot current" /> Latest check-in</span>
+          {path.length > 1 ? <span><i className="pb-legend-line" /> Route, oldest to newest</span> : null}
+          <span><i className="pb-legend-dot history" /> Earlier check-ins</span>
+          {hasPlaces ? <span><i className="pb-legend-dot place" /> Itinerary venues</span> : null}
+          {hasMembers ? <span><i className="pb-legend-badge" /> League members’ pins</span> : null}
+        </div>
+      ) : null}
+    </div>
+  );
 }

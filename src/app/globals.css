@@ -697,3 +697,19 @@ a{color:inherit}
 .pb .pb-member-row .pb-member{min-width:0;flex-shrink:0;max-width:44%}
 .pb .pb-member-row .pb-member-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pb .pb-member-row>div{min-width:0}
+
+/* Fullscreen map: a fixed overlay over the page (no element Fullscreen API on iOS); tools and legend sit above the Leaflet panes */
+.pb .pb-live-map-canvas{position:absolute;inset:0}
+.pb .pb-live-map.full{position:fixed;inset:0;z-index:65;aspect-ratio:auto;min-height:0;height:100dvh;background:#e5e8df}
+.pb .pb-map-tools{position:absolute;top:10px;right:10px;z-index:1100;display:flex;gap:8px}
+.pb .pb-map-tools .pb-icon-btn{box-shadow:0 2px 7px #183b2f33}
+.pb .pb-map-legend{position:absolute;left:10px;bottom:28px;z-index:1100;background:var(--pb-panel);border:1px solid var(--pb-line);padding:9px 11px;font-size:11px;line-height:1.3;display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 7px #183b2f20;max-width:min(260px,calc(100vw - 20px))}
+.pb .pb-map-legend span{display:flex;align-items:center;gap:8px}
+.pb .pb-legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #fffcf5;box-shadow:0 0 0 1px currentColor;flex-shrink:0}
+.pb .pb-legend-dot.current{background:#cc542b;color:#cc542b;width:12px;height:12px}
+.pb .pb-legend-dot.history{background:#183b2f;color:#183b2f}
+.pb .pb-legend-dot.place{background:#687366;color:#687366}
+.pb .pb-legend-line{display:inline-block;width:18px;height:0;border-top:3px solid #cc542b;flex-shrink:0}
+.pb .pb-legend-badge{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pb-green);border:2px solid #fffcf5;box-shadow:0 0 0 1px var(--pb-green);flex-shrink:0}
+@media (max-width:580px){.pb .pb-map-legend{bottom:24px;font-size:10px;padding:7px 9px}}
+

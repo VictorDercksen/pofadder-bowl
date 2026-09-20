@@ -11,7 +11,7 @@ Follow-on to `handoff_2026-09-20_upload-cap-direct-uploads.md` (state of `main`)
 | Schema | **One new migration**: `supabase/migrations/20260920001600_member_locations.sql` (table `member_locations`, RPCs `share_member_location`, `clear_member_location`, `event_member_locations`, realtime publication). Additive and idempotent (re-running is a no-op). The Supabase GitHub integration applies it on the push to `main`; confirm under Database → Migrations. Until it is applied the app still works: the reader RPC fails, the loader returns an empty list, the map shows no member pins and the share button reports "Could not share your location" |
 | Types | `src/lib/database.types.ts` hand-edited: `member_locations` table, the three functions. Regenerate from the local stack when convenient |
 | Env | Unchanged |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (21 files, 148 vitest, 4 new in `member-locations.test.ts`) pass; `npx next build` passes |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (21 files, 148 vitest, 4 new in `member-locations.test.ts`) pass; `npx next build` passes (re-run after the fullscreen follow-up) |
 
 ## What was asked
 
@@ -39,6 +39,14 @@ League members (not only the participant) should be able to share their current 
 - `CheckinLive` subscribes to `member_locations` as well as `checkins` on the same channel; the visible-tab poll is unchanged.
 - CSS at the end of `globals.css` under "Member location pins" (`pb-member-pin*`, `pb-member-row`).
 
+## Follow-up in the same session: fullscreen map
+
+- Asked: fullscreen the map with everything on.
+- `LiveMap` now wraps the Leaflet canvas (`pb-live-map-canvas`) in the `pb-live-map` box and keeps a `full` state. The expand button (top right, `pb-map-tools`) adds the `full` class, which makes the box a fixed full-viewport overlay at `z-index: 65` (above the drawer, below the tour and toasts). No element Fullscreen API: iOS Safari lacks it, and a fixed overlay behaves the same everywhere. While fullscreen: Leaflet is told the new size (`invalidateSize`), scroll-wheel zoom is enabled (off otherwise so the page stays scrollable), body scroll is locked, Escape or the collapse button leaves, and a legend (latest check-in, route, earlier check-ins, venues, member pins) sits bottom left.
+- The fit key carries `all` or `route`: entering fullscreen fits the route line, the check-ins, the venues **and** the member pins; leaving refits to the route as before. A "Fit everything" button (map-pin icon) re-frames after panning. `Icons.tsx` gained `expand` and `collapse`.
+- Both check-in maps get it (`/map` and the game-centre panel) since they share the component; the static fallback has no fullscreen.
+- Verified in headless Chromium at 1280×800 and 390×780 through the temporary preview page: the overlay covers the viewport, every member pin (one placed in Johannesburg) is inside the frame after entering, tools and legend render, Escape restores the page and body overflow, no console errors.
+
 ## Verified
 
 - SQL on a bare PostgreSQL 16 cluster in the sandbox with shimmed `auth`/`storage` schemas: all twenty earlier migrations plus `seed.sql`, then the new migration twice (second run a no-op). As a member: share labels "10 km N of Malmesbury", a second share moves the same row to "In Pofadder" (still one row), the reader returns name and kit, direct insert/update/delete on the table are refused (`permission denied`), a 3-day-old `captured_at` is refused, clear returns true then false. As the participant: sharing works alongside check-ins. As an outsider: share refused, reader and table empty. `anon` is denied the reader. The table is in the publication.
@@ -57,7 +65,7 @@ League members (not only the participant) should be able to share their current 
 
 ## Still open
 
-1. Members' pins do not drive the viewport, so a member far from the route is off screen until the viewer zooms out. A "Fit everyone" toggle on the map would be the next step if the league asks for it.
+1. Members' pins do not drive the normal viewport, so a member far from the route is off screen until the viewer opens fullscreen (which frames everything) or zooms out.
 2. Pins older than 3 days are hidden from the map but stay in the list; nothing expires rows. A `delete … where captured_at < now() - interval '7 days'` from a cron or on the next migration would tidy the table after the event.
 3. Regenerate `database.types.ts` from the local stack; run the integration tests.
 4. Carried forward: raise `STORAGE_MAX_BYTES` with the plan; drop the `upsert_prediction` shims later; tour Skip semantics; per-member reset tour; Sleeper bracket script; custom SMTP.
