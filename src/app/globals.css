@@ -686,3 +686,14 @@ a{color:inherit}
 
 /* Proof locker: a failed file offers Retry and Remove side by side */
 .pb .pb-file-actions{display:flex;gap:6px;flex-shrink:0;align-self:center}
+
+/* Member location pins: a league member's shared position as a kit-coloured badge (Leaflet divIcon) and the roster rows under the map */
+.pb .pb-member-pin{position:relative;display:block;width:36px;height:44px;filter:drop-shadow(0 2px 3px #183b2f40)}
+.pb .pb-member-pin-head{position:absolute;left:2px;top:2px;width:32px;height:32px;border-radius:50%;background:var(--kit,#183b2f);border:3px solid #fffcf5;box-shadow:0 0 0 1.5px var(--kit,#183b2f);display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:1}
+.pb .pb-member-pin-head img{width:22px;height:22px;object-fit:contain;display:block}
+.pb .pb-member-pin-head b{font:700 12px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;color:var(--kit-accent,#e8bd67);letter-spacing:.5px}
+.pb .pb-member-pin-tail{position:absolute;left:50%;top:27px;width:11px;height:11px;background:var(--kit,#183b2f);transform:translateX(-50%) rotate(45deg);border-right:2px solid #fffcf5;border-bottom:2px solid #fffcf5}
+.pb .pb-member-pin.stale{opacity:.55}
+.pb .pb-member-row .pb-member{min-width:0;flex-shrink:0;max-width:44%}
+.pb .pb-member-row .pb-member-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb .pb-member-row>div{min-width:0}

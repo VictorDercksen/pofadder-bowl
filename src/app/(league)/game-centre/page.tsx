@@ -8,7 +8,8 @@ import { SidelineFeed } from "@/components/feed/SidelineFeed";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadFeed } from "@/lib/feed";
 import { checkinPath } from "@/lib/checkin-path";
-import { loadCheckins, participantName } from "@/lib/checkins";
+import { loadCheckins, loadMemberLocations, participantName } from "@/lib/checkins";
+import { memberPins } from "@/lib/member-locations";
 import { nextItinerary } from "@/lib/itinerary";
 import { placeLabel } from "@/lib/places";
 import { ageLabel, eventPhase, formatDay, formatTime, isStale, PHASE_HEADINGS, QUARTER_LABELS, quarterNumber } from "@/lib/time";
@@ -19,16 +20,18 @@ export default async function GameCentrePage() {
   const ctx = await getLeagueContext();
   const now = new Date();
   const phase = eventPhase(ctx.event, now);
-  const [score, checkins, name, next, feedResult] = await Promise.all([
+  const [score, checkins, name, next, feedResult, members] = await Promise.all([
     getEventScore(ctx),
     loadCheckins(ctx),
     participantName(ctx),
     nextItinerary(ctx, now),
     loadFeed(ctx).then((page) => ({ ...page, error: null as string | null })).catch((e: Error) => ({ posts: [], hasMore: false, error: e.message })),
+    loadMemberLocations(ctx),
   ]);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
   const q = quarterNumber(phase);
+  const memberPinList = memberPins(members, (iso) => formatTime(iso, tz), now);
   const quarters: (keyof typeof QUARTER_LABELS)[] = ["q1", "q2", "q3", "q4"];
 
   return (
@@ -59,7 +62,7 @@ export default async function GameCentrePage() {
 
       <div className="pb-centre-top">
         <div className="pb-panel pb-plain-map" data-tour="live-map">
-          <CheckinMap pins={latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" }] : []} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
+          <CheckinMap pins={[...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const }] : []), ...memberPinList]} path={checkinPath(checkins)} focus={latest ? { latitude: latest.latitude, longitude: latest.longitude } : undefined} />
           <div className="pb-location">
             <div>
               <b>{latest ? `${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * Refreshes the server-rendered map when the participant's check-ins change, so league
- * members see new points and the route line without reloading. Realtime first, with a
+ * Refreshes the server-rendered map when the participant's check-ins or a member's shared
+ * pin change, so league members see new points and the route line without reloading. Realtime first, with a
  * bounded poll while the tab is visible in case the socket is blocked.
  */
 export function CheckinLive({ eventId, pollMs = 45_000 }: { eventId: string; pollMs?: number }) {
@@ -21,6 +21,7 @@ export function CheckinLive({ eventId, pollMs = 45_000 }: { eventId: string; pol
     const channel = supabase
       .channel(`checkins:${eventId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "checkins", filter: `event_id=eq.${eventId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "member_locations", filter: `event_id=eq.${eventId}` }, refresh)
       .subscribe();
     const poll = window.setInterval(() => {
       if (document.visibilityState === "visible" && navigator.onLine) router.refresh();

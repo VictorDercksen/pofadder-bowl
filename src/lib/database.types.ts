@@ -585,6 +585,54 @@ export type Database = {
           },
         ]
       }
+      member_locations: {
+        Row: {
+          accuracy_m: number | null
+          captured_at: string
+          event_id: string
+          latitude: number
+          longitude: number
+          place_label: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          captured_at: string
+          event_id: string
+          latitude: number
+          longitude: number
+          place_label?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          captured_at?: string
+          event_id?: string
+          latitude?: number
+          longitude?: number
+          place_label?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_scores"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "member_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -1376,6 +1424,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      clear_member_location: { Args: { p_event: string }; Returns: boolean }
       confirm_sleeper_link: {
         Args: {
           p_confirmed: boolean
@@ -1435,6 +1484,20 @@ export type Database = {
       league_context: {
         Args: { p_event_slug: string; p_league_slug: string }
         Returns: Json
+      }
+      event_member_locations: {
+        Args: { p_event: string }
+        Returns: {
+          accuracy_m: number | null
+          captured_at: string
+          display_name: string
+          kit_team: string | null
+          latitude: number
+          longitude: number
+          place_label: string | null
+          updated_at: string
+          user_id: string
+        }[]
       }
       issue_certificate: {
         Args: { p_event: string; p_is_public: boolean }
@@ -1666,6 +1729,25 @@ export type Database = {
           to: "penalties"
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      share_member_location: {
+        Args: {
+          p_accuracy_m?: number
+          p_captured_at: string
+          p_event: string
+          p_latitude: number
+          p_longitude: number
+        }
+        Returns: {
+          accuracy_m: number | null
+          captured_at: string
+          event_id: string
+          latitude: number
+          longitude: number
+          place_label: string | null
+          updated_at: string
+          user_id: string
         }
       }
       settle_prop: {

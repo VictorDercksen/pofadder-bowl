@@ -58,7 +58,7 @@ async function main() {
     assert.equal(c?.length ?? 0, 0);
   });
   await test("non-member sees no league data", async () => {
-    for (const table of ["events", "challenges", "activity_posts", "checkins", "evidence_submissions", "memberships"] as const) {
+    for (const table of ["events", "challenges", "activity_posts", "checkins", "member_locations", "evidence_submissions", "memberships"] as const) {
       const { data } = await outsider.from(table).select("*");
       assert.equal(data?.length ?? 0, 0, `${table} leaked to outsider`);
     }
@@ -123,6 +123,30 @@ async function main() {
     assert.equal(removed, 1);
     const { data: after } = await member.from("checkins").select("id").eq("event_id", event.id);
     assert.equal(after?.length, 0, "removed check-ins must not be visible");
+  });
+
+  await test("members share one upserted pin; outsiders cannot; pins are readable and removable", async () => {
+    await admin.from("member_locations").delete().eq("event_id", event.id);
+    const { data: first, error } = await member.rpc("share_member_location", { p_event: event.id, p_latitude: -33.3708, p_longitude: 18.72714, p_captured_at: new Date().toISOString(), p_accuracy_m: 15 });
+    assert.ok(!error && first?.user_id === ids.member, error?.message);
+    assert.equal(first?.place_label, "10 km N of Malmesbury", "member pin must be labelled from the gazetteer");
+    const { data: moved } = await member.rpc("share_member_location", { p_event: event.id, p_latitude: -29.1286, p_longitude: 19.3947, p_captured_at: new Date().toISOString() });
+    assert.equal(moved?.place_label, "In Pofadder");
+    const { data: rows } = await participant.rpc("event_member_locations", { p_event: event.id });
+    assert.equal(rows?.length, 1, "one pin per member, upserted");
+    assert.equal(rows?.[0].display_name, FIXTURES.member.name);
+    assert.equal(rows?.[0].kit_team, "cin", "the reader joins the profile for the kit");
+    const { error: outsiderErr } = await outsider.rpc("share_member_location", { p_event: event.id, p_latitude: -33, p_longitude: 18, p_captured_at: new Date().toISOString() });
+    assert.ok(outsiderErr, "outsider must not share a pin");
+    const { data: outsiderRows } = await outsider.rpc("event_member_locations", { p_event: event.id });
+    assert.equal(outsiderRows?.length ?? 0, 0, "outsider must not read pins");
+    const { error: directWrite } = await member.from("member_locations").update({ latitude: 0 }).eq("user_id", ids.member);
+    const { data: unchanged } = await member.from("member_locations").select("latitude").eq("user_id", ids.member).single();
+    assert.ok(directWrite || unchanged?.latitude !== 0, "direct table writes must be refused");
+    const { data: cleared } = await member.rpc("clear_member_location", { p_event: event.id });
+    assert.equal(cleared, true);
+    const { data: after } = await member.rpc("event_member_locations", { p_event: event.id });
+    assert.equal(after?.length, 0, "a cleared pin must disappear");
   });
 
   console.log("\nEvidence pipeline and scoring idempotency");

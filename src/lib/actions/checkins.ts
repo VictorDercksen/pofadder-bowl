@@ -76,3 +76,47 @@ export async function removeCheckins(input: { ids?: string[] }): Promise<ActionR
   revalidatePath("/recap");
   return { ok: true, message: `${data ?? 0} check-in(s) removed from the league view.` };
 }
+
+const memberLocationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(100_000).nullable(),
+  capturedAt: z.iso.datetime(),
+});
+
+export type MemberLocationResult = ActionResult & { placeLabel?: string | null };
+
+/**
+ * Any league member: upsert their one pin on the map ("where everyone is"). Pressing the
+ * button is the consent; there is no history and no feed post. The RPC re-checks membership.
+ */
+export async function shareMemberLocation(input: z.input<typeof memberLocationSchema>): Promise<MemberLocationResult> {
+  const parsed = memberLocationSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Invalid position payload." };
+  const ctx = await getLeagueContext();
+  const { data, error } = await ctx.supabase.rpc("share_member_location", {
+    p_event: ctx.event.id,
+    p_latitude: parsed.data.latitude,
+    p_longitude: parsed.data.longitude,
+    p_captured_at: parsed.data.capturedAt,
+    p_accuracy_m: parsed.data.accuracy ?? undefined,
+  });
+  if (error) {
+    if (error.message.includes("window")) return { ok: false, message: "The position's timestamp is outside the accepted window. Check the phone's clock and try again." };
+    if (error.message.includes("members")) return { ok: false, message: "Only league members can share a location." };
+    return { ok: false, message: "Could not share your location. Try again." };
+  }
+  revalidatePath("/map");
+  revalidatePath("/game-centre");
+  return { ok: true, message: data?.place_label ? `Pin placed · ${data.place_label}.` : "Pin placed on the league map.", placeLabel: data?.place_label ?? null };
+}
+
+/** Remove the caller's own pin. */
+export async function clearMemberLocation(): Promise<ActionResult> {
+  const ctx = await getLeagueContext();
+  const { data, error } = await ctx.supabase.rpc("clear_member_location", { p_event: ctx.event.id });
+  if (error) return { ok: false, message: "Could not remove your pin." };
+  revalidatePath("/map");
+  revalidatePath("/game-centre");
+  return { ok: true, message: data ? "Your pin is off the map." : "You had no pin on the map." };
+}
