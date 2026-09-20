@@ -589,3 +589,6 @@ a{color:inherit}
 .pb .pb-sideline-preview{margin-bottom:22px;padding-bottom:18px;border-bottom:1px dashed var(--pb-line)}
 .pb .pb-sideline-preview .pb-kicker{margin-bottom:10px}
 .pb .pb-sideline-preview .pb-reaction[disabled]{cursor:default;opacity:.7}
+
+/* --- Proof locker, league view (read-only) --------------------------------------------- */
+.pb .pb-locker-wait{margin-left:auto;flex-shrink:0;align-self:center;font:600 11px var(--font-barlow),Barlow,Arial,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:var(--pb-muted);white-space:nowrap}

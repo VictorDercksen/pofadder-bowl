@@ -67,7 +67,7 @@ export default async function LeagueLayout({ children }: { children: React.React
     >
       {ctx.viewingAsMember ? (
         <div className="pb-demo-banner pb-member-banner" role="status">
-          <span>LEAGUE MEMBER VIEW · This is what the league sees. Your own screens (My trip, Proof locker, Commissioner) are hidden until you exit.</span>
+          <span>LEAGUE MEMBER VIEW · This is what the league sees. Your own screens (My trip, Commissioner) are hidden and the proof locker is read-only until you exit.</span>
           <MemberViewToggle viewing />
         </div>
       ) : null}

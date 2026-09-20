@@ -60,6 +60,12 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   step("next-drive", "NEXT DRIVE", "What is up next, and the bus.", "The next item on the itinerary with its points, plus the countdown to the return bus from KLK Garage. There is no second bus.", "/game-centre", ["next-drive"]),
   step("sideline", "THE LOCKER ROOM", "The sideline feed.", "Every check-in, submission and decision posts here as a jersey card in the author's kit. The card in the spotlight is yours: your franchise, your name, your number. It is a preview, nothing is posted. Add your own take, reply, and hit No sympathy on anyone else's. It updates live.", "/game-centre", ["sideline-preview", "sideline"]),
   step("map", "SCREEN 03", "Check-in map.", "The route line grows from Malmesbury to Pofadder and back, oldest to newest. The orange pin is the latest check-in; town pins are references only. The history alongside shows capture time, receive time and accuracy.", "/map", ["map-panel"]),
+  ...(participant
+    ? []
+    : [
+        step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Ten plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
+        step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),
+      ]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
   step("predictions", "SCREEN 07", "Call it before kickoff.", "Predict the 14 km time, the meal rating and the complaint count. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
   step(

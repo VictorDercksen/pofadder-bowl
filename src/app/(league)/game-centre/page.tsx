@@ -75,11 +75,7 @@ export default async function GameCentrePage() {
           <h2>{next.item ? next.item.title : phase === "postgame" ? "Sentence served." : "Kickoff pending."}</h2>
           <p className="pb-small">{next.item ? `${formatDay(next.item.starts_at, tz)} ${formatTime(next.item.starts_at, tz)} · ${next.item.description ?? ""}${next.item.venue_text ? ` · ${next.item.venue_text}` : ""}` : "The itinerary is complete."}</p>
           <div className="pb-drive-stripe" aria-hidden="true" />
-          {ctx.isParticipant || ctx.isCommissioner ? (
-            <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
-          ) : (
-            <Link className="pb-primary orange" href="/props">Open the prop board ↗</Link>
-          )}
+          <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
           <div className="pb-next" style={{ marginTop: "auto" }}>
             <div className="pb-kicker">RETURN BUS · {formatTime(ctx.event.return_departure_at, tz)}</div>
             <h3>
