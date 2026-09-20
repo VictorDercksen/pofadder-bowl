@@ -7,6 +7,7 @@ import { RatingSelector } from "@/components/ui/RatingSelector";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime, minutesToClock } from "@/lib/time";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] }) {
   const router = useRouter();
@@ -69,9 +70,9 @@ export function ResultsForm({ results, timezone, defaults }: { results: Tables<"
       <label className="pb-field">
         Run finish time (h / m / s)
         <div className="pb-inline-fields" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-          <input type="number" min={0} max={8} value={h} onChange={(e) => setH(Number(e.target.value))} aria-label="Run hours" />
-          <input type="number" min={0} max={59} value={m} onChange={(e) => setM(Number(e.target.value))} aria-label="Run minutes" />
-          <input type="number" min={0} max={59} value={s} onChange={(e) => setS(Number(e.target.value))} aria-label="Run seconds" />
+          <NumberInput min={0} max={8} value={h} onChange={(n) => setH(n ?? 0)} aria-label="Run hours" />
+          <NumberInput min={0} max={59} value={m} onChange={(n) => setM(n ?? 0)} aria-label="Run minutes" />
+          <NumberInput min={0} max={59} value={s} onChange={(n) => setS(n ?? 0)} aria-label="Run seconds" />
         </div>
       </label>
       <label className="pb-field">

@@ -11,6 +11,7 @@ import { IconLink, IconTab } from "@/components/ui/IconButton";
 import { OriginStory } from "@/components/trip/OriginStory";
 import { formatLine, sideLabel, sidesFor, type PropKind } from "@/lib/props";
 import { DEMO_PROPS, DEMO_QUESTIONS, useDemo } from "./DemoStore";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 function DemoMap() {
   return (
@@ -565,8 +566,8 @@ export function DemoPredictions() {
           <label className="pb-field">
             Victor’s 10 km finish time
             <div className="pb-inline-fields">
-              <input type="number" min={0} max={8} value={h} onChange={(e) => setH(Number(e.target.value))} aria-label="Run hours" />
-              <input type="number" min={0} max={59} value={m} onChange={(e) => setM(Number(e.target.value))} aria-label="Run minutes" />
+              <NumberInput min={0} max={8} value={h} onChange={(n) => setH(n ?? Number.NaN)} aria-label="Run hours" />
+              <NumberInput min={0} max={59} value={m} onChange={(n) => setM(n ?? Number.NaN)} aria-label="Run minutes" />
             </div>
           </label>
           <p className="pb-small" style={{ marginTop: 5 }}>Hours / minutes</p>
@@ -578,7 +579,7 @@ export function DemoPredictions() {
           <div className="pb-inline-fields">
             <label className="pb-field">
               Final score out of 100
-              <input type="number" min={0} max={100} value={finalScore} onChange={(e) => setFinalScore(Number(e.target.value))} />
+              <NumberInput min={0} max={100} value={finalScore} onChange={(n) => setFinalScore(n ?? Number.NaN)} />
             </label>
             <label className="pb-field">
               Distance on the approved trace (km)
@@ -588,20 +589,20 @@ export function DemoPredictions() {
           <label className="pb-field">
             Time the daylight sign photo lands (SAST)
             <div className="pb-inline-fields">
-              <input type="number" min={0} max={23} value={signH} onChange={(e) => setSignH(Number(e.target.value))} aria-label="Sign photo hour" />
-              <input type="number" min={0} max={59} value={signM} onChange={(e) => setSignM(Number(e.target.value))} aria-label="Sign photo minute" />
+              <NumberInput min={0} max={23} value={signH} onChange={(n) => setSignH(n ?? Number.NaN)} aria-label="Sign photo hour" />
+              <NumberInput min={0} max={59} value={signM} onChange={(n) => setSignM(n ?? Number.NaN)} aria-label="Sign photo minute" />
             </div>
           </label>
           <div className="pb-inline-fields">
             <label className="pb-field">
               Versions the commissioner flags
-              <input type="number" min={0} max={99} value={flags} onChange={(e) => setFlags(Number(e.target.value))} />
+              <NumberInput min={0} max={99} value={flags} onChange={(n) => setFlags(n ?? Number.NaN)} />
             </label>
             <label className="pb-field">
               Sunset speech length
               <div className="pb-inline-fields">
-                <input type="number" min={0} max={60} value={speechM} onChange={(e) => setSpeechM(Number(e.target.value))} aria-label="Speech minutes" />
-                <input type="number" min={0} max={59} value={speechS} onChange={(e) => setSpeechS(Number(e.target.value))} aria-label="Speech seconds" />
+                <NumberInput min={0} max={60} value={speechM} onChange={(n) => setSpeechM(n ?? Number.NaN)} aria-label="Speech minutes" />
+                <NumberInput min={0} max={59} value={speechS} onChange={(n) => setSpeechS(n ?? Number.NaN)} aria-label="Speech seconds" />
               </div>
             </label>
           </div>

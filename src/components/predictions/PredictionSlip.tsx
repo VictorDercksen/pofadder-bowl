@@ -7,6 +7,7 @@ import { savePrediction, updatePredictionRules } from "@/lib/actions/predictions
 import { METRICS, validatePrediction, type PredictionRules, type PredictionValues, type SlipInput } from "@/lib/predictions";
 import { Countdown } from "@/components/ui/Countdown";
 import { RatingSelector } from "@/components/ui/RatingSelector";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 /** Sensible opening calls for a fresh slip. */
 const FRESH: SlipInput = { hours: 1, minutes: 35, mealRating: null, finalScore: 75, signHour: 9, signMinute: 30, flagCount: 1, distanceKm: 10.25, speechMinutes: 1, speechSeconds: 30 };
@@ -36,7 +37,7 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
   const [distance, setDistance] = useState(() => fromRow(existing).distanceKm.toFixed(2));
   const [pending, startTransition] = useTransition();
   const set = (patch: Partial<SlipInput>) => setSlip((s) => ({ ...s, ...patch }));
-  const num = (key: keyof SlipInput) => (e: React.ChangeEvent<HTMLInputElement>) => set({ [key]: e.target.value === "" ? Number.NaN : Number(e.target.value) });
+  const num = (key: keyof SlipInput) => (n: number | null) => set({ [key]: n ?? Number.NaN });
 
   function save() {
     const input = { ...slip, distanceKm: distance === "" ? Number.NaN : Number(distance) };
@@ -57,8 +58,8 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       <label className="pb-field">
         Victor’s 10 km finish time
         <div className="pb-inline-fields">
-          <input type="number" min={0} max={8} value={slip.hours} disabled={locked} onChange={num("hours")} aria-label="Run hours" />
-          <input type="number" min={0} max={59} value={slip.minutes} disabled={locked} onChange={num("minutes")} aria-label="Run minutes" />
+          <NumberInput min={0} max={8} value={slip.hours} disabled={locked} onChange={num("hours")} aria-label="Run hours" />
+          <NumberInput min={0} max={59} value={slip.minutes} disabled={locked} onChange={num("minutes")} aria-label="Run minutes" />
         </div>
       </label>
       <p className="pb-small" style={{ marginTop: 5 }}>Hours / minutes</p>
@@ -70,7 +71,7 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       <div className="pb-inline-fields">
         <label className="pb-field">
           Final score out of 100
-          <input type="number" min={0} max={100} value={slip.finalScore} disabled={locked} onChange={num("finalScore")} />
+          <NumberInput min={0} max={100} value={slip.finalScore} disabled={locked} onChange={num("finalScore")} />
         </label>
         <label className="pb-field">
           Distance on the approved trace (km)
@@ -80,21 +81,21 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       <label className="pb-field">
         Time the daylight sign photo lands (SAST)
         <div className="pb-inline-fields">
-          <input type="number" min={0} max={23} value={slip.signHour} disabled={locked} onChange={num("signHour")} aria-label="Sign photo hour" />
-          <input type="number" min={0} max={59} value={slip.signMinute} disabled={locked} onChange={num("signMinute")} aria-label="Sign photo minute" />
+          <NumberInput min={0} max={23} value={slip.signHour} disabled={locked} onChange={num("signHour")} aria-label="Sign photo hour" />
+          <NumberInput min={0} max={59} value={slip.signMinute} disabled={locked} onChange={num("signMinute")} aria-label="Sign photo minute" />
         </div>
       </label>
       <p className="pb-small" style={{ marginTop: 5 }}>Hour / minute, 24-hour clock. Settled from the submission time of challenge #03.</p>
       <div className="pb-inline-fields">
         <label className="pb-field">
           Versions the commissioner flags
-          <input type="number" min={0} max={99} value={slip.flagCount} disabled={locked} onChange={num("flagCount")} />
+          <NumberInput min={0} max={99} value={slip.flagCount} disabled={locked} onChange={num("flagCount")} />
         </label>
         <label className="pb-field">
           Sunset speech length
           <div className="pb-inline-fields">
-            <input type="number" min={0} max={60} value={slip.speechMinutes} disabled={locked} onChange={num("speechMinutes")} aria-label="Speech minutes" />
-            <input type="number" min={0} max={59} value={slip.speechSeconds} disabled={locked} onChange={num("speechSeconds")} aria-label="Speech seconds" />
+            <NumberInput min={0} max={60} value={slip.speechMinutes} disabled={locked} onChange={num("speechMinutes")} aria-label="Speech minutes" />
+            <NumberInput min={0} max={59} value={slip.speechSeconds} disabled={locked} onChange={num("speechSeconds")} aria-label="Speech seconds" />
           </div>
         </label>
       </div>
@@ -124,7 +125,7 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
         {METRICS.map((m) => (
           <label className="pb-field" key={m.key}>
             {m.label}
-            <input type="number" min={0} max={100} value={points[`${m.key}_points`]} onChange={(e) => setPoints((p) => ({ ...p, [`${m.key}_points`]: Number(e.target.value) }))} />
+            <NumberInput min={0} max={100} value={points[`${m.key}_points`]} onChange={(n) => setPoints((p) => ({ ...p, [`${m.key}_points`]: n ?? Number.NaN }))} />
           </label>
         ))}
       </div>

@@ -7,6 +7,7 @@ import { TeamLogo } from "@/components/ui/Marks";
 import { toast } from "@/lib/toast-store";
 import { claimKit } from "@/lib/actions/account";
 import { NFL_TEAMS } from "@/lib/nfl";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 export type Claimed = { team: string; by: string; mine: boolean };
 
@@ -65,7 +66,7 @@ export function TeamPicker({ claimed, initialNumber, current, afterClaim = "/hom
         </div>
         <label className="pb-field">
           Kit number (0–99)
-          <input type="number" min={0} max={99} value={number} onChange={(e) => setNumber(Math.max(0, Math.min(99, Number(e.target.value) || 0)))} />
+          <NumberInput min={0} max={99} value={number} onChange={(n) => setNumber(Math.max(0, Math.min(99, n ?? 0)))} />
         </label>
         <div className="pb-actions">
           <button className="pb-primary" type="button" onClick={claim} disabled={pending || !team}>

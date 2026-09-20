@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
 import { claimSleeperIdentity, setPassword, updateProfile } from "@/lib/actions/account";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 export function KitForm({ displayName, kitNumber }: { displayName: string; kitNumber: number }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export function KitForm({ displayName, kitNumber }: { displayName: string; kitNu
       </label>
       <label className="pb-field">
         Number (0–99)
-        <input type="number" min={0} max={99} value={number} onChange={(e) => setNumber(Number(e.target.value))} />
+        <NumberInput min={0} max={99} value={number} onChange={(n) => setNumber(n ?? 0)} />
       </label>
       <div className="pb-actions">
         <button
