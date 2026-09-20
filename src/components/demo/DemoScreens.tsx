@@ -8,7 +8,7 @@ import { LeaguePatch, PbShield, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { OriginStory } from "@/components/trip/OriginStory";
 import { formatLine, sideLabel, sidesFor, type PropKind } from "@/lib/props";
-import { DEMO_PROPS, DEMO_QUESTIONS, DemoStatus, useDemo } from "./DemoStore";
+import { DEMO_PROPS, DEMO_QUESTIONS, useDemo } from "./DemoStore";
 
 function DemoMap() {
   return (
@@ -131,7 +131,6 @@ export function DemoCentre() {
           </div>
         </div>
       </section>
-      <DemoStatus />
     </>
   );
 }
@@ -226,7 +225,6 @@ export function DemoTrip() {
         </div>
       </div>
       <OriginStory />
-      <DemoStatus />
     </>
   );
 }
@@ -284,7 +282,6 @@ export function DemoMapScreen() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -349,7 +346,6 @@ export function DemoProof() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -442,7 +438,6 @@ export function DemoReview() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -527,7 +522,6 @@ export function DemoProps() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -597,7 +591,6 @@ export function DemoPredictions() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -664,7 +657,6 @@ export function DemoPress() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -749,7 +741,6 @@ export function DemoRecap() {
           </div>
         </div>
       </div>
-      <DemoStatus />
     </>
   );
 }
@@ -786,7 +777,6 @@ export function DemoAccess() {
           This selector only switches demo screens. Real roles are stored server-side and enforced by the database: <Link href="/login">sign in with your league invitation</Link>.
         </p>
       </div>
-      <DemoStatus />
     </>
   );
 }

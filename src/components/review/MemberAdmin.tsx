@@ -2,11 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { TeamLogo } from "@/components/ui/Marks";
 import { confirmSleeperLink, importSleeperLeague, inviteMember, sendSignInLink, setEventParticipant, setMemberRole } from "@/lib/actions/members";
-
-type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
 
 export function InviteForm() {
   const router = useRouter();
@@ -14,7 +12,6 @@ export function InviteForm() {
   const [name, setName] = useState("");
   const [role, setRole] = useState<"member" | "participant">("member");
   const [commish, setCommish] = useState(false);
-  const [note, setNote] = useState<Note>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div>
@@ -45,7 +42,7 @@ export function InviteForm() {
           onClick={() =>
             startTransition(async () => {
               const res = await inviteMember({ email, displayName: name || undefined, role, isCommissioner: commish });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               if (res.ok) {
                 setEmail("");
                 setName("");
@@ -57,7 +54,6 @@ export function InviteForm() {
           Send invitation
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
@@ -69,14 +65,13 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
   const [adminFlag, setAdminFlag] = useState(membership.is_admin);
   const [status, setStatus] = useState(membership.status);
   const [sleeper, setSleeper] = useState(membership.sleeper_user_id ?? "");
-  const [note, setNote] = useState<Note>(null);
   const [link, setLink] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function signInLink(mode: "email" | "link") {
     startTransition(async () => {
       const res = await sendSignInLink({ userId: membership.user_id, mode });
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       setLink(res.ok && res.link ? res.link : null);
     });
   }
@@ -84,7 +79,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
   function save() {
     startTransition(async () => {
       const res = await setMemberRole({ userId: membership.user_id, role, isCommissioner: commish, isAdmin: adminFlag, status });
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -134,7 +129,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
               onClick={() =>
                 startTransition(async () => {
                   const res = await setEventParticipant({ userId: membership.user_id });
-                  setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+                  toast(res.message ?? "", res.ok ? "ok" : "error");
                   router.refresh();
                 })
               }
@@ -176,7 +171,7 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
               onClick={() =>
                 startTransition(async () => {
                   const res = await confirmSleeperLink({ userId: membership.user_id, sleeperUserId: sleeper || null, confirmed: Boolean(sleeper) });
-                  setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+                  toast(res.message ?? "", res.ok ? "ok" : "error");
                   router.refresh();
                 })
               }
@@ -185,7 +180,6 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
             </button>
           </div>
         ) : null}
-        <Status tone={note?.tone}>{note?.text}</Status>
       </div>
     </div>
   );
@@ -193,7 +187,6 @@ export function MemberRow({ membership, profile, isSelf, isEventParticipant, sle
 
 export function SleeperImport() {
   const router = useRouter();
-  const [note, setNote] = useState<Note>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div>
@@ -205,7 +198,7 @@ export function SleeperImport() {
           onClick={() =>
             startTransition(async () => {
               const res = await importSleeperLeague();
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -213,7 +206,6 @@ export function SleeperImport() {
           {pending ? "Importing…" : "Import Sleeper managers"}
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }

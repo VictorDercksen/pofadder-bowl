@@ -17,16 +17,6 @@ export function TitleRow({ kicker, title, blurb, tag, team = "nyg", identity }: 
   );
 }
 
-export function Status({ children, tone = "ok" }: { children: ReactNode; tone?: "ok" | "warn" | "error" }) {
-  if (!children) return null;
-  const border = tone === "error" ? "#b3392a" : tone === "warn" ? "var(--pb-orange)" : "var(--pb-green)";
-  return (
-    <div className="pb-status" role="status" aria-live="polite" style={{ borderLeftColor: border }}>
-      {children}
-    </div>
-  );
-}
-
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="pb-drop" style={{ padding: "26px 18px" }}>

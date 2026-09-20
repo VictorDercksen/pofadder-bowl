@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { newId } from "@/lib/ids";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { reviewSubmission } from "@/lib/actions/review";
 
 /** Approve / flag / supersede with a per-page idempotency key so retries never double-award. */
@@ -11,21 +11,20 @@ export function ReviewForm({ submissionId, version, status, points }: { submissi
   const router = useRouter();
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   // One key per (submission, version, decision) per page load: a double-click or retry replays the same decision.
   const keyBase = useRef(newId());
 
   function decide(decision: "approved" | "flagged" | "superseded") {
     if (decision === "flagged" && !reason.trim()) {
-      setMsg({ text: "Add a reason so Victor knows what needs fixing.", tone: "warn" });
+      toast("Add a reason so Victor knows what needs fixing.", "warn");
       return;
     }
     startTransition(async () => {
       const res = await reviewSubmission({ submissionId, version, decision, idempotencyKey: `${keyBase.current}:${decision}:${version}`, reason: reason.trim() || undefined, note: note.trim() || undefined });
       // The server replays an identical request for this key; a later, different decision needs a new one.
       keyBase.current = newId();
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -64,7 +63,6 @@ export function ReviewForm({ submissionId, version, status, points }: { submissi
       <p className="pb-small" style={{ marginTop: 10 }}>
         Approving is transactional and idempotent: repeated clicks and concurrent reviews cannot double-award. Approving a newer version explicitly supersedes an earlier approved one and records both decisions.
       </p>
-      <Status tone={msg?.tone}>{msg?.text}</Status>
     </div>
   );
 }

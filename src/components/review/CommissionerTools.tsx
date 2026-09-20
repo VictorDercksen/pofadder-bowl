@@ -2,16 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime } from "@/lib/time";
 
-type Note = { text: string; tone: "ok" | "warn" | "error" } | null;
-
 export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] }) {
   const router = useRouter();
-  const [note, setNote] = useState<Note>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div style={{ marginTop: 18 }}>
@@ -26,7 +23,7 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
             onChange={(e) =>
               startTransition(async () => {
                 const res = await setPenalty({ penaltyId: p.id, applied: e.target.checked });
-                setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+                toast(res.message ?? "", res.ok ? "ok" : "error");
                 router.refresh();
               })
             }
@@ -37,14 +34,12 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
           </span>
         </label>
       ))}
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
 
 export function ResultsForm({ results, timezone }: { results: Tables<"official_results"> | null; timezone: string }) {
   const router = useRouter();
-  const [note, setNote] = useState<Note>(null);
   const [pending, startTransition] = useTransition();
   const [h, setH] = useState(results?.run_seconds != null ? Math.floor(results.run_seconds / 3600) : 0);
   const [m, setM] = useState(results?.run_seconds != null ? Math.floor((results.run_seconds % 3600) / 60) : 0);
@@ -93,7 +88,7 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
                 mealRating: meal === "" ? null : Number(meal),
                 complaintCount: complaints === "" ? null : Number(complaints),
               });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -107,7 +102,7 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
           onClick={() =>
             startTransition(async () => {
               const res = await resolvePredictions();
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -116,14 +111,12 @@ export function ResultsForm({ results, timezone }: { results: Tables<"official_r
         </button>
       </div>
       {results?.resolved_at ? <p className="pb-inline-status">Last resolved {formatDateTime(results.resolved_at, timezone)}. Resolving again recomputes awards.</p> : null}
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
 
 export function CertificateIssue({ certificate, approved, max, timezone }: { certificate: Tables<"certificates"> | null; approved: number; max: number; timezone: string }) {
   const router = useRouter();
-  const [note, setNote] = useState<Note>(null);
   const [isPublic, setIsPublic] = useState(certificate?.is_public ?? false);
   const [pending, startTransition] = useTransition();
   return (
@@ -144,7 +137,7 @@ export function CertificateIssue({ certificate, approved, max, timezone }: { cer
           onClick={() =>
             startTransition(async () => {
               const res = await issueCertificate({ isPublic });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -152,7 +145,6 @@ export function CertificateIssue({ certificate, approved, max, timezone }: { cer
           {certificate?.status === "issued" ? "Re-issue certificate" : "Issue certificate"}
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }

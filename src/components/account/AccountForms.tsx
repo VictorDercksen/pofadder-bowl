@@ -2,14 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { claimSleeperIdentity, setPassword, updateProfile } from "@/lib/actions/account";
 
 export function KitForm({ displayName, kitNumber }: { displayName: string; kitNumber: number }) {
   const router = useRouter();
   const [name, setName] = useState(displayName);
   const [number, setNumber] = useState(kitNumber);
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div>
@@ -29,7 +28,7 @@ export function KitForm({ displayName, kitNumber }: { displayName: string; kitNu
           onClick={() =>
             startTransition(async () => {
               const res = await updateProfile({ displayName: name, kitNumber: number });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -37,7 +36,6 @@ export function KitForm({ displayName, kitNumber }: { displayName: string; kitNu
           Save nameplate
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
@@ -45,7 +43,6 @@ export function KitForm({ displayName, kitNumber }: { displayName: string; kitNu
 export function SleeperClaim({ users, current }: { users: { id: string; label: string; taken: boolean }[]; current: string | null }) {
   const router = useRouter();
   const [value, setValue] = useState(current ?? "");
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div>
@@ -69,7 +66,7 @@ export function SleeperClaim({ users, current }: { users: { id: string; label: s
           onClick={() =>
             startTransition(async () => {
               const res = await claimSleeperIdentity({ sleeperUserId: value || null });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -77,7 +74,6 @@ export function SleeperClaim({ users, current }: { users: { id: string; label: s
           {pending ? "Saving…" : value ? "Confirm this team" : "Clear link"}
         </button>
       </div>
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
@@ -90,7 +86,6 @@ export function PasswordForm({ afterSave, label = "Save password" }: { afterSave
   const router = useRouter();
   const [password, setPasswordValue] = useState("");
   const [again, setAgain] = useState("");
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   const mismatch = again.length > 0 && again !== password;
   return (
@@ -111,7 +106,7 @@ export function PasswordForm({ afterSave, label = "Save password" }: { afterSave
           onClick={() =>
             startTransition(async () => {
               const res = await setPassword({ password });
-              setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               if (res.ok) {
                 setPasswordValue("");
                 setAgain("");
@@ -127,7 +122,6 @@ export function PasswordForm({ afterSave, label = "Save password" }: { afterSave
         </button>
       </div>
       {mismatch ? <p className="pb-small" style={{ marginTop: 8, color: "#b3392a" }}>The two entries differ.</p> : null}
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }

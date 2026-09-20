@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { createDraft, deleteDraftFile, submitDraft, updateCaption } from "@/lib/actions/evidence";
 import { formatBytes, validateFile } from "@/lib/evidence-rules";
 import { clearDraft, loadDraft, saveDraft, uploadEvidence, type LocalDraft, type LocalDraftFile, type UploadHandle } from "@/lib/uploads";
@@ -41,7 +41,6 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   const [submissionId, setSubmissionId] = useState<string | undefined>(editable ? current?.id : undefined);
   const [caption, setCaption] = useState(editable ? (current?.caption ?? "") : "");
   const [rows, setRows] = useState<Row[]>([]);
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const online = useOnline();
   const [pending, startTransition] = useTransition();
   const [localSaved, setLocalSaved] = useState(false);
@@ -72,7 +71,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       const draft: LocalDraft = { key: draftKey, targetId, targetKind, submissionId: nextSubmissionId, caption: nextCaption, files: nextRows.map((r) => r.local), updatedAt: Date.now() };
       const res = await saveDraft(draft);
       setLocalSaved(res.ok);
-      if (!res.ok) setNote({ text: res.message, tone: "warn" });
+      if (!res.ok) toast(res.message, "warn");
       return res.ok;
     },
     [draftKey, targetId, targetKind],
@@ -82,7 +81,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     if (submissionId) return submissionId;
     const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId, caption } : { pressPromptId: targetId, caption });
     if (!res.ok || !res.submissionId) {
-      setNote({ text: res.ok ? "Could not create a draft." : res.message, tone: "error" });
+      toast(res.ok ? "Could not create a draft." : res.message, "error");
       return null;
     }
     setSubmissionId(res.submissionId);
@@ -95,7 +94,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     for (const file of Array.from(list)) {
       const v = validateFile(file.type, file.name, file.size);
       if (!v.ok) {
-        setNote({ text: `${file.name}: ${v.reason}`, tone: "error" });
+        toast(`${file.name}: ${v.reason}`, "error");
         continue;
       }
       next.push({ local: { id: newId(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued", lastModified: file.lastModified }, progress: 0 });
@@ -103,7 +102,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     if (next.length === 0) return;
     const all = [...rows, ...next];
     setRows(all);
-    persist(all, caption, submissionId).then((ok) => ok && setNote({ text: `${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, tone: "ok" }));
+    persist(all, caption, submissionId).then((ok) => ok && toast(`${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, "ok"));
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -111,7 +110,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
 
   async function uploadAll() {
     if (!online) {
-      setNote({ text: "Offline. Files stay in the local draft and can be uploaded when you reconnect.", tone: "warn" });
+      toast("Offline. Files stay in the local draft and can be uploaded when you reconnect.", "warn");
       return;
     }
     // One upload loop at a time: a second click (or Retry) must not send the same bytes twice.
@@ -138,7 +137,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
         outcomes.set(row.local.id, { ok: res.ok, message: res.ok ? undefined : res.message });
         setRows((prev) => prev.map(applyOutcome));
         await persist(rows.map(applyOutcome).filter((r) => r.local.status !== "uploaded"), caption, sid);
-        if (!res.ok) setNote({ text: res.message, tone: "error" });
+        if (!res.ok) toast(res.message, "error");
       }
       router.refresh();
     } finally {
@@ -162,30 +161,30 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       await persist(rows, caption, submissionId);
       if (submissionId) {
         const res = await updateCaption({ submissionId, caption });
-        setNote({ text: res.ok ? "Caption saved to the draft." : res.message, tone: res.ok ? "ok" : "error" });
-      } else setNote({ text: "Draft saved on this device.", tone: "ok" });
+        toast(res.ok ? "Caption saved to the draft." : res.message, res.ok ? "ok" : "error");
+      } else toast("Draft saved on this device.", "ok");
     });
   }
 
   function submit() {
     if (!online) {
-      setNote({ text: "Offline. Save the draft and submit after reconnecting.", tone: "warn" });
+      toast("Offline. Save the draft and submit after reconnecting.", "warn");
       return;
     }
     const uploadedCount = (current?.files.length ?? 0) + rows.filter((r) => r.local.status === "uploaded").length;
     const queued = rows.some((r) => r.local.status !== "uploaded");
     if (queued) {
-      setNote({ text: "Upload the queued files first (or remove them) before submitting.", tone: "warn" });
+      toast("Upload the queued files first (or remove them) before submitting.", "warn");
       return;
     }
     if (!submissionId || uploadedCount === 0) {
-      setNote({ text: "Attach and upload at least one file before submitting.", tone: "warn" });
+      toast("Attach and upload at least one file before submitting.", "warn");
       return;
     }
     startTransition(async () => {
       if (caption !== (current?.caption ?? "")) await updateCaption({ submissionId, caption });
       const res = await submitDraft({ submissionId });
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       if (res.ok) {
         await clearDraft(draftKey);
         setRows([]);
@@ -197,7 +196,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   function removeUploaded(fileId: string) {
     startTransition(async () => {
       const res = await deleteDraftFile({ fileId });
-      setNote({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -307,7 +306,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
             onClick={() =>
               startTransition(async () => {
                 const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId } : { pressPromptId: targetId });
-                setNote({ text: res.ok ? `New version v${res.version} started.` : res.message, tone: res.ok ? "ok" : "error" });
+                toast(res.ok ? `New version v${res.version} started.` : res.message, res.ok ? "ok" : "error");
                 router.refresh();
               })
             }
@@ -316,7 +315,6 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
           </button>
         </div>
       )}
-      <Status tone={note?.tone}>{note?.text}</Status>
     </div>
   );
 }
