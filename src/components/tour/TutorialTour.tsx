@@ -3,17 +3,25 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Football } from "@/components/ui/Football";
+import { IconButton } from "@/components/ui/IconButton";
 import { completeTutorial } from "@/lib/actions/tutorial";
 import { setDrawerOpen } from "@/lib/drawer-events";
 import type { Role } from "@/lib/roles";
-import { placeCard, TOUR_VERSION, tourStepsFor, type Rect } from "@/lib/tour";
+import { placeCard, scrollOffset, TOUR_VERSION, tourStepsFor, type Rect } from "@/lib/tour";
 import { endTour, getTourRun, goToStep, markSeen, startTour, useTourRun, wasSeen, type TourRun } from "@/lib/tour-store";
 
 const CARD_WIDTH = 360;
+/** Fallback until the card has been measured. */
 const CARD_HEIGHT = 250;
 const SPOT_PAD = 8;
 const FIND_TRIES = 40;
 const FIND_EVERY_MS = 150;
+/** Keep re-measuring this long after the target is found: the drawer slides in over 220 ms and streamed content shifts the page. */
+const SETTLE_MS = 700;
+/** How long a screen may take to open before the card admits it is stuck. */
+const STUCK_AFTER_MS = 6000;
+/** Navigations attempted per step before giving up (a screen that redirects would otherwise loop). */
+const MAX_PUSHES = 2;
 
 /**
  * The guided tour. Mounted once in the league layout, so it survives the navigations it
@@ -45,7 +53,38 @@ function findTarget(targets: string[]): HTMLElement | null {
 
 function toRect(el: HTMLElement): Rect {
   const r = el.getBoundingClientRect();
-  return { top: r.top, left: r.left, width: r.width, height: r.height };
+  return { top: Math.round(r.top), left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) };
+}
+
+function sameRect(a: Rect | null, b: Rect | null): boolean {
+  if (!a || !b) return a === b;
+  return a.top === b.top && a.left === b.left && a.width === b.width && a.height === b.height;
+}
+
+/** Height of the sticky header, which hides anything scrolled underneath it. */
+function headerHeight(): number {
+  const top = document.querySelector<HTMLElement>(".pb-top");
+  return top ? Math.max(0, top.getBoundingClientRect().bottom) : 0;
+}
+
+/**
+ * Scroll so the target sits in the free zone (under the header, above a phone's bottom
+ * sheet). Targets inside a scrolling container (the drawer's programme list) are first
+ * brought into that container's view; targets inside a fixed panel (the drawer) never
+ * move the window, which is locked behind the drawer anyway.
+ */
+function bringIntoView(el: HTMLElement, cardHeight: number) {
+  let fixed = false;
+  let scroller: HTMLElement | null = null;
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const cs = window.getComputedStyle(p);
+    if (cs.position === "fixed") fixed = true;
+    if (!scroller && /(auto|scroll)/.test(cs.overflowY) && p.scrollHeight > p.clientHeight) scroller = p;
+  }
+  if (scroller) el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  if (fixed) return;
+  const delta = scrollOffset(toRect(el), { height: cardHeight }, { width: window.innerWidth, height: window.innerHeight }, headerHeight());
+  if (Math.abs(delta) > 1) window.scrollBy(0, delta);
 }
 
 function TourOverlay({ run }: { run: TourRun }) {
@@ -63,15 +102,31 @@ function TourOverlay({ run }: { run: TourRun }) {
   const [anchor, setAnchor] = useState<{ id: string; rect: Rect | null }>({ id: "", rect: null });
   // Client-only component (the store is null on the server), so the window is available at first render.
   const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
+  // The rendered card height, so placement never lands the card on the target it describes.
+  const [cardHeight, setCardHeight] = useState(CARD_HEIGHT);
+  // Step whose screen did not open in time (a redirect, or a screen this account cannot see).
+  const [stuckFor, setStuckFor] = useState<string | null>(null);
   const rect = anchor.id === step.id ? anchor.rect : null;
+  const stuck = !onPage && stuckFor === step.id;
 
-  // Navigate to the step's screen once per step; the page itself may redirect if the role cannot open it.
-  const pushedFor = useRef<string | null>(null);
+  // Navigate to the step's screen, again if the browser's Back button took the tour elsewhere,
+  // but only a couple of times per step so a screen that redirects away does not loop.
+  const pushes = useRef<{ id: string; count: number }>({ id: "", count: 0 });
   useEffect(() => {
-    if (!step.href || pathname === step.href || pushedFor.current === step.id) return;
-    pushedFor.current = step.id;
+    if (!step.href || pathname === step.href) return;
+    if (pushes.current.id !== step.id) pushes.current = { id: step.id, count: 0 };
+    if (pushes.current.count >= MAX_PUSHES) return;
+    pushes.current.count += 1;
     router.push(step.href);
   }, [step.href, step.id, pathname, router]);
+
+  // Admit it when the screen does not open, so the member can carry on with Next.
+  useEffect(() => {
+    if (onPage) return;
+    const id = step.id;
+    const timer = window.setTimeout(() => setStuckFor(id), STUCK_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [step.id, onPage]);
 
   // Steps that talk about the Menu open the phone drawer so its identity block and programme
   // can be spotlighted; every other step closes it again. On a desktop the Menu button is
@@ -83,45 +138,107 @@ function TourOverlay({ run }: { run: TourRun }) {
   }, [step, onPage]);
   useEffect(() => () => setDrawerOpen(false), []);
 
-  // Find and measure the target, retrying while the screen streams in; follow scroll and resize.
+  // Track the card's real height (the copy length varies per step and per viewport width).
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setCardHeight(Math.round(card.getBoundingClientRect().height) || CARD_HEIGHT));
+    ro.observe(card);
+    return () => ro.disconnect();
+  }, []);
+
+  // Find and measure the target, retrying while the screen streams in. Keep measuring for a
+  // settle window after it is found (drawer slide, images, streamed panels), then follow
+  // scroll, resize, layout changes and DOM replacement so the ring never drifts off the target.
   useEffect(() => {
     let cancelled = false;
     let tries = 0;
     let el: HTMLElement | null = null;
     let timer = 0;
+    let raf = 0;
+    let lastRect: Rect | null = null;
+    let lastViewport = { width: -1, height: -1 };
+    let bodyObserver: ResizeObserver | null = null;
+    let domObserver: MutationObserver | null = null;
+
     const measure = () => {
       if (cancelled) return;
-      setViewport({ width: window.innerWidth, height: window.innerHeight });
-      setAnchor({ id: step.id, rect: el ? toRect(el) : null });
+      // A refresh can replace the node under the ring: find it again rather than measure a detached element.
+      if (el && !el.isConnected) el = findTarget(step.targets);
+      const next = el ? toRect(el) : null;
+      const vp = { width: window.innerWidth, height: window.innerHeight };
+      if (sameRect(lastRect, next) && vp.width === lastViewport.width && vp.height === lastViewport.height) return;
+      lastRect = next;
+      lastViewport = vp;
+      setViewport(vp);
+      setAnchor({ id: step.id, rect: next });
+    };
+    const scheduleMeasure = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        measure();
+      });
+    };
+    const settle = (until: number) => {
+      const loop = () => {
+        if (cancelled) return;
+        measure();
+        if (performance.now() < until) raf = window.requestAnimationFrame(loop);
+        else raf = 0;
+      };
+      window.cancelAnimationFrame(raf);
+      raf = window.requestAnimationFrame(loop);
+    };
+    const follow = () => {
+      window.addEventListener("resize", scheduleMeasure);
+      window.addEventListener("scroll", scheduleMeasure, true);
+      window.visualViewport?.addEventListener("resize", scheduleMeasure);
+      window.visualViewport?.addEventListener("scroll", scheduleMeasure);
+      if (typeof ResizeObserver !== "undefined") {
+        bodyObserver = new ResizeObserver(scheduleMeasure);
+        bodyObserver.observe(document.body);
+        if (el) bodyObserver.observe(el);
+      }
+      if (typeof MutationObserver !== "undefined") {
+        domObserver = new MutationObserver((records) => {
+          // The overlay repositions itself on every measure; only changes to the page count.
+          if (records.some((r) => !(r.target as Element).closest?.(".pb-tour"))) scheduleMeasure();
+        });
+        domObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
+      }
     };
     const tick = () => {
-      if (cancelled) return;
-      if (!onPage) return;
+      if (cancelled || !onPage) return;
       if (step.targets.length === 0) {
         measure();
+        follow();
         return;
       }
       el = findTarget(step.targets);
       if (el) {
-        // Bring the target into view only when it is not already, without jolting the page for tall elements.
-        const r = el.getBoundingClientRect();
-        if (r.top < 0 || r.bottom > window.innerHeight) el.scrollIntoView({ block: r.height > window.innerHeight * 0.8 ? "start" : "center", inline: "nearest" });
+        bringIntoView(el, cardRef.current?.getBoundingClientRect().height ?? CARD_HEIGHT);
         measure();
-        timer = window.setTimeout(measure, 300);
+        follow();
+        settle(performance.now() + SETTLE_MS);
       } else if (++tries < FIND_TRIES) {
         timer = window.setTimeout(tick, FIND_EVERY_MS);
       } else {
         measure();
+        follow();
       }
     };
     timer = window.setTimeout(tick, 0);
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener("resize", scheduleMeasure);
+      window.removeEventListener("scroll", scheduleMeasure, true);
+      window.visualViewport?.removeEventListener("resize", scheduleMeasure);
+      window.visualViewport?.removeEventListener("scroll", scheduleMeasure);
+      bodyObserver?.disconnect();
+      domObserver?.disconnect();
     };
   }, [step, onPage]);
 
@@ -161,7 +278,7 @@ function TourOverlay({ run }: { run: TourRun }) {
   };
 
   const cardWidth = Math.min(CARD_WIDTH, viewport.width - 32);
-  const place = placeCard(rect, { width: cardWidth, height: CARD_HEIGHT }, viewport);
+  const place = placeCard(rect, { width: cardWidth, height: cardHeight }, viewport);
   const progress = Math.round(((index + 1) / steps.length) * 100);
 
   return (
@@ -190,13 +307,11 @@ function TourOverlay({ run }: { run: TourRun }) {
         <p>{step.body}</p>
         {!onPage ? (
           <p className="pb-tour-loading" role="status">
-            <Football size={18} /> Opening the screen…
+            {stuck ? "This screen did not open for your account. Next carries on with the tour." : <><Football size={18} /> Opening the screen…</>}
           </p>
         ) : null}
         <div className="pb-tour-actions">
-          <button type="button" className="pb-text-action" onClick={finish}>
-            {last ? "Close" : "Skip the tour"}
-          </button>
+          <IconButton icon="close" label={last ? "Close the tour" : "Skip the tour"} onClick={finish} small />
           <span className="pb-tour-nav">
             {index > 0 ? (
               <button type="button" className="pb-secondary" onClick={back}>

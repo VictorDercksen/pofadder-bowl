@@ -17,7 +17,7 @@ insert into public.events (
   'pofadder-bowl-2026', 'Pofadder Bowl 2026', 'Show Us Your TD’s · Punishment series',
   'Africa/Johannesburg', 'Malmesbury', 'Pofadder', 'Intercape Mainliner',
   '2026-09-23T19:15:00+02:00', '2026-09-24T04:45:00+02:00', '2026-09-24T22:30:00+02:00', '2026-09-25T07:35:00+02:00',
-  '2026-09-23T19:15:00+02:00', '2026-09-23T19:15:00+02:00', 14, 100, 974, 2024
+  '2026-09-23T19:15:00+02:00', '2026-09-23T19:15:00+02:00', 10, 100, 974, 2024
 )
 on conflict (league_id, slug) do update set
   name = excluded.name, subtitle = excluded.subtitle, timezone = excluded.timezone,
@@ -33,7 +33,7 @@ insert into public.itinerary_items (event_id, quarter, sequence, starts_at, titl
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 2, '2026-09-23T19:15:00+02:00', 'Intercape departs', 'N7 north, N14 east. One update from the dark, then sleep.', 'Malmesbury'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 1, '2026-09-24T04:45:00+02:00', 'Arrive KLK Garage', 'Night sign selfie. Walk to the Hotel.', 'KLK Garage, Skool St'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 2, '2026-09-24T05:00:00+02:00', 'Rest', 'Rest.', 'Hotel'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 3, '2026-09-24T06:30:00+02:00', '14 km run', 'Voortrekker St east, R358 north 5 km, turn at 6.0 km on the watch, back to town, 2 km town loop to the Hotel. GPS export is the proof.', 'Voortrekker St / R358'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 3, '2026-09-24T06:30:00+02:00', '10 km run', 'Voortrekker St east, R358 north 3 km, turn at 4.0 km on the watch, back to town, 2 km town loop to the Hotel. GPS export is the proof.', 'Voortrekker St / R358'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 4, '2026-09-24T08:30:00+02:00', 'Breakfast at Pofadder Inn', 'Daylight sign selfie.', 'Pofadder Inn'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 1, '2026-09-24T09:30:00+02:00', 'Tourism Bureau', 'Town history, oldest building, Heritage Day events.', 'Tourism Bureau, 103 Voortrekker St'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 2, '2026-09-24T10:30:00+02:00', 'Checkpoints on foot', 'See play-by-play.', 'Pofadder'),
@@ -49,7 +49,7 @@ on conflict (event_id, quarter, sequence) do update set starts_at = excluded.sta
 -- Ten proof challenges worth exactly 100 points.
 insert into public.challenges (event_id, sequence, title, proof_type, points) values
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Town welcome sign, in the dark, on arrival', 'photo', 5),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, '14 km run, full GPS trace including the R358 leg', 'watch export', 25),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, '10 km run, full GPS trace including the R358 leg', 'watch export', 25),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Welcome sign again, in daylight, still in running kit', 'photo', 5),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Three locals asked what Pofadder is known for', '3 clips', 10),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Oldest building in town, with its year', 'photo', 5),
@@ -78,7 +78,7 @@ on conflict (event_id, slot, sequence) do update set question = excluded.questio
 -- Prop board: ten over/under and yes/no props, set before departure. Picks lock at departure.
 -- Settled by a commissioner from the record after the trip (see detail for each rule).
 insert into public.props (event_id, sequence, title, detail, kind, line, unit, locks_at) values
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Watch distance on the approved run trace', 'The distance on the GPS export the commissioner approves for the 14 km run.', 'over_under', 14.25, 'km', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Watch distance on the approved run trace', 'The distance on the GPS export the commissioner approves for the 10 km run.', 'over_under', 10.25, 'km', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Minutes the Intercape arrives late at KLK Garage', 'Scheduled 04:45. Settled from the arrival check-in or the night sign photo timestamp.', 'over_under', 20, 'min late', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Chicken and rib combo finished on camera', 'Plate clean in the rating clip. Bones do not count as leftovers.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Locals approached before three agree to be filmed', 'Victor keeps the tally and states it in the third clip. Commissioner may audit the footage.', 'over_under', 4.5, 'locals', '2026-09-23T19:15:00+02:00'),

@@ -1,12 +1,12 @@
 # Pofadder Bowl 2026 · Handoff (2026-09-20, prop board: Save button instead of save-per-tap)
 
-Follow-on to `handoff_2026-09-20_tour-colours-sideline-claims.md`. Infrastructure detail still lives in `handoff_2026-09-17.md`.
+Follow-on to `handoff_2026-09-20_tour-colours-sideline-claims.md`; merged with `main` (alert snackbar, proof locker league view, tour fixes, run route) before merging into `main`. Infrastructure detail still lives in `handoff_2026-09-17.md`.
 
 ## State at handoff
 
 | Item | Value |
 |---|---|
-| Branch | `claude/prop-board-save-button-8thxr7`, started from `main` (no PR opened) |
+| Branch | `claude/prop-board-save-button-8thxr7`, merged into `main` on request (no PR) |
 | Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
 | Schema | Unchanged. No migration; the existing `upsert_prop_pick` RPC is reused |
 | Types | Unchanged |
@@ -20,7 +20,7 @@ On the Prop Board page, stop saving every side as it is tapped. Add a Save butto
 ## What was done
 
 - **`src/components/props/PropBoard.tsx`**: tapping a side now only records a draft in component state (`drafts`, keyed by prop id). The shown side per prop is the draft if there is one, else the saved side. A drafted side that differs from the saved one gets the `draft` class (dashed gold ring) and the state line reads "Over · not saved yet." Tapping back to the saved side makes the prop clean again.
-- **Save bar** under the list (only while at least one prop is still open): `Save picks` (disabled until something changed, then `Save N picks`), `Discard changes` (clears drafts, shown only when dirty) and a note. A `beforeunload` guard warns on leaving the page with unsaved sides. Commissioner settle buttons are unchanged and still act immediately (a different action, on locked props).
+- **Save bar** under the list (only while at least one prop is still open): `Save picks` (disabled until something changed, then `Save N picks`), `Discard changes` (clears drafts, shown only when dirty) and a note. Save and settle results go to the alert snackbar (`toast()` from `src/lib/toast-store.ts`, per the snackbar handoff), not an inline `Status`. A `beforeunload` guard warns on leaving the page with unsaved sides. Commissioner settle buttons are unchanged and still act immediately (a different action, on locked props).
 - **`src/lib/actions/props.ts`**: `savePropPick` (one pick) is replaced by `savePropPicks({ picks })`. Zod validates an array of 1–100 `{ propId, side }`, de-duplicates by prop, then runs every pick through the existing `upsert_prop_pick` RPC in parallel. The lock and side/kind checks stay per prop in the database. One refused pick does not undo the others; the message says "N saved, M refused. That prop has locked. No late picks." (or the side-fit message, or the raw error). `revalidatePath` runs when at least one pick was saved.
 - **`src/lib/props.ts`**: pure `pendingPicks(props, drafts)` returns the picks a save must send (drafts on open props that differ from the saved side). Unit tests in `src/lib/props.test.ts`.
 - **`src/app/(league)/props/page.tsx`**: footnote now reads "Tap your sides, then Save picks. …".

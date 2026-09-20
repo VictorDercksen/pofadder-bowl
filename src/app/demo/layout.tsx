@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
 import { TeamLogo } from "@/components/ui/Marks";
+import { IconLink } from "@/components/ui/IconButton";
 import { DrawerIdentity } from "@/components/shell/DrawerIdentity";
 import { DemoProvider } from "@/components/demo/DemoStore";
 
@@ -21,11 +21,11 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
           <>
             <TeamLogo code="nyg" size={36} />
             <span className="name">Demo member</span>
-            <Link href="/login" className="pb-text-action">Real sign-in</Link>
+            <IconLink icon="signin" label="Real league sign-in" href="/login" small />
           </>
         }
         drawerIdentity={<DrawerIdentity name="Demo member" kitTeam="nyg" kitNumber={7} roleLabel="Interactive demo" sleeper={{ teamName: "Big Blue Wrecking Crew", displayName: "Demo member", avatarUrl: null }} />}
-        drawerFooter={<Link href="/login" className="pb-text-action">Real league sign-in</Link>}
+        drawerFooter={<span className="pb-icon-row"><IconLink icon="signin" label="Real league sign-in" href="/login" tone="gold" /></span>}
         footerNote="Sample activity · Team marks: ESPN · No GPS or account connection · Nothing is saved"
       >
         <div className="pb-demo-banner">

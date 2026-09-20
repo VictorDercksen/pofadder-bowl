@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { TitleRow } from "@/components/ui/TitleRow";
+import { IconLink } from "@/components/ui/IconButton";
 import { InviteForm, MemberRow, SleeperImport } from "@/components/review/MemberAdmin";
 import { TourTestPanel } from "@/components/tour/TourButtons";
 import { requireAdmin } from "@/lib/league";
@@ -20,9 +20,9 @@ export default async function MembersPage() {
   return (
     <>
       <TitleRow kicker="LEAGUE ADMIN" title="The roster." blurb="Invite-only. Roles live in the database and are enforced by RLS. Only admins can invite or change roles; commissioners referee." tag="ADMIN ONLY" identity={<span className="pb-official-patch">LEAGUE<br />OFFICIAL</span>} />
-      <p className="pb-small" style={{ marginBottom: 12 }}>
-        <Link href="/review" className="pb-text-action">← Back to review</Link>
-      </p>
+      <nav className="pb-icon-nav" aria-label="Admin navigation">
+        <IconLink icon="back" label="Back to review" href="/review" />
+      </nav>
       <div className="pb-split">
         <div className="pb-panel" data-tour="admin-roster">
           <h3>Members</h3>

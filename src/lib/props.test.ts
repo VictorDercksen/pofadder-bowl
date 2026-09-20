@@ -33,7 +33,7 @@ describe("prop lock", () => {
 
 describe("line formatting", () => {
   it("drops trailing zeros and appends the unit", () => {
-    expect(formatLine("14.25", "km")).toBe("14.25 km");
+    expect(formatLine("10.25", "km")).toBe("10.25 km");
     expect(formatLine(90, "seconds")).toBe("90 seconds");
     expect(formatLine("60.50", "comments")).toBe("60.5 comments");
     expect(formatLine(null, "km")).toBe("");

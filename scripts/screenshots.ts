@@ -16,7 +16,7 @@ const WIDTHS = [360, 390, 1280];
 const ROLE_SCREENS: Record<string, string[]> = {
   participant: ["/my-trip", "/game-centre", "/map", "/proof", "/props", "/predictions", "/press", "/recap", "/account"],
   commissioner: ["/review", "/review/members", "/game-centre", "/map", "/proof", "/props", "/predictions", "/press", "/recap", "/account"],
-  member: ["/game-centre", "/map", "/props", "/predictions", "/press", "/recap", "/account"],
+  member: ["/game-centre", "/map", "/proof", "/props", "/predictions", "/press", "/recap", "/account"],
 };
 const PUBLIC_SCREENS = ["/teaser", "/login", "/setup", "/demo/game-centre", "/demo/my-trip", "/demo/map", "/demo/proof", "/demo/review", "/demo/props", "/demo/predictions", "/demo/press", "/demo/recap", "/demo/access"];
 

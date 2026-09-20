@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { JerseyCard } from "@/components/ui/JerseyCard";
 import { TeamLogo } from "@/components/ui/Marks";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { claimKit } from "@/lib/actions/account";
 import { NFL_TEAMS } from "@/lib/nfl";
 
@@ -17,17 +17,16 @@ export function TeamPicker({ claimed, initialNumber, current, afterClaim = "/hom
   const [team, setTeam] = useState<string | null>(current ?? null);
   const [number, setNumber] = useState(initialNumber);
   const [name] = useState("YOUR NAME");
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function claim() {
     if (!team) {
-      setMsg({ text: "Pick a franchise first.", tone: "warn" });
+      toast("Pick a franchise first.", "warn");
       return;
     }
     startTransition(async () => {
       const res = await claimKit({ kitTeam: team, kitNumber: number });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       if (res.ok) {
         router.replace(afterClaim);
         router.refresh();
@@ -73,7 +72,6 @@ export function TeamPicker({ claimed, initialNumber, current, afterClaim = "/hom
             {pending ? "Claiming…" : team ? `Claim the ${NFL_TEAMS.find((t) => t.code === team)?.name}` : "Pick a franchise"}
           </button>
         </div>
-        <Status tone={msg?.tone}>{msg?.text}</Status>
       </div>
       <div>
         <div className="pb-kicker">PREVIEW</div>

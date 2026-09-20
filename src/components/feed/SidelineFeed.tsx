@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { JerseyCard } from "@/components/ui/JerseyCard";
-import { EmptyState, Status } from "@/components/ui/TitleRow";
+import { EmptyState } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { createClient } from "@/lib/supabase/client";
 import { loadOlderPosts, postComment, toggleReaction } from "@/lib/actions/feed";
 import { FEED_PAGE_SIZE, appendFeedPosts, feedCursor, mergeFeedPosts } from "@/lib/feed-page";
@@ -53,7 +54,6 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
   }
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [comment, setComment] = useState("");
-  const [note, setNote] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const online = useOnline();
   const [pending, startTransition] = useTransition();
   const refreshTimer = useRef<number | null>(null);
@@ -89,16 +89,16 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
     if (pending) return;
     const body = comment.trim();
     if (!body) {
-      setNote({ text: "Write a comment first.", tone: "warn" });
+      toast("Write a comment first.", "warn");
       return;
     }
     if (!online) {
-      setNote({ text: "You are offline. Reconnect to post to the sideline.", tone: "warn" });
+      toast("You are offline. Reconnect to post to the sideline.", "warn");
       return;
     }
     startTransition(async () => {
       const res = await postComment({ body });
-      setNote({ text: res.message ?? (res.ok ? "Posted." : "Failed."), tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? (res.ok ? "Posted." : "Failed."), res.ok ? "ok" : "error");
       if (res.ok) setComment("");
     });
   }
@@ -108,7 +108,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
     const cursor = feedCursor(posts);
     if (!cursor) return;
     if (!online) {
-      setNote({ text: "You are offline. Reconnect to load earlier plays.", tone: "warn" });
+      toast("You are offline. Reconnect to load earlier plays.", "warn");
       return;
     }
     setLoadingOlder(true);
@@ -116,7 +116,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
       const res = await loadOlderPosts({ before: cursor });
       setLoadingOlder(false);
       if (!res.ok) {
-        setNote({ text: res.message, tone: "error" });
+        toast(res.message, "error");
         return;
       }
       setPosts((prev) => appendFeedPosts(prev, res.posts ?? []));
@@ -132,7 +132,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
       const res = await toggleReaction({ postId: post.id });
       if (!res.ok) {
         setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, reacted: post.reacted, reaction_count: post.reaction_count } : p)));
-        setNote({ text: res.message, tone: "error" });
+        toast(res.message, "error");
       }
     });
   }
@@ -218,7 +218,6 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
           </div>
         </div>
       ) : null}
-      <Status tone={note?.tone}>{note?.text}</Status>
     </section>
   );
 }

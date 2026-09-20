@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { savePropPicks, settleProp } from "@/lib/actions/props";
 import { pendingPicks, pickOutcome, sideLabel, sidesFor, type PropKind, type PropResult, type PropSide } from "@/lib/props";
 
@@ -28,7 +28,6 @@ export type BoardProp = {
  */
 export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCommissioner: boolean }) {
   const router = useRouter();
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   // Sides tapped but not saved, keyed by prop id. A draft equal to the saved side counts as clean,
   // so the server's picks win again after a successful save and refresh.
@@ -46,7 +45,6 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
   }, [unsaved.length]);
 
   function pick(propId: string, side: PropSide) {
-    setMsg(null);
     setDrafts((d) => ({ ...d, [propId]: side }));
   }
 
@@ -54,20 +52,19 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
     if (unsaved.length === 0) return;
     startTransition(async () => {
       const res = await savePropPicks({ picks: unsaved });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
 
   function discard() {
     setDrafts({});
-    setMsg(null);
   }
 
   function settle(propId: string, result: PropResult) {
     startTransition(async () => {
       const res = await settleProp({ propId, result });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -157,7 +154,6 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
           </span>
         </div>
       ) : null}
-      <Status tone={msg?.tone}>{msg?.text}</Status>
     </>
   );
 }

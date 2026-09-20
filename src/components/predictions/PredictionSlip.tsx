@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Status } from "@/components/ui/TitleRow";
+import { toast } from "@/lib/toast-store";
 import { savePrediction, updatePredictionRules } from "@/lib/actions/predictions";
 import { validatePrediction, type PredictionRules } from "@/lib/predictions";
 import { Countdown } from "@/components/ui/Countdown";
@@ -13,18 +13,17 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
   const [minutes, setMinutes] = useState(existing ? Math.floor((existing.run_seconds % 3600) / 60) : 35);
   const [meal, setMeal] = useState(existing?.meal_rating ?? 8);
   const [complaints, setComplaints] = useState(existing?.complaint_count ?? 12);
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function save() {
     const invalid = validatePrediction({ hours, minutes, mealRating: meal, complaints });
     if (invalid) {
-      setMsg({ text: invalid, tone: "warn" });
+      toast(invalid, "warn");
       return;
     }
     startTransition(async () => {
       const res = await savePrediction({ hours, minutes, mealRating: meal, complaints });
-      setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
       router.refresh();
     });
   }
@@ -32,7 +31,7 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
   return (
     <div>
       <label className="pb-field">
-        Victor’s 14 km finish time
+        Victor’s 10 km finish time
         <div className="pb-inline-fields">
           <input type="number" min={0} max={8} value={hours} disabled={locked} onChange={(e) => setHours(Number(e.target.value))} aria-label="Run hours" />
           <input type="number" min={0} max={59} value={minutes} disabled={locked} onChange={(e) => setMinutes(Number(e.target.value))} aria-label="Run minutes" />
@@ -62,7 +61,6 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
         {locked ? "The slip is closed." : <>You can edit until departure (<Countdown targetIso={lockAt} passedLabel="locked" />). No cash stakes.</>}
         {existing ? " Your current slip is saved." : ""}
       </p>
-      <Status tone={msg?.tone}>{msg?.text}</Status>
     </div>
   );
 }
@@ -72,7 +70,6 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
   const [run, setRun] = useState(rules.run_points);
   const [meal, setMeal] = useState(rules.meal_points);
   const [complaints, setComplaints] = useState(rules.complaints_points);
-  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
   return (
     <div style={{ marginTop: 16 }}>
@@ -100,7 +97,7 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
           onClick={() =>
             startTransition(async () => {
               const res = await updatePredictionRules({ runPoints: run, mealPoints: meal, complaintsPoints: complaints });
-              setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
+              toast(res.message ?? "", res.ok ? "ok" : "error");
               router.refresh();
             })
           }
@@ -108,7 +105,6 @@ export function RulesEditor({ rules }: { rules: PredictionRules }) {
           Save rules
         </button>
       </div>
-      <Status tone={msg?.tone}>{msg?.text}</Status>
     </div>
   );
 }

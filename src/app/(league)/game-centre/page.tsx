@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Shield } from "@/components/ui/Marks";
+import { IconLink } from "@/components/ui/IconButton";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { Countdown } from "@/components/ui/Countdown";
 import { CheckinMap } from "@/components/map/CheckinMap";
@@ -32,7 +33,7 @@ export default async function GameCentrePage() {
 
   return (
     <>
-      <TitleRow kicker={`LEAGUE VIEW · ${formatDay(now, tz).toUpperCase()} · ${formatTime(now, tz)} SAST`} title={phase === "pregame" ? "The away game is coming." : phase === "postgame" ? "The away game is over." : "The away game is on."} blurb={`One man in ${ctx.event.away_town}. An entire league enjoying it.`} tag={QUARTER_LABELS[phase]} team="nyg" />
+      <TitleRow kicker={`LEAGUE VIEW · ${formatDay(now, tz).toUpperCase()} · ${formatTime(now, tz)} SAST`} title={phase === "pregame" ? "The away game is coming." : phase === "postgame" ? "The away game is over." : "The away game is on."} blurb={`One man in ${ctx.event.away_town}. An entire league enjoying it.`} tag={QUARTER_LABELS[phase]} team={ctx.profile.kit_team} />
       <div className="pb-broadcast" data-tour="scoreboard">
         <div>
           <div className="pb-broadcast-head">
@@ -64,7 +65,7 @@ export default async function GameCentrePage() {
               <b>{latest ? `${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)} SAST` : "No check-in yet"}</b>
               <span className="pb-small">{latest ? `${ageLabel(latest.captured_at)} · ±${latest.accuracy_m != null ? Math.round(latest.accuracy_m) : "?"} m${isStale(latest.captured_at) ? " · stale" : ""}` : "Waiting for the participant to share a position."}</span>
             </div>
-            <Link className="pb-text-action" href="/map">Open map ↗</Link>
+            <IconLink icon="map" label="Open the check-in map" href="/map" />
           </div>
         </div>
         <div className="pb-next-drive" data-tour="next-drive">
@@ -75,11 +76,7 @@ export default async function GameCentrePage() {
           <h2>{next.item ? next.item.title : phase === "postgame" ? "Sentence served." : "Kickoff pending."}</h2>
           <p className="pb-small">{next.item ? `${formatDay(next.item.starts_at, tz)} ${formatTime(next.item.starts_at, tz)} · ${next.item.description ?? ""}${next.item.venue_text ? ` · ${next.item.venue_text}` : ""}` : "The itinerary is complete."}</p>
           <div className="pb-drive-stripe" aria-hidden="true" />
-          {ctx.isParticipant || ctx.isCommissioner ? (
-            <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
-          ) : (
-            <Link className="pb-primary orange" href="/props">Open the prop board ↗</Link>
-          )}
+          <Link className="pb-primary orange" href="/proof">Open the proof locker ↗</Link>
           <div className="pb-next" style={{ marginTop: "auto" }}>
             <div className="pb-kicker">RETURN BUS · {formatTime(ctx.event.return_departure_at, tz)}</div>
             <h3>

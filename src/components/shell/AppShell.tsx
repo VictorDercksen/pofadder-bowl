@@ -15,6 +15,7 @@ export function AppShell({
   badge,
   drawerIdentity,
   drawerFooter,
+  teams,
   children,
   footerNote,
 }: {
@@ -25,10 +26,14 @@ export function AppShell({
   /** Member insignia block shown at the top of the mobile drawer. */
   drawerIdentity?: ReactNode;
   drawerFooter?: ReactNode;
+  /** Franchise codes claimed by signed-on members. Omitted (demo) shows the mockup's fixed strip. */
+  teams?: string[];
   children: ReactNode;
   footerNote?: string;
 }) {
   const items = navFor(role, base);
+  const roster = teams !== undefined;
+  const count = teams?.length ?? 0;
   return (
     <div className="pb">
       <header className="pb-top">
@@ -44,13 +49,24 @@ export function AppShell({
       </header>
       <div className="pb-badge-strip">
         <div className="pb-badge-strip-label">
-          THE LEAGUE LOCKER ROOM<small>32 FRANCHISES. ONE PUNISHMENT.</small>
+          THE LEAGUE LOCKER ROOM<small>{roster ? (count === 0 ? "NO FRANCHISES CLAIMED YET. ONE PUNISHMENT." : `${count} FRANCHISE${count === 1 ? "" : "S"} CLAIMED. ONE PUNISHMENT.`) : "32 FRANCHISES. ONE PUNISHMENT."}</small>
         </div>
-        <div className="pb-badge-teams" aria-hidden="true">
-          {LOGO_STRIP.map((code) => (
-            <TeamLogo key={code} code={code} decorative size={31} className="" />
-          ))}
-        </div>
+        {roster ? (
+          <div className="pb-badge-teams" role="list" aria-label="Franchises claimed by the league">
+            {count === 0 ? <Shield size={24} height={30} /> : null}
+            {(teams ?? []).map((code) => (
+              <span role="listitem" key={code}>
+                <TeamLogo code={code} size={31} className="" />
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="pb-badge-teams" aria-hidden="true">
+            {LOGO_STRIP.map((code) => (
+              <TeamLogo key={code} code={code} decorative size={31} className="" />
+            ))}
+          </div>
+        )}
       </div>
       <div className="pb-shell">
         <nav className="pb-sidebar" aria-label="Game Centre screens" data-tour="nav">
