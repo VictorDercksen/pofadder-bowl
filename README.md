@@ -94,6 +94,6 @@ Supabase's GitHub integration (dashboard → Project Settings → Integrations) 
 
 - Event dates come from `supabase/seed.sql` / `data/league-programme.json` (user-supplied plans, not independently verified). Phase and countdowns derive from the configured event instants.
 - The 2024 standings and final-game roster are shown as supplied; apparent team/result mismatches are marked “supplied · unverified” rather than corrected.
-- Place names on check-ins come from the GeoNames gazetteer (CC BY 4.0); the attribution sits under the map.
+- Place names on check-ins come from the GeoNames gazetteer (CC BY 4.0); the attribution sits in the Leaflet attribution control on the map, next to the tile credit.
 - The teaser poster is used whole (public teaser, share/download); the CSS “PB” shield covers tiny UI slots. Team marks are ESPN-hosted PNGs used as design references; the league is unofficial and not NFL-affiliated.
 - Barlow is supplied in weights 400/600 only; the mockup’s 500/700 body weights are mapped to those. Barlow Condensed 500/700/900 are supplied.

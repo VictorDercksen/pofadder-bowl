@@ -37,7 +37,8 @@ const LiveMap = dynamic(() => import("./LiveMap").then((m) => m.LiveMap), {
 
 /**
  * Leaflet map on the configured tile provider (OpenStreetMap unless overridden), with
- * the check-in path drawn along real roads (see useRoutedPath). When tiles are explicitly disabled
+ * the check-in path drawn along real roads (see useRoutedPath). Attribution (tiles and
+ * GeoNames place names) lives in Leaflet's control on the map. When tiles are explicitly disabled
  * (NEXT_PUBLIC_MAP_TILE_URL=static) the supplied regional preview is shown instead,
  * clearly labelled, with town-centre reference pins only; check-ins are then listed
  * rather than plotted.
@@ -63,14 +64,8 @@ export function CheckinMap({ pins, path = [], focus }: { pins: MapPin[]; path?: 
       </div>
     );
   }
-  const checkinCount = pins.filter((p) => p.kind === "current" || p.kind === "history").length;
-  const memberCount = pins.filter((p) => p.kind === "member").length;
-  return (
-    <div>
-      <LiveMap pins={pins} path={path} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={publicEnv.mapTileAttribution} fallbackLatitude={TOWN_PINS.pofadder.latitude} fallbackLongitude={TOWN_PINS.pofadder.longitude} />
-      <div className="pb-map-source">
-        Live map · attribution shown on the map · {path.length > 1 ? `Orange line: the road route through ${path.length} check-ins, oldest to newest (a leg stays straight where no road was found).` : checkinCount > 0 ? "One check-in so far; the route line appears from the second." : "No check-ins plotted yet."} The badge with the orange halo is the latest check-in. Grey pins are itinerary venues, not check-ins.{memberCount > 0 ? ` Team-badge pins are ${memberCount === 1 ? "one league member's" : `${memberCount} league members'`} shared positions, not part of the route.` : ""} Place names © <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0).
-      </div>
-    </div>
-  );
+  // The tile credit sits in Leaflet's attribution control; GeoNames (CC BY 4.0) joins it there
+  // so the map carries every licence line without a paragraph underneath.
+  const attribution = `${publicEnv.mapTileAttribution} · Place names © <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0)`;
+  return <LiveMap pins={pins} path={path} focus={focus} tileUrl={publicEnv.mapTileUrl} attribution={attribution} fallbackLatitude={TOWN_PINS.pofadder.latitude} fallbackLongitude={TOWN_PINS.pofadder.longitude} />;
 }

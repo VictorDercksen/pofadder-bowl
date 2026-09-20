@@ -61,6 +61,11 @@ League members (not only the participant) should be able to share their current 
 - Legend, map source line and the tour's map step now describe "the badge with the orange halo" instead of "the orange pin".
 - Verified in headless Chromium through the temporary preview page: the current pin renders with the logo and halo at the route tip, members' badges and history dots unchanged, no console errors; typecheck, lint, 149 tests and `next build` pass.
 
+## Follow-up in the same session: no paragraph under the live map
+
+- Asked: remove the source paragraph under the check-in map.
+- The `pb-map-source` line under the live map is gone from `CheckinMap`. The GeoNames credit (CC BY 4.0 requires it) moved into Leaflet's attribution control on the map, appended to the tile credit, so both licence lines stay visible with nothing underneath. The static-fallback preview keeps its own source line (it has no Leaflet control), and the run-route panel's source line is untouched. README updated.
+
 ## Verified
 
 - SQL on a bare PostgreSQL 16 cluster in the sandbox with shimmed `auth`/`storage` schemas: all twenty earlier migrations plus `seed.sql`, then the new migration twice (second run a no-op). As a member: share labels "10 km N of Malmesbury", a second share moves the same row to "In Pofadder" (still one row), the reader returns name and kit, direct insert/update/delete on the table are refused (`permission denied`), a 3-day-old `captured_at` is refused, clear returns true then false. As the participant: sharing works alongside check-ins. As an outsider: share refused, reader and table empty. `anon` is denied the reader. The table is in the publication.
