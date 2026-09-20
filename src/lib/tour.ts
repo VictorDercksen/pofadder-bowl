@@ -32,7 +32,7 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
       ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 14 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
       : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 14 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
   ),
-  step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a phone it sits at the top of the Menu, which is open for you now.", null, ["drawer-identity", "header-account", "menu"], true),
+  step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a desktop it sits top right; on a phone, at the top of the Menu.", null, ["drawer-identity", "header-account", "menu"], true),
   step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown lists the screens your role can open, in broadcast order. On a desktop it sits on the left; on a phone, Menu opens it. The number turns into a tumbling football while a screen loads.", null, ["drawer-nav", "nav", "menu"], true),
 ];
 
@@ -50,7 +50,7 @@ const commissionerBlock: TourStep[] = [
 
 const adminBlock: TourStep[] = [
   step("members", "SCREEN 11", "The roster.", "Invite by email, set roles, pick the event participant and import the Sleeper league so members can confirm their teams. Roles live in the database and row-level security enforces them; the screens only decide what to show.", "/review/members", ["admin-roster"]),
-  step("member-view", "SEE WHAT THEY SEE", "View as league member.", "This switch hides your own screens and shows exactly what a plain member gets. Use it to check a screen before the league does. It only ever removes capabilities; exit from the banner at the top.", "/review/members", ["member-view", "menu"]),
+  step("member-view", "SEE WHAT THEY SEE", "View as league member.", "This switch hides your own screens and shows exactly what a plain member gets. Use it to check a screen before the league does. It only ever removes capabilities; exit from the banner at the top. On a phone the switch sits at the foot of the Menu.", "/review/members", ["member-view", "menu"], true),
   step("tour-test", "THIS TOUR", "Test the tour for any role.", "Members see their tour once, on first sign-in, and can replay it from League access. This panel runs the member, participant, commissioner or admin version for you without marking anything.", "/review/members", ["tour-test"]),
 ];
 
@@ -100,21 +100,62 @@ export function currentStepId(run: { role: Role; participant: boolean; step: num
 
 export type Rect = { top: number; left: number; width: number; height: number };
 /** `top` anchors the card's top edge, `bottom` its bottom edge (distance from the viewport bottom), so a card taller than the estimate grows away from the target. */
-export type CardPlacement = { top?: number; bottom?: number; left: number; placement: "below" | "above" | "sheet" | "centre" };
+export type CardPlacement = { top?: number; bottom?: number; left: number; placement: "below" | "above" | "right" | "left" | "sheet" | "top" | "centre" };
+
+/** Viewports narrower than this get the full-width card (phones and small tablets). */
+export const SHEET_MAX_WIDTH = 700;
 
 /**
  * Where the tour card goes relative to the spotlighted element. Below the target when it
- * fits, else above, else a bottom sheet; a missing target centres the card. Narrow
- * viewports always get the bottom sheet so the card never covers the whole phone. The
- * height is an estimate: placements that could overflow anchor by the bottom edge instead.
+ * fits, else above, else (on a wide screen) beside it, else a sheet at the bottom or the
+ * top of the screen, whichever covers less of the target; a missing target centres the card
+ * (a bottom sheet on phones). Phones always get the full-width card. `card.height` should
+ * be the rendered height so the card never lands on the thing it describes.
  */
 export function placeCard(target: Rect | null, card: { width: number; height: number }, viewport: { width: number; height: number }, gap = 14): CardPlacement {
+  const phone = viewport.width < SHEET_MAX_WIDTH;
   const sheetLeft = Math.max(gap, (viewport.width - card.width) / 2);
-  if (viewport.width < 700) return { bottom: gap, left: sheetLeft, placement: "sheet" };
-  if (!target) return { left: sheetLeft, placement: "centre" };
-  const left = Math.min(Math.max(gap, target.left + target.width / 2 - card.width / 2), viewport.width - card.width - gap);
-  const below = target.top + target.height + gap;
+  if (!target) return phone ? { bottom: gap, left: sheetLeft, placement: "sheet" } : { left: sheetLeft, placement: "centre" };
+  const left = phone ? sheetLeft : Math.min(Math.max(gap, target.left + target.width / 2 - card.width / 2), viewport.width - card.width - gap);
+  const targetBottom = target.top + target.height;
+  const below = targetBottom + gap;
   if (below + card.height <= viewport.height - gap) return { top: below, left, placement: "below" };
   if (target.top - gap - card.height >= gap) return { bottom: viewport.height - (target.top - gap), left, placement: "above" };
-  return { bottom: gap, left: sheetLeft, placement: "sheet" };
+  if (!phone) {
+    const top = Math.max(gap, Math.min(target.top, viewport.height - card.height - gap));
+    if (target.left + target.width + gap + card.width <= viewport.width - gap) return { top, left: target.left + target.width + gap, placement: "right" };
+    if (target.left - gap - card.width >= gap) return { top, left: target.left - gap - card.width, placement: "left" };
+  }
+  // Neither side fits. A target taller than the free zone was scrolled so its head shows;
+  // keep the card at the bottom. Otherwise take the sheet that hides less of the target.
+  const room = viewport.height - card.height - gap * 2;
+  if (target.height > room) return { bottom: gap, left: sheetLeft, placement: "sheet" };
+  const coverBottom = Math.max(0, targetBottom - (viewport.height - card.height - gap));
+  const coverTop = Math.max(0, gap + card.height - target.top);
+  return coverTop < coverBottom ? { top: gap, left: sheetLeft, placement: "top" } : { bottom: gap, left: sheetLeft, placement: "sheet" };
+}
+
+/**
+ * How far the window should scroll (positive is down) so the target sits in the free zone:
+ * below the sticky header and, on phones, above the bottom sheet. A target that fits is
+ * centred in the zone unless it is already inside it (on a wide screen the target and the
+ * card below it are centred together when both fit); a taller one gets its head at the top
+ * of the zone so the card only covers its tail. Zero means leave the page alone.
+ */
+export function scrollOffset(target: Rect, card: { height: number }, viewport: { width: number; height: number }, headerHeight: number, gap = 14): number {
+  const phone = viewport.width < SHEET_MAX_WIDTH;
+  const zoneTop = Math.max(0, headerHeight) + gap;
+  const zoneBottom = phone ? viewport.height - card.height - gap * 2 : viewport.height - gap;
+  const zone = zoneBottom - zoneTop;
+  const targetBottom = target.top + target.height;
+  if (target.height > zone) return Math.round(target.top - zoneTop);
+  const inside = target.top >= zoneTop && targetBottom <= zoneBottom;
+  const withCard = target.height + gap + card.height;
+  if (!phone && withCard <= zone) {
+    // Room for both: leave them when the card already fits below or above, else centre the pair.
+    if (inside && (targetBottom + gap + card.height <= viewport.height - gap || target.top - gap - card.height >= gap)) return 0;
+    return Math.round(target.top - (zoneTop + (zone - withCard) / 2));
+  }
+  if (inside) return 0;
+  return Math.round(target.top - (zoneTop + (zone - target.height) / 2));
 }
