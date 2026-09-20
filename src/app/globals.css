@@ -589,3 +589,9 @@ a{color:inherit}
 .pb .pb-sideline-preview{margin-bottom:22px;padding-bottom:18px;border-bottom:1px dashed var(--pb-line)}
 .pb .pb-sideline-preview .pb-kicker{margin-bottom:10px}
 .pb .pb-sideline-preview .pb-reaction[disabled]{cursor:default;opacity:.7}
+
+/* Prop board: drafted sides and the Save button */
+.pb .pb-prop-sides button.draft{outline:2px dashed var(--pb-gold);outline-offset:2px}
+.pb .pb-prop-save{align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--pb-line)}
+.pb .pb-prop-save-note{flex-basis:100%}
+@media(min-width:581px){.pb .pb-prop-save-note{flex-basis:auto;margin-left:auto}}

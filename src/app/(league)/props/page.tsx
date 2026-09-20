@@ -78,7 +78,7 @@ export default async function PropsPage() {
         <KitPanel team={ctx.profile.kit_team} name="The prop board" kicker={`${ctx.profile.display_name.toUpperCase()} · ${allLocked ? `${myCorrect} CORRECT OF ${settled} SETTLED` : `${myPicks}/${board.length} PICKED`}`} tour="prop-board">
           <PropBoard props={board} isCommissioner={ctx.isCommissioner} />
           <p className="pb-small" style={{ marginTop: 12 }}>
-            {allLocked ? "The board is locked. A commissioner settles each prop from the record after the trip." : <>Picks can be changed until the board locks (<Countdown targetIso={firstLock} passedLabel="locked" />). Other members’ picks show once it locks.</>}
+            {allLocked ? "The board is locked. A commissioner settles each prop from the record after the trip." : <>Tap your sides, then Save picks. Picks can be changed until the board locks (<Countdown targetIso={firstLock} passedLabel="locked" />). Other members’ picks show once it locks.</>}
           </p>
         </KitPanel>
         <div>

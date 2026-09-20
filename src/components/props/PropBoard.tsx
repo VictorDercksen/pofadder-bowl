@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Status } from "@/components/ui/TitleRow";
-import { savePropPick, settleProp } from "@/lib/actions/props";
-import { pickOutcome, sideLabel, sidesFor, type PropKind, type PropResult, type PropSide } from "@/lib/props";
+import { savePropPicks, settleProp } from "@/lib/actions/props";
+import { pendingPicks, pickOutcome, sideLabel, sidesFor, type PropKind, type PropResult, type PropSide } from "@/lib/props";
 
 export type BoardProp = {
   id: string;
@@ -22,20 +22,46 @@ export type BoardProp = {
 };
 
 /**
- * Production board: a member picks one side per prop until it locks; a commissioner settles
- * a locked prop. Everything is re-checked by the RPCs; the buttons only decide what to show.
+ * Production board: a member drafts one side per prop and saves the lot with the button at the
+ * bottom; nothing is written until then. A commissioner settles a locked prop. Everything is
+ * re-checked by the RPCs; the buttons only decide what to show.
  */
 export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCommissioner: boolean }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "error" } | null>(null);
   const [pending, startTransition] = useTransition();
+  // Sides tapped but not saved, keyed by prop id. A draft equal to the saved side counts as clean,
+  // so the server's picks win again after a successful save and refresh.
+  const [drafts, setDrafts] = useState<Partial<Record<string, PropSide>>>({});
+  const unsaved = pendingPicks(props, drafts);
+  const open = props.some((p) => !p.locked);
+
+  useEffect(() => {
+    if (unsaved.length === 0) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [unsaved.length]);
 
   function pick(propId: string, side: PropSide) {
+    setMsg(null);
+    setDrafts((d) => ({ ...d, [propId]: side }));
+  }
+
+  function save() {
+    if (unsaved.length === 0) return;
     startTransition(async () => {
-      const res = await savePropPick({ propId, side });
+      const res = await savePropPicks({ picks: unsaved });
       setMsg({ text: res.message ?? "", tone: res.ok ? "ok" : "error" });
       router.refresh();
     });
+  }
+
+  function discard() {
+    setDrafts({});
+    setMsg(null);
   }
 
   function settle(propId: string, result: PropResult) {
@@ -53,6 +79,8 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
           const sides = sidesFor(p.kind);
           const outcome = pickOutcome(p, p.mine);
           const settled = p.result != null;
+          const shown = p.locked ? p.mine : (drafts[p.id] ?? p.mine);
+          const dirty = !p.locked && shown != null && shown !== p.mine;
           return (
             <div className={`pb-challenge pb-prop ${settled ? "settled" : ""}`.trim()} role="listitem" key={p.id}>
               <span className="pb-num">{p.sequence}</span>
@@ -70,8 +98,8 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
                       <button
                         key={side}
                         type="button"
-                        aria-pressed={p.mine === side}
-                        className={`${isResult ? "hit" : settled && p.result !== "void" ? "miss" : ""}`.trim()}
+                        aria-pressed={shown === side}
+                        className={`${isResult ? "hit" : settled && p.result !== "void" ? "miss" : ""} ${dirty && shown === side ? "draft" : ""}`.trim()}
                         disabled={p.locked || pending}
                         onClick={() => pick(p.id, side)}
                         title={p.locked && names.length ? names.join(", ") : undefined}
@@ -94,9 +122,11 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
                       ? p.mine
                         ? `Locked · you took ${sideLabel(p.mine)}`
                         : "Locked · no pick"
-                      : p.mine
-                        ? `You have ${sideLabel(p.mine)}. Tap the other side to change it.`
-                        : "Pick a side."}
+                      : dirty
+                        ? `${sideLabel(shown!)} · not saved yet.`
+                        : p.mine
+                          ? `You have ${sideLabel(p.mine)}. Tap the other side to change it.`
+                          : "Pick a side."}
                 </p>
                 {isCommissioner && p.locked ? (
                   <div className="pb-actions compact">
@@ -112,6 +142,21 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
           );
         })}
       </div>
+      {open ? (
+        <div className="pb-actions pb-prop-save">
+          <button className="pb-primary" type="button" onClick={save} disabled={pending || unsaved.length === 0}>
+            {pending ? "Saving…" : unsaved.length === 0 ? "Save picks" : `Save ${unsaved.length} ${unsaved.length === 1 ? "pick" : "picks"}`}
+          </button>
+          {unsaved.length > 0 ? (
+            <button className="pb-secondary" type="button" onClick={discard} disabled={pending}>
+              Discard changes
+            </button>
+          ) : null}
+          <span className="pb-small pb-prop-save-note" aria-live="polite">
+            {unsaved.length === 0 ? "Nothing to save." : "Your sides are not saved until you tap Save."}
+          </span>
+        </div>
+      ) : null}
       <Status tone={msg?.tone}>{msg?.text}</Status>
     </>
   );

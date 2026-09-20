@@ -40,6 +40,26 @@ export function formatLine(line: number | string | null, unit: string | null): s
   return unit ? `${text} ${unit}` : text;
 }
 
+/** A prop as the board draws it: the saved side and whether it still accepts picks. */
+export type DraftablePropLike = { id: string; locked: boolean; mine: PropSide | null };
+
+/** One pick the member has changed on the board and not yet saved. */
+export type PendingPick = { propId: string; side: PropSide };
+
+/**
+ * The picks a save must send: drafted sides that differ from the saved side, on props that
+ * are still open. Untouched props, drafts equal to the saved side and locked props drop out.
+ */
+export function pendingPicks(props: DraftablePropLike[], drafts: Partial<Record<string, PropSide>>): PendingPick[] {
+  const out: PendingPick[] = [];
+  for (const p of props) {
+    const side = drafts[p.id];
+    if (!side || p.locked || side === p.mine) continue;
+    out.push({ propId: p.id, side });
+  }
+  return out;
+}
+
 /** Outcome of one pick against a prop's result. */
 export function pickOutcome(prop: PropLike, side: PropSide | null | undefined): "correct" | "wrong" | "void" | "pending" | "none" {
   if (!side) return "none";

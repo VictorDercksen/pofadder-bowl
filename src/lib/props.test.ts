@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLine, isPropLocked, isSideValid, pickOutcome, propWinners, scorePicks, sideLabel, sidesFor, sortStandings, type PropLike } from "./props";
+import { formatLine, isPropLocked, isSideValid, pendingPicks, pickOutcome, propWinners, scorePicks, sideLabel, sidesFor, sortStandings, type PropLike } from "./props";
 
 const props: PropLike[] = [
   { id: "a", kind: "over_under", result: "over" },
@@ -74,5 +74,24 @@ describe("scoring", () => {
       { display_name: "Cal", correct: 1, wrong: 2, picks: 9 },
     ]).map((r) => r.display_name);
     expect(rows).toEqual(["Bob", "Amy", "Zed", "Cal"]);
+  });
+});
+
+describe("pending picks", () => {
+  const board = [
+    { id: "a", locked: false, mine: "over" as const },
+    { id: "b", locked: false, mine: null },
+    { id: "c", locked: true, mine: null },
+  ];
+  it("sends only changed sides on open props", () => {
+    expect(pendingPicks(board, {})).toEqual([]);
+    expect(pendingPicks(board, { a: "over" })).toEqual([]);
+    expect(pendingPicks(board, { a: "under", b: "yes" })).toEqual([
+      { propId: "a", side: "under" },
+      { propId: "b", side: "yes" },
+    ]);
+  });
+  it("drops drafts on locked props and on props that are not on the board", () => {
+    expect(pendingPicks(board, { c: "over", zzz: "under" })).toEqual([]);
   });
 });

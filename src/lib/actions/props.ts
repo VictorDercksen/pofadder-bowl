@@ -16,19 +16,40 @@ function revalidateProps() {
   revalidatePath("/game-centre");
 }
 
-/** Saves or changes the member's side on a prop; the RPC enforces the lock and the side/kind fit. */
-export async function savePropPick(input: { propId: string; side: string }): Promise<ActionResult> {
-  const parsed = z.object({ propId: z.uuid(), side: sideSchema }).safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Pick a side on a real prop." };
+const picksSchema = z.object({
+  picks: z.array(z.object({ propId: z.uuid(), side: sideSchema })).min(1, "Pick a side first.").max(100),
+});
+
+function pickError(message: string): string {
+  if (message.includes("locked")) return "locked";
+  if (message.includes("does not fit")) return "side does not fit";
+  return message;
+}
+
+/**
+ * Saves the member's changed sides in one go, from the board's Save button. Each pick still goes
+ * through upsert_prop_pick, so the lock and the side/kind fit are enforced per prop; one refused
+ * pick does not undo the others, and the message names what was refused.
+ */
+export async function savePropPicks(input: { picks: { propId: string; side: string }[] }): Promise<ActionResult> {
+  const parsed = picksSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Pick a side on a real prop." };
+  const picks = Array.from(new Map(parsed.data.picks.map((k) => [k.propId, k])).values());
   const ctx = await getLeagueContext();
-  const { error } = await ctx.supabase.rpc("upsert_prop_pick", { p_prop: parsed.data.propId, p_side: parsed.data.side });
-  if (error) {
-    if (error.message.includes("locked")) return { ok: false, message: "That prop has locked. No late picks." };
-    if (error.message.includes("does not fit")) return { ok: false, message: "That side does not fit this prop." };
-    return { ok: false, message: error.message };
+  const results = await Promise.all(
+    picks.map(async (k) => {
+      const { error } = await ctx.supabase.rpc("upsert_prop_pick", { p_prop: k.propId, p_side: k.side });
+      return error ? pickError(error.message) : null;
+    }),
+  );
+  const failed = results.filter((r): r is string => r != null);
+  const saved = results.length - failed.length;
+  if (saved > 0) revalidateProps();
+  if (failed.length === 0) {
+    return { ok: true, message: saved === 1 ? "Pick saved. Editable until the board locks." : `${saved} picks saved. Editable until the board locks.` };
   }
-  revalidateProps();
-  return { ok: true, message: "Pick saved. Editable until the board locks." };
+  const reason = failed.every((r) => r === "locked") ? "That prop has locked. No late picks." : failed.every((r) => r === "side does not fit") ? "That side does not fit this prop." : failed[0];
+  return { ok: false, message: saved > 0 ? `${saved} saved, ${failed.length} refused. ${reason}` : reason };
 }
 
 /** Commissioner settles a locked prop. Re-settling corrects a mistake. */
