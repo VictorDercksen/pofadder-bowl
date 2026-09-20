@@ -6,12 +6,12 @@ Follow-on to `handoff_2026-09-20_tour-colours-sideline-claims.md`. Infrastructur
 
 | Item | Value |
 |---|---|
-| Branch | `claude/notification-snackbar-alerts-fqyfvw`, started from `main` at `ed99c7e` (no PR opened) |
-| Production | https://pofadder-bowl.vercel.app deploys from `main`; unaffected until merged |
+| Branch | `claude/notification-snackbar-alerts-fqyfvw`, started from `main` at `ed99c7e`; `origin/main` (`e9df754`, the 10 km run and icon actions) merged back in before the branch was merged into `main` at the owner's request (no PR) |
+| Production | https://pofadder-bowl.vercel.app deploys from `main`; this change is on `main` |
 | Schema | Unchanged (no migration) |
 | Types | Unchanged |
 | Env | Unchanged |
-| Tests | `npm run typecheck`, `npm run lint`, `npm test` (115 vitest, 10 new) pass; `npx next build` passes. `npm run test:integration` not run (no local stack in the sandbox; nothing touched SQL or actions) |
+| Tests | `npm run typecheck`, `npm run lint`, `npm test` (123 vitest after the merge, 10 new here) pass; `npx next build` passes on the merged tree. `npm run test:integration` not run (no local stack in the sandbox; nothing touched SQL or actions) |
 
 ## What was asked
 
@@ -40,6 +40,8 @@ Each component dropped its local `note`/`msg` state and the `<Status>` line and 
 - `Status` was deleted from `src/components/ui/TitleRow.tsx` (no callers left). The `.pb-status` CSS stays: server-rendered page notices still use it (login instructions and errors, `/props` and `/game-centre` load errors, the commissioner preview note on a proof page). Those are page state, not action feedback, and were left inline on purpose.
 
 ## Verified
+
+- Merge with `origin/main`: two conflicts, both trivial (the `EvidenceUploader` import line, where main added `IconButton`, and two CSS sections appended at the end of `globals.css`). Main added no new inline `Status` usages.
 
 - `npm run typecheck && npm run lint && npm test` green; `npx next build` green.
 - Production server on port 3001 + headless Chromium on `/demo/proof` at 390 px and 1280 px: a refused submit shows an apricot warn snack, attach + submit add two mint ok snacks (three stacked, newest at the bottom, no horizontal overflow); × removes one; the rest clear themselves; a snack hovered for 5 s past its delay stays until the pointer leaves; no console errors.
