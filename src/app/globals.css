@@ -723,3 +723,30 @@ a{color:inherit}
 .pb .pb-testing-banner{background:#fbe9c4;color:#6b4a0c;border-bottom-color:var(--pb-gold);text-align:center}
 .pb .pb-testing-panel{border:1.5px solid var(--pb-orange)}
 .pb .pb-testing-panel h3{color:var(--pb-orange)}
+
+/* Review polish: readable instructions, touch targets and explicit save states. */
+.pb .pb-slip-fields{min-width:0;margin:0;padding:0;border:0}
+.pb .pb-save-state{display:flex;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;border:1px solid var(--pb-line);border-radius:8px;background:#edf2e8;color:var(--pb-green);font-size:14px;line-height:1.45}
+.pb .pb-save-state.unsaved,.pb .pb-save-state[role=alert]{background:#fff2e4;border-color:#dfaf76;color:#763719}
+.pb .pb-recovery{max-width:620px;margin:30px auto;padding:28px}
+.pb .pb-recovery p{margin:14px 0 22px;line-height:1.6}
+.pb .pb-small{font-size:14px;line-height:1.5}
+.pb .pb-sideline-head .pb-small{font-size:13px}
+.pb .pb-icon-btn,.pb .pb-icon-btn.sm{width:44px;height:44px}
+.pb .pb-icon-btn.sm svg{width:18px;height:18px}
+.pb .pb-primary,.pb .pb-secondary,.pb .pb-login-tabs button,.pb .pb-prop-sides button{min-height:44px}
+.pb .pb-check-row{min-height:44px;line-height:1.5;gap:10px}
+.pb .pb-file{align-items:center;gap:12px}
+.pb .pb-file b{overflow-wrap:anywhere}
+.pb .pb-field{line-height:1.4}
+.pb .pb-panel-top{gap:12px;flex-wrap:wrap}
+.pb .pb-slip-fields:disabled{opacity:.85}
+@media(max-width:580px){
+  .pb .pb-phone{max-width:none;border:1px solid var(--pb-line);border-radius:14px;box-shadow:none;padding:20px 16px}
+  .pb .pb-phone .pb-actions{display:grid;grid-template-columns:1fr}
+  .pb .pb-phone .pb-actions>a{text-align:center;justify-content:center}
+  .pb .pb-rating-cell{min-height:44px}
+  .pb .pb-panel{padding:18px 16px}
+  .pb .pb-recovery{margin:12px 0}
+  .pb .pb-save-state{font-size:14px}
+}

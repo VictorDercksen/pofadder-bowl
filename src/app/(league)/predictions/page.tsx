@@ -1,3 +1,4 @@
+import { checkQuery } from "@/lib/query-error";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { KitPanel } from "@/components/ui/KitPanel";
 import { MemberBadge } from "@/components/ui/Marks";
@@ -15,7 +16,7 @@ export default async function PredictionsPage() {
   const now = nowMs();
   const locked = now >= Date.parse(ctx.event.prediction_lock_at);
   const revealed = now >= Date.parse(ctx.event.prediction_reveal_at);
-  const [{ data: mine }, { data: rules }, { data: all }, { data: results }, { data: awards }, { data: profiles }] = await Promise.all([
+  const [{ data: mine, error: mineError }, { data: rules, error: rulesError }, { data: all, error: allError }, { data: results, error: resultsError }, { data: awards, error: awardsError }, { data: profiles, error: profilesError }] = await Promise.all([
     ctx.supabase.from("predictions").select("*").eq("event_id", ctx.event.id).eq("user_id", ctx.user.id).maybeSingle(),
     ctx.supabase.from("prediction_rules").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("predictions_revealed").select("*").eq("event_id", ctx.event.id),
@@ -23,6 +24,12 @@ export default async function PredictionsPage() {
     ctx.supabase.from("prediction_awards").select("*").eq("event_id", ctx.event.id),
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
+  checkQuery(mineError, "predictions mine");
+  checkQuery(rulesError, "predictions rules");
+  checkQuery(allError, "predictions all");
+  checkQuery(resultsError, "predictions results");
+  checkQuery(awardsError, "predictions awards");
+  checkQuery(profilesError, "predictions profiles");
   const r: PredictionRules = rules ?? DEFAULT_RULES;
   const pick = (row: PredictionValues | Record<string, unknown>): PredictionValues => Object.fromEntries(METRICS.map((m) => [m.column, (row as Record<string, unknown>)[m.column] ?? null])) as PredictionValues;
   const calls = (row: PredictionValues) => METRICS.map((m) => `${METRIC_SHORT[m.key]} ${formatMetric(m.key, row[m.column])}`).join(" · ");

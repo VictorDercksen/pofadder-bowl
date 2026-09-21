@@ -10,10 +10,9 @@ export const MB = 1024 * 1024;
 export const STORAGE_MAX_BYTES = 50 * MB;
 /**
  * Files at or below this size go up as one direct signed upload (the path every photo takes);
- * larger files use resumable TUS uploads. Set to the cap so the resumable path only carries
- * files the plan can take once it is raised.
+ * larger files use resumable TUS uploads, including clips below the storage cap.
  */
-export const RESUMABLE_THRESHOLD = STORAGE_MAX_BYTES;
+export const RESUMABLE_THRESHOLD = 6 * MB;
 export const TUS_CHUNK_SIZE = 6 * MB; // required by Supabase Storage
 
 export const LIMITS: Record<EvidenceKind, { maxBytes: number; label: string }> = {

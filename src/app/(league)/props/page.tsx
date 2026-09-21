@@ -1,3 +1,4 @@
+import { checkQuery } from "@/lib/query-error";
 import { MemberBadge } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { KitPanel } from "@/components/ui/KitPanel";
@@ -14,13 +15,17 @@ export default async function PropsPage() {
   const ctx = await getLeagueContext();
   const tz = ctx.event.timezone;
   const now = new Date(nowMs());
-  const [{ data: props, error: propsError }, { data: picks }, { data: standings }, { data: profiles }] = await Promise.all([
+  const [{ data: props, error: propsError }, { data: picks, error: picksError }, { data: standings, error: standingsError }, { data: profiles, error: profilesError }] = await Promise.all([
     ctx.supabase.from("props").select("*").eq("event_id", ctx.event.id).order("sequence"),
     // RLS returns only the caller's picks until a prop locks, then everyone's.
     ctx.supabase.from("prop_picks").select("prop_id, user_id, side").eq("event_id", ctx.event.id),
     ctx.supabase.rpc("prop_leaderboard", { p_event: ctx.event.id }),
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
   ]);
+  checkQuery(picksError, "props picks");
+  checkQuery(standingsError, "props standings");
+  checkQuery(profilesError, "props profiles");
+  checkQuery(propsError, "prop board");
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
 
   if (propsError || !props || props.length === 0) {

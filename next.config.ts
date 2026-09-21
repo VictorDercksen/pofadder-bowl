@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "sleepercdn.com" }],
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      { source: "/press", headers: [{ key: "Permissions-Policy", value: "geolocation=(self), camera=(self), microphone=(self), payment=(), usb=()" }] },
+    ];
   },
 };
 

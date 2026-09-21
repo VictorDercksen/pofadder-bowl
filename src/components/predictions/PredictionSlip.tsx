@@ -36,6 +36,9 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
   const [slip, setSlip] = useState<SlipInput>(() => fromRow(existing));
   const [distance, setDistance] = useState(() => fromRow(existing).distanceKm.toFixed(2));
   const [pending, startTransition] = useTransition();
+  const [savedSlip, setSavedSlip] = useState(() => existing ? JSON.stringify(fromRow(existing)) : null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const dirty = JSON.stringify({ ...slip, distanceKm: distance === "" ? Number.NaN : Number(distance) }) !== savedSlip;
   const set = (patch: Partial<SlipInput>) => setSlip((s) => ({ ...s, ...patch }));
   const num = (key: keyof SlipInput) => (n: number | null) => set({ [key]: n ?? Number.NaN });
 
@@ -47,14 +50,22 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       return;
     }
     startTransition(async () => {
-      const res = await savePrediction({ ...input, mealRating: input.mealRating ?? 0 });
-      toast(res.message ?? "", res.ok ? "ok" : "error");
-      router.refresh();
+      setSaveError(null);
+      try {
+        const res = await savePrediction({ ...input, mealRating: input.mealRating ?? 0 });
+        toast(res.message ?? "", res.ok ? "ok" : "error");
+        if (res.ok) {
+          setSavedSlip(JSON.stringify(input));
+          router.refresh();
+        } else setSaveError(res.message ?? "Your changes were not saved.");
+      } catch {
+        setSaveError("Your changes were not saved. Check your connection and retry.");
+      }
     });
   }
 
   return (
-    <div>
+    <fieldset className="pb-slip-fields" disabled={locked || pending}>
       <label className="pb-field">
         Victor’s 10 km finish time
         <div className="pb-inline-fields">
@@ -102,14 +113,16 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       <p className="pb-small" style={{ marginTop: 5 }}>Flags: exact match wins. Speech: minutes / seconds on the approved N14 clip.</p>
       <div className="pb-actions">
         <button className="pb-primary" type="button" onClick={save} disabled={locked || pending}>
-          {locked ? "Locked at departure" : existing ? "Update predictions" : "Lock in my predictions"}
+          {pending ? "Saving predictions…" : locked ? "Locked at departure" : savedSlip ? "Save changes" : "Save predictions"}
         </button>
       </div>
       <p className="pb-small" style={{ marginTop: 12 }}>
         {locked ? "The slip is closed." : <>You can edit until departure (<Countdown targetIso={lockAt} passedLabel="locked" />). No cash stakes.</>}
-        {existing ? " Your current slip is saved." : ""}
       </p>
-    </div>
+      <p className={`pb-save-state ${dirty && !locked ? "unsaved" : ""}`} role={saveError ? "alert" : "status"}>
+        {pending ? "Saving your slip…" : saveError ?? (dirty && !locked ? "Unsaved changes" : savedSlip ? "Your predictions are saved." : "No predictions saved.")}
+      </p>
+    </fieldset>
   );
 }
 

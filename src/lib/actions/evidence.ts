@@ -74,8 +74,8 @@ export type PreparedUpload =
  * (small files) or a storage path for a resumable TUS upload (large files). The storage
  * RLS policies enforce the same ownership on the actual upload.
  */
-export async function prepareUpload(input: { submissionId: string; fileName: string; mimeType: string; byteSize: number }): Promise<PreparedUpload> {
-  const parsed = z.object({ submissionId: z.string().uuid(), fileName: z.string().min(1).max(200), mimeType: z.string().max(120), byteSize: z.number().int().positive() }).safeParse(input);
+export async function prepareUpload(input: { submissionId: string; fileName: string; mimeType: string; byteSize: number; fileId?: string }): Promise<PreparedUpload> {
+  const parsed = z.object({ submissionId: z.uuid(), fileName: z.string().min(1).max(200), mimeType: z.string().max(120), byteSize: z.number().int().positive(), fileId: z.uuid().optional() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid upload request." };
   const v = validateFile(parsed.data.mimeType, parsed.data.fileName, parsed.data.byteSize);
   if (!v.ok) return { ok: false, message: v.reason };
@@ -86,7 +86,7 @@ export async function prepareUpload(input: { submissionId: string; fileName: str
   if (!sub || sub.submitter_id !== ctx.user.id) return { ok: false, message: "Submission not found." };
   if (sub.status !== "draft" && sub.status !== "flagged") return { ok: false, message: `This submission is ${sub.status}. Start a new version to replace evidence.` };
 
-  const fileId = crypto.randomUUID();
+  const fileId = parsed.data.fileId ?? crypto.randomUUID();
   const path = `${sub.event_id}/${ctx.user.id}/${sub.id}/${fileId}.${safeExtension(parsed.data.fileName)}`;
   if (parsed.data.byteSize > RESUMABLE_THRESHOLD) {
     return { ok: true, mode: "resumable", path, fileId, kind: v.kind, mime: v.mime };

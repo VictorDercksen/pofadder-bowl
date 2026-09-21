@@ -41,6 +41,7 @@ npm run dev                 # http://localhost:3000
 Local fixture accounts (password `pofadder-local-2026`): `victor@local.test` (participant), `commish@local.test` (commissioner), `member@local.test`, `outsider@local.test` (no membership). The login page shows a **local-only password form** when `NEXT_PUBLIC_SUPABASE_URL` points at 127.0.0.1/localhost; it refuses to run against any other host. Magic-link emails for the local stack land in Mailpit at http://127.0.0.1:54324.
 
 Demo mode is always available at `/demo`: an in-memory replica of the mockup, visibly labelled, with no backend access.
+The teaser links to it in development, testing (`PB_TESTING_RESET=true`) and demo-only builds. The league production teaser hides the button.
 
 ## Verification
 
@@ -54,7 +55,9 @@ npm run test:integration # against the local stack: RLS across 4 accounts, stora
 npm run test:auth-flow   # against the local stack + `next start -p 3001`: bootstrap invite email →
                          # Mailpit → signed-in /review; login-form magic link → /game-centre;
                          # sign-out; no email for uninvited addresses
-npm run build            # next build
+npm run build            # typecheck, lint, unit tests, then next build
+npm run test:browser     # built app on port 3001 + local fixtures: upload recovery,
+                         # proof versions, saved settings and layouts at 360/390/1280 px
 npm run screenshots      # Playwright: every screen × 3 roles × 360/390/1280 px + demo/public,
                          # overflow check and keyboard-tab smoke test → ./screenshots
 ```
@@ -97,11 +100,21 @@ Two deployments share this repository and never share data:
 | Supabase project | `pofadder-bowl`, ref `nsiqnqlkaelskimjeyed` (dummy data) | `pofadder-bowl-league`, ref `xfjzfghfytraydwbxcjt`: migrations, `seed.sql`, no fixtures |
 | `PB_TESTING_RESET` | `true` | unset |
 
-On the testing deployment every private screen carries a **TESTING** banner and **Review → Members** shows a **Testing reset** panel. An admin types the event slug and the `reset_event_data` RPC (admin only, slug re-checked in SQL) deletes every submission, upload, comment, reaction, check-in, pin, prop pick, prediction, result and penalty for the event, puts the certificate back to pending and, optionally, clears every member's first-run tour. Memberships, kits, Sleeper links and the seeded programme stay. The server action then removes the storage objects with the service-role key. The league deployment never sets `PB_TESTING_RESET`, so the panel and the action are unavailable there; the RPC still exists but only an admin can call it.
+On the testing deployment every private screen carries a **TESTING** banner and **Review → Members** shows a **Testing reset** panel. An admin types the event slug and the `reset_event_data` RPC (admin only, slug re-checked in SQL) deletes every submission, upload, comment, reaction, check-in, pin, prop pick, prediction, result and penalty for the event, puts the certificate back to pending and, optionally, clears every member's first-run tour. Memberships, kits, Sleeper links and the seeded programme stay. The server action then removes the storage objects with the service-role key.
+
+Migration `20260921000300_review_safeguards.sql` adds a database reset switch that defaults to **disabled**, including for admins calling the RPC directly. After applying it, enable resets on the **testing database only**, using trusted SQL access:
+
+```sql
+update public.deployment_settings set testing_reset_enabled = true where singleton;
+```
+
+Leave that row disabled on the league database and leave `PB_TESTING_RESET` unset on its deployment. Authenticated app users cannot change the database switch.
 
 Promote work by merging `main` into `production` (`git checkout production && git merge --ff-only main && git push`). Vercel builds the league deployment from that push and Supabase's GitHub integration (or the workflow below, target `league`) applies new migrations to the league project.
 
 ## Schema deploys (GitHub Actions)
+
+The `Verify` workflow builds the app and runs unit, local database and browser checks on pull requests and pushes to `main` or `production`. The manual migration workflow accepts `testing` only from `main` and `league` only from `production`.
 
 Supabase's GitHub integration (dashboard → Project Settings → Integrations) pushes `supabase/migrations/` to a hosted project when they land on the branch chosen in the integration: `main` for the testing project, `production` for the league project (each project connects the repo separately). `.github/workflows/supabase-migrate.yml` is the manual fallback: run it from the Actions tab, pick the target (`testing` or `league`, with a dry-run option) to apply or repeat a push. The target is a GitHub environment (**Settings → Environments**) holding its own three secrets: `SUPABASE_ACCESS_TOKEN` (Supabase account → Access Tokens), `SUPABASE_PROJECT_REF` (Project Settings → General) and `SUPABASE_DB_PASSWORD` (Project Settings → Database). A repository-level secret of the same name is used when the environment does not define it. Vercel builds the app in parallel, so every migration must stay backward compatible with the previous deploy; the CLI skips migrations already recorded in `supabase_migrations.schema_migrations`, so reruns are harmless. `npm run db:push` from the laptop still works and stays the fallback.
 

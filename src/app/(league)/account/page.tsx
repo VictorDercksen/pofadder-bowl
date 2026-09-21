@@ -15,7 +15,7 @@ export default async function AccountPage() {
   const [{ data: sleeperUsers }, { data: claimed }, { data: links }] = await Promise.all([
     ctx.supabase.from("sleeper_league_users").select("*").eq("league_id", ctx.league.id).order("display_name"),
     ctx.supabase.rpc("claimed_kits"),
-    ctx.supabase.from("memberships").select("user_id, sleeper_user_id").eq("league_id", ctx.league.id).not("sleeper_user_id", "is", null),
+    ctx.supabase.rpc("league_roster", { p_league: ctx.league.id }),
   ]);
   const takenBy = new Set((links ?? []).filter((l) => l.user_id !== ctx.user.id).map((l) => l.sleeper_user_id));
   const roleLabel = ctx.role === "admin" ? "Admin" : ctx.role === "commissioner" ? "Commissioner" : ctx.role === "participant" ? "Participant" : "League member";

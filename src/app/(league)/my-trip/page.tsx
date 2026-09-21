@@ -10,6 +10,7 @@ import { loadChallenges, loadItinerary } from "@/lib/itinerary";
 import { latestFor, loadSubmissions, statusLabel } from "@/lib/evidence";
 import { loadCheckins, loadLocationSettings } from "@/lib/checkins";
 import { placeLabel } from "@/lib/places";
+import { nextPlay } from "@/lib/next-play";
 import { ageLabel, eventPhase, formatDay, formatTime, quarterNumber } from "@/lib/time";
 
 export const metadata = { title: "My trip" };
@@ -20,10 +21,11 @@ export default async function MyTripPage() {
   const ctx = await requireParticipant();
   const now = new Date();
   const tz = ctx.event.timezone;
-  const [score, itinerary, challenges, subs, settings, checkins] = await Promise.all([getEventScore(ctx), loadItinerary(ctx), loadChallenges(ctx), loadSubmissions(ctx), loadLocationSettings(ctx), loadCheckins(ctx, 1)]);
+  const [score, itinerary, challenges, subs, settings, checkins] = await Promise.all([getEventScore(ctx), loadItinerary(ctx), loadChallenges(ctx), loadSubmissions(ctx), loadLocationSettings(ctx), loadCheckins(ctx)]);
   const phase = eventPhase(ctx.event, now);
   const q = quarterNumber(phase);
-  const nextChallenge = challenges.find((c) => latestFor(subs, { challengeId: c.id })?.status !== "approved");
+  const play = nextPlay(challenges, subs);
+  const nextChallenge = play?.challenge;
   const drafts = subs.filter((s) => s.status === "draft").length;
   const pendingReview = subs.filter((s) => s.status === "submitted").length;
   const flagged = subs.filter((s) => s.status === "flagged").length;
@@ -66,7 +68,7 @@ export default async function MyTripPage() {
           </div>
           {nextChallenge ? (
             <>
-              <div className="pb-kicker">UP NEXT · {nextChallenge.points} POINTS</div>
+              <div className="pb-kicker">{play?.pending ? "WITH THE COMMISSIONER" : "UP NEXT"} · {nextChallenge.points} POINTS</div>
               <h3>{nextChallenge.title}</h3>
               <p className="pb-small" style={{ marginTop: 8 }}>
                 {nextChallenge.proof_type} · {statusLabel(latestFor(subs, { challengeId: nextChallenge.id }), nextChallenge.points)}
@@ -76,7 +78,7 @@ export default async function MyTripPage() {
             <h3>All ten plays approved.</h3>
           )}
           <div className="pb-actions">
-            <Link className="pb-primary orange" href={nextChallenge ? `/proof/${nextChallenge.id}` : "/proof"}>Add challenge proof ↗</Link>
+            <Link className="pb-primary orange" href={nextChallenge ? `/proof/${nextChallenge.id}` : "/proof"}>{play?.pending ? "View submission" : nextChallenge ? "Add challenge proof" : "View approved proof"} ↗</Link>
             <Link className="pb-secondary" href="/map">Check in on the map ↗</Link>
           </div>
           <p className="pb-small" style={{ marginTop: 12 }}>
@@ -127,7 +129,7 @@ export default async function MyTripPage() {
           </div>
           {ctx.isParticipant ? (
             <div style={{ marginTop: 18 }}>
-              <LocationSharing initial={settings} checkinIds={[]} />
+              <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} />
             </div>
           ) : null}
         </div>

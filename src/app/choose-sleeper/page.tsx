@@ -17,7 +17,7 @@ export default async function ChooseSleeperPage() {
   if (ctx.membership.sleeper_user_id) redirect(afterConfirm);
   const [{ data: users }, { data: links }, { data: profiles }] = await Promise.all([
     ctx.supabase.from("sleeper_league_users").select("*").eq("league_id", ctx.league.id).order("team_name"),
-    ctx.supabase.from("memberships").select("user_id, sleeper_user_id").eq("league_id", ctx.league.id).not("sleeper_user_id", "is", null),
+    ctx.supabase.rpc("league_roster", { p_league: ctx.league.id }),
     ctx.supabase.from("profiles").select("id, display_name"),
   ]);
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));

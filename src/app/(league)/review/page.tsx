@@ -1,3 +1,4 @@
+import { checkQuery } from "@/lib/query-error";
 import Link from "next/link";
 import { MemberBadge, Shield } from "@/components/ui/Marks";
 import { IconLink } from "@/components/ui/IconButton";
@@ -12,7 +13,7 @@ export const metadata = { title: "Commissioner" };
 export default async function ReviewPage() {
   const ctx = await requireCommissioner();
   const tz = ctx.event.timezone;
-  const [subs, score, { data: challenges }, { data: penalties }, { data: results }, { data: certificate }, { data: props }, { data: decisions }, { data: profiles }, { count: flagCount }] = await Promise.all([
+  const [subs, score, { data: challenges, error: challengesError }, { data: penalties, error: penaltiesError }, { data: results, error: resultsError }, { data: certificate, error: certificateError }, { data: props, error: propsError }, { data: decisions, error: decisionsError }, { data: profiles, error: profilesError }, { count: flagCount }] = await Promise.all([
     loadSubmissions(ctx),
     getEventScore(ctx),
     ctx.supabase.from("challenges").select("id, sequence, title, points").eq("event_id", ctx.event.id),
@@ -24,6 +25,13 @@ export default async function ReviewPage() {
     ctx.supabase.from("profiles").select("id, display_name, kit_team"),
     ctx.supabase.from("review_decisions").select("id, submission:evidence_submissions!inner(event_id)", { count: "exact", head: true }).eq("submission.event_id", ctx.event.id).eq("decision", "flagged"),
   ]);
+  checkQuery(challengesError, "review challenges");
+  checkQuery(penaltiesError, "review penalties");
+  checkQuery(resultsError, "review results");
+  checkQuery(certificateError, "review certificate");
+  checkQuery(propsError, "review props");
+  checkQuery(decisionsError, "review decisions");
+  checkQuery(profilesError, "review profiles");
   const byChallenge = new Map((challenges ?? []).map((c) => [c.id, c]));
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
   const kits = new Map((profiles ?? []).map((p) => [p.id, p.kit_team]));

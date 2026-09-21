@@ -4,6 +4,7 @@ import { EVENT_META } from "@/lib/programme";
 import { Suspense } from "react";
 import { KickoffTimer } from "@/components/teaser/KickoffTimer";
 import { SignInLink } from "@/components/teaser/SignInLink";
+import { showInteractiveDemo } from "@/lib/env";
 
 export const metadata = {
   title: "Teaser",
@@ -37,7 +38,7 @@ export default function TeaserPage() {
           <Suspense fallback={<Link className="pb-primary" href="/login" style={signInStyle}>League sign-in</Link>}>
             <SignInLink className="pb-primary" style={signInStyle}>League sign-in</SignInLink>
           </Suspense>
-          <Link className="pb-secondary" href="/demo" style={{ background: "transparent", color: "#f4f0e6", borderColor: "#f4f0e6", boxShadow: "none" }}>Interactive demo</Link>
+          {showInteractiveDemo() ? <Link className="pb-secondary" href="/demo" style={{ background: "transparent", color: "#f4f0e6", borderColor: "#f4f0e6", boxShadow: "none" }}>Interactive demo</Link> : null}
         </div>
         <p className="pb-small" style={{ color: "#9fb09b", marginTop: 20 }}>
           Unofficial fantasy league. Not affiliated with or sponsored by the NFL. Team marks belong to their owners.

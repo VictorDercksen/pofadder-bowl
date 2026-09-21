@@ -92,3 +92,8 @@ export function testingResetEnabled(): boolean {
   if (typeof window !== "undefined") throw new Error("testingResetEnabled() called in the browser");
   return parseFlag(process.env.PB_TESTING_RESET);
 }
+
+/** Public teaser stays static. League builds omit the demo invitation. */
+export function showInteractiveDemo(): boolean {
+  return process.env.NODE_ENV !== "production" || testingResetEnabled() || publicEnv.demoOnly;
+}

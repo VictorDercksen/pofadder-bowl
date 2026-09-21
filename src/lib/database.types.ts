@@ -256,6 +256,21 @@ export type Database = {
           },
         ]
       }
+      deployment_settings: {
+        Row: {
+          singleton: boolean
+          testing_reset_enabled: boolean
+        }
+        Insert: {
+          singleton?: boolean
+          testing_reset_enabled?: boolean
+        }
+        Update: {
+          singleton?: boolean
+          testing_reset_enabled?: boolean
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           away_arrival_at: string
@@ -1344,14 +1359,9 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           event_id: string | null
-          final_score: number | null
-          flag_count: number | null
           kit_team: string | null
           meal_rating: number | null
-          run_distance_km: number | null
           run_seconds: number | null
-          sign_photo_minutes: number | null
-          speech_seconds: number | null
           updated_at: string | null
           user_id: string | null
         }
@@ -1383,6 +1393,8 @@ export type Database = {
           id: string
           kit_number: number
           kit_team: string | null
+          tutorial_completed_at: string | null
+          tutorial_version: number | null
           updated_at: string
         }
         SetofOptions: {
@@ -1468,6 +1480,7 @@ export type Database = {
           event_id: string
           id: string
           press_prompt_id: string | null
+          rating: number | null
           status: Database["public"]["Enums"]["submission_status"]
           submitted_at: string | null
           submitter_id: string
@@ -1481,20 +1494,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      league_context: {
-        Args: { p_event_slug: string; p_league_slug: string }
-        Returns: Json
-      }
       event_member_locations: {
         Args: { p_event: string }
         Returns: {
-          accuracy_m: number | null
+          accuracy_m: number
           captured_at: string
           display_name: string
-          kit_team: string | null
+          kit_team: string
           latitude: number
           longitude: number
-          place_label: string | null
+          place_label: string
           updated_at: string
           user_id: string
         }[]
@@ -1518,18 +1527,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      league_context: {
+        Args: { p_event_slug: string; p_league_slug: string }
+        Returns: Json
+      }
+      league_roster: {
+        Args: { p_league: string }
+        Returns: {
+          display_name: string
+          sleeper_user_id: string
+          user_id: string
+        }[]
+      }
       my_event_role: { Args: { p_event: string }; Returns: string }
-      pb_event_league: { Args: { p_event: string }; Returns: string }
-      pb_is_admin: { Args: { p_league: string }; Returns: boolean }
       pb_bearing_deg: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
+      }
+      pb_can_view_submission: {
+        Args: { p_submission: string }
+        Returns: boolean
       }
       pb_compass: { Args: { p_bearing: number }; Returns: string }
       pb_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      pb_event_league: { Args: { p_event: string }; Returns: string }
+      pb_is_admin: { Args: { p_league: string }; Returns: boolean }
       pb_is_commissioner: { Args: { p_league: string }; Returns: boolean }
       pb_is_event_admin: { Args: { p_event: string }; Returns: boolean }
       pb_is_event_commissioner: { Args: { p_event: string }; Returns: boolean }
@@ -1554,6 +1579,14 @@ export type Database = {
         Returns: string
       }
       pb_shares_league: { Args: { p_user: string }; Returns: boolean }
+      pb_side_matches_kind: {
+        Args: {
+          p_kind: Database["public"]["Enums"]["prop_kind"]
+          p_side: string
+        }
+        Returns: boolean
+      }
+      pb_uuid_or_null: { Args: { p: string }; Returns: string }
       prop_leaderboard: {
         Args: { p_event: string }
         Returns: {
@@ -1603,7 +1636,11 @@ export type Database = {
         Returns: number
       }
       reset_event_data: {
-        Args: { p_confirm_slug: string; p_event: string; p_reset_tours?: boolean }
+        Args: {
+          p_confirm_slug: string
+          p_event: string
+          p_reset_tours?: boolean
+        }
         Returns: Json
       }
       resolve_predictions: { Args: { p_event: string }; Returns: number }
@@ -1735,25 +1772,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      share_member_location: {
-        Args: {
-          p_accuracy_m?: number
-          p_captured_at: string
-          p_event: string
-          p_latitude: number
-          p_longitude: number
-        }
-        Returns: {
-          accuracy_m: number | null
-          captured_at: string
-          event_id: string
-          latitude: number
-          longitude: number
-          place_label: string | null
-          updated_at: string
-          user_id: string
-        }
-      }
       settle_prop: {
         Args: {
           p_prop: string
@@ -1781,6 +1799,31 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      share_member_location: {
+        Args: {
+          p_accuracy_m?: number
+          p_captured_at: string
+          p_event: string
+          p_latitude: number
+          p_longitude: number
+        }
+        Returns: {
+          accuracy_m: number | null
+          captured_at: string
+          event_id: string
+          latitude: number
+          longitude: number
+          place_label: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "member_locations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_submission: {
         Args: { p_submission: string }
         Returns: {
@@ -1790,6 +1833,7 @@ export type Database = {
           event_id: string
           id: string
           press_prompt_id: string | null
+          rating: number | null
           status: Database["public"]["Enums"]["submission_status"]
           submitted_at: string | null
           submitter_id: string
@@ -1803,16 +1847,64 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      upsert_prediction: {
-        Args:
-          | { p_event: string; p_meal_rating: number; p_run_seconds: number }
-          | {
+      upsert_prediction:
+        | {
+            Args: {
+              p_event: string
+              p_meal_rating: number
+              p_run_seconds: number
+            }
+            Returns: {
+              complaint_count: number | null
+              created_at: string
+              event_id: string
+              final_score: number | null
+              flag_count: number | null
+              meal_rating: number
+              run_distance_km: number | null
+              run_seconds: number
+              sign_photo_minutes: number | null
+              speech_seconds: number | null
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "predictions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
               p_complaint_count: number
               p_event: string
               p_meal_rating: number
               p_run_seconds: number
             }
-          | {
+            Returns: {
+              complaint_count: number | null
+              created_at: string
+              event_id: string
+              final_score: number | null
+              flag_count: number | null
+              meal_rating: number
+              run_distance_km: number | null
+              run_seconds: number
+              sign_photo_minutes: number | null
+              speech_seconds: number | null
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "predictions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
               p_event: string
               p_final_score: number
               p_flag_count: number
@@ -1822,27 +1914,27 @@ export type Database = {
               p_sign_photo_minutes: number
               p_speech_seconds: number
             }
-        Returns: {
-          complaint_count: number | null
-          created_at: string
-          event_id: string
-          final_score: number | null
-          flag_count: number | null
-          meal_rating: number
-          run_distance_km: number | null
-          run_seconds: number
-          sign_photo_minutes: number | null
-          speech_seconds: number | null
-          updated_at: string
-          user_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "predictions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+            Returns: {
+              complaint_count: number | null
+              created_at: string
+              event_id: string
+              final_score: number | null
+              flag_count: number | null
+              meal_rating: number
+              run_distance_km: number | null
+              run_seconds: number
+              sign_photo_minutes: number | null
+              speech_seconds: number | null
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "predictions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       upsert_prop_pick: {
         Args: {
           p_prop: string
@@ -1863,7 +1955,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      upsert_props: { Args: { p_event: string; p_props: Json }; Returns: number }
+      upsert_props: {
+        Args: { p_event: string; p_props: Json }
+        Returns: number
+      }
     }
     Enums: {
       certificate_status: "pending" | "issued"

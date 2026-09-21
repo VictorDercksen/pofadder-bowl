@@ -91,15 +91,7 @@ export default async function GameCentrePage() {
         </div>
       </div>
 
-      {feedResult.error ? (
-        <section className="pb-sideline">
-          <div className="pb-status" role="alert" style={{ borderLeftColor: "#b3392a" }}>
-            The sideline feed could not be loaded ({feedResult.error}). Refresh to try again.
-          </div>
-        </section>
-      ) : (
-        <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} eventId={ctx.event.id} timezone={tz} viewer={{ name: ctx.profile.display_name, team: ctx.profile.kit_team, number: ctx.profile.kit_number }} />
-      )}
+      <SidelineFeed initialPosts={feedResult.posts} initialHasMore={feedResult.hasMore} initialError={Boolean(feedResult.error)} eventId={ctx.event.id} timezone={tz} viewer={{ name: ctx.profile.display_name, team: ctx.profile.kit_team, number: ctx.profile.kit_number }} />
     </>
   );
 }

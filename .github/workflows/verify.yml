@@ -1,0 +1,55 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      # prebuild runs type checking, lint and unit tests before the production build.
+      - run: npm run build
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - name: Configure local test environment
+        shell: bash
+        run: |
+          supabase status -o json > "$RUNNER_TEMP/supabase-status.json"
+          node scripts/local-test-env.mjs "$RUNNER_TEMP/supabase-status.json" >> "$GITHUB_ENV"
+      - run: npm run test:integration
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Proof and mobile browser checks
+        run: |
+          npm run start -- -p 3001 &
+          npm run test:browser
+      - if: always()
+        run: supabase stop --no-backup

@@ -32,6 +32,7 @@ async function signIn(email: string): Promise<Client> {
 }
 
 async function main() {
+  if (!["localhost", "127.0.0.1"].includes(new URL(env("NEXT_PUBLIC_SUPABASE_URL")).hostname)) throw new Error("Integration tests require the local Supabase stack");
   console.log("Seeding local fixtures…");
   const { ids, event, league } = await seedFixtures();
   const admin = createClient<Database>(env("NEXT_PUBLIC_SUPABASE_URL"), env("SUPABASE_SECRET_KEY"), { auth: { persistSession: false } });
@@ -92,6 +93,18 @@ async function main() {
     const { error: rules } = await commissioner.from("prediction_rules").update({ run_points: 99 }).eq("event_id", event.id);
     const { data: r } = await admin.from("prediction_rules").select("run_points").eq("event_id", event.id).single();
     assert.ok(rules || r?.run_points === 10, "commissioner must not edit prediction rules");
+  });
+  await test("roster exposes claimed teams but keeps other members invitation details private", async () => {
+    const { data, error } = await member.from("memberships").select("user_id, invited_email").eq("league_id", league.id);
+    assert.ok(!error, error?.message);
+    assert.deepEqual(data?.map((r) => r.user_id), [ids.member]);
+    const { data: roster, error: re } = await member.rpc("league_roster", { p_league: league.id });
+    assert.ok(!re && roster && roster.length >= 3, re?.message);
+    assert.ok(roster.every((r) => !("invited_email" in r)));
+    const { data: outside } = await outsider.rpc("league_roster", { p_league: league.id });
+    assert.equal(outside?.length ?? 0, 0);
+    const { data: managed } = await participant.from("memberships").select("invited_email").eq("league_id", league.id);
+    assert.ok(managed && managed.length >= 3, "admins can still manage invitations");
   });
   await test("member cannot create evidence submissions", async () => {
     const { data: ch } = await member.from("challenges").select("id").eq("sequence", 1).single();
@@ -161,7 +174,7 @@ async function main() {
     const { error: e2 } = await participant.rpc("submit_submission", { p_submission: submissionId });
     assert.ok(e2 && /attach at least/.test(e2.message));
   });
-  await test("storage: participant uploads into own folder, member cannot upload, member can sign a read URL", async () => {
+  await test("storage: participant uploads into own folder, member cannot upload, draft reads are private", async () => {
     const path = `${event.id}/${ids.participant}/${submissionId}/test.gpx`;
     const body = new Blob(["<gpx/>"], { type: "application/gpx+xml" });
     const { error } = await participant.storage.from("evidence").upload(path, body, { contentType: "application/gpx+xml" });
@@ -171,7 +184,7 @@ async function main() {
     const wrongFolder = await participant.storage.from("evidence").upload(`${event.id}/${ids.member}/${submissionId}/y.gpx`, body, { contentType: "application/gpx+xml" });
     assert.ok(wrongFolder.error, "upload outside own folder must be rejected");
     const { data: signed, error: se } = await member.storage.from("evidence").createSignedUrl(path, 60);
-    assert.ok(!se && signed?.signedUrl, se?.message);
+    assert.ok(se && !signed, "members must not sign draft URLs");
     const { error: oe } = await outsider.storage.from("evidence").createSignedUrl(path, 60);
     assert.ok(oe, "outsider must not sign URLs");
     const { error: fe } = await participant.from("evidence_files").insert({ submission_id: submissionId, storage_path: path, mime_type: "application/gpx+xml", byte_size: 6, kind: "gps", original_name: "test.gpx" });
@@ -189,6 +202,20 @@ async function main() {
     assert.equal(listed?.length, 1);
     const { error: memberSigned } = await member.storage.from("evidence").createSignedUploadUrl(`${event.id}/${ids.member}/${submissionId}/m.png`);
     assert.ok(memberSigned, "member must not obtain a signed upload URL");
+  });
+  await test("direct attachments reject missing objects and forged metadata", async () => {
+    const path = `${event.id}/${ids.participant}/${submissionId}/missing.gpx`;
+    const row = { submission_id: submissionId, storage_path: path, mime_type: "application/gpx+xml", byte_size: 6, kind: "gps" as const };
+    assert.ok((await participant.from("evidence_files").insert(row)).error, "missing object must be rejected");
+    const { error: upload } = await participant.storage.from("evidence").upload(path, new Blob(["<gpx/>"], { type: "application/gpx+xml" }), { contentType: "application/gpx+xml" });
+    assert.ok(!upload, upload?.message);
+    assert.ok((await participant.from("evidence_files").insert({ ...row, byte_size: 1 })).error, "size spoof must be rejected");
+    assert.ok((await participant.from("evidence_files").insert({ ...row, mime_type: "image/png", kind: "photo" })).error, "MIME spoof must be rejected");
+    const { error: attached } = await participant.from("evidence_files").insert(row);
+    assert.ok(!attached, attached?.message);
+    await participant.storage.from("evidence").remove([path]);
+    assert.ok((await participant.rpc("submit_submission", { p_submission: submissionId })).error, "deleted object must block submission");
+    await participant.from("evidence_files").delete().eq("storage_path", path);
   });
   await test("submit → approve is idempotent and score derives from approved state", async () => {
     const { error } = await participant.rpc("submit_submission", { p_submission: submissionId });
@@ -230,9 +257,12 @@ async function main() {
     assert.equal(v2?.version, 2);
     submissionV2 = v2!.id;
     const path = `${event.id}/${ids.participant}/${submissionV2}/test2.gpx`;
-    await participant.storage.from("evidence").upload(path, new Blob(["<gpx/>"]), { contentType: "application/gpx+xml" });
-    await participant.from("evidence_files").insert({ submission_id: submissionV2, storage_path: path, mime_type: "application/gpx+xml", byte_size: 6, kind: "gps" });
-    await participant.rpc("submit_submission", { p_submission: submissionV2 });
+    const uploaded = await participant.storage.from("evidence").upload(path, new Blob(["<gpx/>"], { type: "application/gpx+xml" }), { contentType: "application/gpx+xml" });
+    assert.ok(!uploaded.error, uploaded.error?.message);
+    const attached = await participant.from("evidence_files").insert({ submission_id: submissionV2, storage_path: path, mime_type: "application/gpx+xml", byte_size: 6, kind: "gps" });
+    assert.ok(!attached.error, attached.error?.message);
+    const submitted = await participant.rpc("submit_submission", { p_submission: submissionV2 });
+    assert.ok(!submitted.error, submitted.error?.message);
     const { error } = await commissioner.rpc("review_submission", { p_submission: submissionV2, p_version: 2, p_decision: "approved", p_idempotency_key: `v2-${Date.now()}` });
     assert.ok(!error, error?.message);
     const { data: old } = await admin.from("evidence_submissions").select("status").eq("id", submissionId).single();
@@ -332,7 +362,8 @@ async function main() {
     assert.ok(early, "cannot settle before lock");
   });
   await test("commissioner settles locked props; leaderboard scores one point per correct call; void scores nothing", async () => {
-    await admin.from("props").update({ locks_at: "2026-09-23T17:15:00Z" }).eq("event_id", event.id);
+    const locked = await admin.from("props").update({ locks_at: new Date(Date.now() - 60_000).toISOString() }).eq("event_id", event.id);
+    assert.ok(!locked.error, locked.error?.message);
     const { data: props } = await member.from("props").select("*").eq("event_id", event.id).order("sequence");
     const ou = props!.find((p) => p.kind === "over_under")!;
     const yn = props!.find((p) => p.kind === "yes_no")!;
@@ -460,6 +491,13 @@ async function main() {
     assert.ok(se && /confirmation/.test(se.message), "wrong slug must fail");
     const { count: before } = await admin.from("evidence_submissions").select("id", { count: "exact", head: true }).eq("event_id", event.id);
     assert.ok((before ?? 0) > 0, "fixture should have submissions before the reset");
+    await admin.from("deployment_settings").update({ testing_reset_enabled: false }).eq("singleton", true);
+    const disabled = await participant.rpc("reset_event_data", { p_event: event.id, p_confirm_slug: event.slug });
+    assert.ok(disabled.error && /disabled/.test(disabled.error.message), "even an admin must not reset a production database");
+    const forbidden = await participant.from("deployment_settings").update({ testing_reset_enabled: true }).eq("singleton", true);
+    assert.ok(forbidden.error, "an authenticated admin must not enable the database flag");
+    const { error: enable } = await admin.from("deployment_settings").update({ testing_reset_enabled: true }).eq("singleton", true);
+    assert.ok(!enable, enable?.message);
     const { data, error } = await participant.rpc("reset_event_data", { p_event: event.id, p_confirm_slug: event.slug, p_reset_tours: true });
     assert.ok(!error, error?.message);
     const counts = data as { submissions: number; posts: number; storage_paths: string[] };
@@ -477,6 +515,7 @@ async function main() {
     assert.ok((members ?? 0) > 0, "roster must survive");
     const { data: settled } = await admin.from("props").select("id").eq("event_id", event.id).not("result", "is", null);
     assert.equal(settled?.length ?? 0, 0, "props must be unsettled");
+    await admin.from("deployment_settings").update({ testing_reset_enabled: false }).eq("singleton", true);
   });
 
   const failed = results.filter((r) => !r.ok);

@@ -1,4 +1,5 @@
 import "server-only";
+import { checkQuery } from "@/lib/query-error";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -104,8 +105,8 @@ async function loadContext(supabase: SupabaseClient<Database>): Promise<Loaded |
   const { data, error } = await supabase.rpc("league_context", { p_league_slug: publicEnv.leagueSlug, p_event_slug: publicEnv.eventSlug });
   if (error) {
     // Migration not applied yet: fall back to the per-table path so a deploy never depends on db:push order.
-    if (error.code === "PGRST202" || error.code === "42883" || /league_context/.test(error.message)) return "missing";
-    redirect("/no-access");
+    if (error.code === "PGRST202" || error.code === "42883") return "missing";
+    checkQuery(error, "league access");
   }
   const payload = (data ?? {}) as ContextPayload;
   if (payload.status !== "ok" || !payload.league || !payload.event || !payload.membership || !payload.profile) redirectFor(payload.status);
@@ -189,6 +190,8 @@ export async function requireParticipant(): Promise<LeagueContext> {
 
 /** Score derived from the approved state of each challenge (view event_scores). */
 export async function getEventScore(ctx: LeagueContext) {
-  const { data } = await ctx.supabase.from("event_scores").select("*").eq("event_id", ctx.event.id).maybeSingle();
+  const { data, error } = await ctx.supabase.from("event_scores").select("*").eq("event_id", ctx.event.id).maybeSingle();
+  checkQuery(error, "event score");
+  if (!data) throw new Error("The event score is unavailable. Please retry.");
   return { approved: data?.approved_points ?? 0, max: data?.max_points ?? ctx.event.max_points, approvedChallenges: data?.approved_challenges ?? 0, total: data?.total_challenges ?? 0 };
 }

@@ -21,9 +21,11 @@ describe("upload validation", () => {
     expect(res.ok ? "" : res.reason).toMatch(/50 MB.*72\.0 MB.*Trim/);
     expect(validateFile("video/quicktime", "IMG_7281.mov", 49 * MB)).toMatchObject({ ok: true, kind: "video" });
   });
-  it("sends everything the plan can take as one direct upload; resumable only above the cap", () => {
+  it("uses resumable uploads for accepted large clips below the cap", () => {
     expect(STORAGE_MAX_BYTES).toBe(50 * MB);
-    expect(RESUMABLE_THRESHOLD).toBe(STORAGE_MAX_BYTES);
+    expect(RESUMABLE_THRESHOLD).toBe(6 * MB);
+    expect(RESUMABLE_THRESHOLD).toBeLessThan(STORAGE_MAX_BYTES);
+    expect(validateFile("video/mp4", "clip.mp4", RESUMABLE_THRESHOLD + 1).ok).toBe(true);
   });
   it("sanitises extensions", () => {
     expect(safeExtension("clip.MOV")).toBe("mov");

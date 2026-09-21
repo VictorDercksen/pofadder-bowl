@@ -22,6 +22,8 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   const [settings, setSettings] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saving = useRef(false);
   const inFlight = useRef(false);
 
   const capture = useCallback(
@@ -100,11 +102,24 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
   }, [capture, settings.sharing_enabled, settings.auto_update]);
 
   function save(next: Settings) {
-    setSettings(next);
+    if (saving.current) return;
+    saving.current = true;
+    setSaveError(null);
     startTransition(async () => {
-      const res = await updateLocationSettings({ sharingEnabled: next.sharing_enabled, autoUpdate: next.auto_update });
-      toast(res.message ?? "", res.ok ? "ok" : "error");
-      router.refresh();
+      try {
+        const res = await updateLocationSettings({ sharingEnabled: next.sharing_enabled, autoUpdate: next.auto_update });
+        if (!res.ok) {
+          setSaveError("Your location setting was not changed. Retry when connected.");
+          return;
+        }
+        setSettings(next);
+        toast(res.message ?? "Location setting saved.", "ok");
+        router.refresh();
+      } catch {
+        setSaveError("Your location setting could not be confirmed. Check your connection and retry.");
+      } finally {
+        saving.current = false;
+      }
     });
   }
 
@@ -121,11 +136,11 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
     <div className="pb-panel" data-tour="location-sharing">
       <h3>Location controls</h3>
       <label className="pb-check-row">
-        <input type="checkbox" checked={settings.sharing_enabled} onChange={(e) => save({ ...settings, sharing_enabled: e.target.checked })} />
+        <input type="checkbox" checked={settings.sharing_enabled} disabled={pending} onChange={(e) => save({ ...settings, sharing_enabled: e.target.checked })} />
         Share my location with league members
       </label>
       <label className="pb-check-row">
-        <input type="checkbox" checked={settings.auto_update} disabled={!settings.sharing_enabled} onChange={(e) => save({ ...settings, auto_update: e.target.checked })} />
+        <input type="checkbox" checked={settings.auto_update} disabled={pending || !settings.sharing_enabled} onChange={(e) => save({ ...settings, auto_update: e.target.checked })} />
         Update when I reopen Game Centre
       </label>
       <div className="pb-actions">
@@ -142,6 +157,7 @@ export function LocationSharing({ initial, checkinIds }: { initial: Settings; ch
       <p className="pb-small" style={{ marginTop: 12 }}>
         Check-ins, not continuous tracking. Nothing is recorded while the browser is closed or the phone is locked. Pausing stops new writes; existing timestamped check-ins stay visible until you remove them. This map is not proof of the 10 km run: upload the watch export in the proof locker.
       </p>
+      <p className="pb-save-state" role={saveError ? "alert" : "status"}>{pending ? "Saving your location setting…" : saveError ?? (settings.sharing_enabled ? "Sharing is enabled." : "Sharing is paused.")}</p>
     </div>
   );
 }

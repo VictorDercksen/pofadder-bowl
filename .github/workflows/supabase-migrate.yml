@@ -45,6 +45,18 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
+      - name: Enforce deployment branch
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          if [ "$TARGET" = "league" ] && [ "$GITHUB_REF" != "refs/heads/production" ]; then
+            echo "::error::League migrations must run from production."
+            exit 1
+          fi
+          if [ "$TARGET" = "testing" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Testing migrations must run from main."
+            exit 1
+          fi
       - uses: actions/checkout@v6
         with:
           fetch-depth: 1

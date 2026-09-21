@@ -1,4 +1,5 @@
 import "server-only";
+import { checkQuery } from "@/lib/query-error";
 import type { LeagueContext } from "@/lib/league";
 import { FEED_PAGE_SIZE, type FeedCursor } from "@/lib/feed-page";
 
@@ -34,17 +35,20 @@ export async function loadFeed(ctx: LeagueContext, { limit = FEED_PAGE_SIZE, bef
     .limit(limit + 1);
   if (before) query = query.or(`created_at.lt.${before.createdAt},and(created_at.eq.${before.createdAt},id.lt.${before.id})`);
   const { data: rows, error } = await query;
-  if (error || !rows) throw new Error(error?.message ?? "feed unavailable");
+  checkQuery(error, "sideline feed");
+  if (!rows) throw new Error("The feed is unavailable.");
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
   if (posts.length === 0) return { posts: [], hasMore: false };
 
   const authorIds = Array.from(new Set(posts.map((p) => p.author_id).filter((id): id is string => Boolean(id))));
   const postIds = posts.map((p) => p.id);
-  const [{ data: profiles }, { data: reactions }] = await Promise.all([
-    authorIds.length ? ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number").in("id", authorIds) : Promise.resolve({ data: [] as { id: string; display_name: string; kit_team: string; kit_number: number }[] }),
+  const [{ data: profiles, error: profileError }, { data: reactions, error: reactionError }] = await Promise.all([
+    authorIds.length ? ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number").in("id", authorIds) : Promise.resolve({ data: [] as { id: string; display_name: string; kit_team: string; kit_number: number }[], error: null }),
     ctx.supabase.from("reactions").select("post_id, user_id").in("post_id", postIds),
   ]);
+  checkQuery(profileError, "feed profiles");
+  checkQuery(reactionError, "feed reactions");
   const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
   const shaped: FeedPost[] = posts.map((p) => {
     const author = p.author_id ? byId.get(p.author_id) : undefined;

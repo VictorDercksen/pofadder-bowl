@@ -1,4 +1,5 @@
 import "server-only";
+import { checkQuery } from "@/lib/query-error";
 import type { LeagueContext } from "@/lib/league";
 import type { Tables } from "@/lib/database.types";
 
@@ -12,7 +13,8 @@ export type Submission = Tables<"evidence_submissions"> & { files: Tables<"evide
  * drafts too, league members only see submitted, approved, flagged and superseded versions.
  */
 export async function loadSubmissions(ctx: LeagueContext): Promise<Submission[]> {
-  const { data } = await ctx.supabase.from("evidence_submissions").select("*, files:evidence_files(*)").eq("event_id", ctx.event.id).order("version", { ascending: false });
+  const { data, error } = await ctx.supabase.from("evidence_submissions").select("*, files:evidence_files(*)").eq("event_id", ctx.event.id).order("version", { ascending: false });
+  checkQuery(error, "proof submissions");
   return (data ?? []) as Submission[];
 }
 
@@ -21,6 +23,7 @@ export type ParticipantProfile = { id: string; display_name: string; kit_team: s
 /** The event participant's name and kit, for screens that show their locker to the league. */
 export async function loadParticipantProfile(ctx: LeagueContext): Promise<ParticipantProfile | null> {
   if (!ctx.event.participant_user_id) return null;
-  const { data } = await ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number").eq("id", ctx.event.participant_user_id).maybeSingle();
+  const { data, error } = await ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number").eq("id", ctx.event.participant_user_id).maybeSingle();
+  checkQuery(error, "participant profile");
   return data ?? null;
 }

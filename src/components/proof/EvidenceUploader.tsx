@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, useTransition, type Ref } from "react";
 import { useRouter } from "next/navigation";
 import { IconButton } from "@/components/ui/IconButton";
 import { RatingSelector } from "@/components/ui/RatingSelector";
@@ -33,7 +33,7 @@ type Props = {
 
 export type EvidenceUploaderHandle = { addFile: (file: File) => void };
 
-type Row = { local: LocalDraftFile; progress: number; stage?: UploadStage; handle?: UploadHandle };
+type Row = { local: LocalDraftFile; progress: number; stage?: UploadStage; handle?: UploadHandle; uploadedId?: string };
 
 /**
  * Evidence locker: pick files, keep a local draft in IndexedDB, upload directly to
@@ -55,43 +55,81 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   const uploadingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Restore a local draft (files kept on this device). Merges with anything added meanwhile
-  // and ignores a result that arrives after the effect was cleaned up.
+  const live = useRef({ rows: [] as Row[], caption: editable ? (current?.caption ?? "") : "", rating: editable ? (current?.rating ?? null) : null, submissionId: editable ? current?.id : undefined });
+  const writes = useRef(Promise.resolve());
+  const revision = useRef(0);
+  const [restored, setRestored] = useState(false);
+  const active = useRef(true);
+
+  function changeRows(next: Row[]) {
+    live.current.rows = next;
+    setRows(next);
+  }
+
+  // IndexedDB writes are serialised so an older upload completion cannot overwrite a newer edit.
+  function persist() {
+    const snapshot = live.current;
+    const version = ++revision.current;
+    setLocalSaved(false);
+    const draft: LocalDraft = { key: draftKey, targetId, targetKind, submissionId: snapshot.submissionId, caption: snapshot.caption, rating: snapshot.rating, files: snapshot.rows.map((r) => r.local), updatedAt: Date.now() };
+    const saved = writes.current.then(() => saveDraft(draft));
+    writes.current = saved.then(() => undefined);
+    return saved.then((res) => {
+      if (revision.current === version) setLocalSaved(res.ok);
+      if (!res.ok) toast(res.message, "warn");
+      return res.ok;
+    });
+  }
+
+  function changeCaption(value: string) {
+    live.current.caption = value;
+    setCaption(value);
+    void persist();
+  }
+
+  function changeRating(value: number) {
+    live.current.rating = value;
+    setRating(value);
+    void persist();
+  }
+
+  // Restore before allowing edits, so a slow device read cannot overwrite fresh input.
   useEffect(() => {
     let ignore = false;
+    active.current = true;
     loadDraft(draftKey).then((d) => {
-      if (ignore || !d) return;
-      if (!editable && d.files.every((f) => f.status === "uploaded")) return;
-      setCaption((c) => c || d.caption);
-      if (d.submissionId && editable) setSubmissionId((s) => s ?? d.submissionId);
-      const restored = d.files.filter((f) => f.status !== "uploaded").map((f) => ({ local: f, progress: 0 }));
-      setRows((prev) => [...prev, ...restored.filter((r) => !prev.some((p) => p.local.id === r.local.id))]);
-      setLocalSaved(true);
+      if (ignore) return;
+      if (d && editable && (!current || !d.submissionId || d.submissionId === current.id)) {
+        const nextRows = d.files.filter((f) => f.status !== "uploaded").map((f) => ({ local: f, progress: 0 }));
+        const sid = current?.id ?? d.submissionId;
+        live.current = { rows: nextRows, caption: d.caption, rating: d.rating ?? current?.rating ?? null, submissionId: sid };
+        setCaption(d.caption);
+        setRating(live.current.rating);
+        setSubmissionId(sid);
+        setRows(nextRows);
+        setLocalSaved(true);
+      }
+      setRestored(true);
     });
     return () => {
       ignore = true;
+      active.current = false;
+      live.current.rows.forEach((r) => r.handle?.abort());
     };
-  }, [draftKey, editable]);
-
-  const persist = useCallback(
-    async (nextRows: Row[], nextCaption: string, nextSubmissionId?: string) => {
-      const draft: LocalDraft = { key: draftKey, targetId, targetKind, submissionId: nextSubmissionId, caption: nextCaption, files: nextRows.map((r) => r.local), updatedAt: Date.now() };
-      const res = await saveDraft(draft);
-      setLocalSaved(res.ok);
-      if (!res.ok) toast(res.message, "warn");
-      return res.ok;
-    },
-    [draftKey, targetId, targetKind],
-  );
+    // Restore only when the target changes. Server refreshes must not replace live edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
 
   async function ensureSubmission(): Promise<string | null> {
-    if (submissionId) return submissionId;
+    if (live.current.submissionId) return live.current.submissionId;
     const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId, caption } : { pressPromptId: targetId, caption });
     if (!res.ok || !res.submissionId) {
       toast(res.ok ? "Could not create a draft." : res.message, "error");
       return null;
     }
+    live.current.submissionId = res.submissionId;
     setSubmissionId(res.submissionId);
+    await persist();
     return res.submissionId;
   }
 
@@ -107,9 +145,9 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       next.push({ local: { id: newId(), name: file.name, type: file.type, size: file.size, blob: file, status: "queued", lastModified: file.lastModified }, progress: 0 });
     }
     if (next.length === 0) return;
-    const all = [...rows, ...next];
-    setRows(all);
-    persist(all, caption, submissionId).then((ok) => ok && toast(`${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, "ok"));
+    const all = [...live.current.rows, ...next];
+    changeRows(all);
+    persist().then((ok) => ok && toast(`${next.length} file(s) added to the local draft. Nothing has been uploaded yet.`, "ok"));
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -127,23 +165,27 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     try {
       const sid = await ensureSubmission();
       if (!sid) return;
-      const queue = rows.filter((r) => r.local.status !== "uploaded");
+      const queue = live.current.rows.filter((r) => r.local.status !== "uploaded");
       if (queue.length === 0) return;
-      const outcomes = new Map<string, { ok: boolean; message?: string }>();
+      const outcomes = new Map<string, { ok: boolean; message?: string; fileId?: string }>();
       const applyOutcome = (r: Row): Row => {
         const o = outcomes.get(r.local.id);
         if (!o) return r;
-        return { ...r, handle: undefined, progress: o.ok ? 1 : r.progress, local: { ...r.local, status: o.ok ? ("uploaded" as const) : ("failed" as const), error: o.ok ? undefined : o.message } };
+        return { ...r, handle: undefined, uploadedId: o.fileId, progress: o.ok ? 1 : r.progress, local: { ...r.local, status: o.ok ? ("uploaded" as const) : ("failed" as const), error: o.ok ? undefined : o.message } };
       };
       for (const row of queue) {
+        if (!active.current) break;
+        changeRows(live.current.rows.map((r) => r.local.id === row.local.id ? { ...r, local: { ...r.local, attempted: true } } : r));
+        await persist();
+        if (!active.current) break;
         // The same name, type, size and lastModified give tus a stable fingerprint, so an interrupted large upload resumes.
         const file = new File([row.local.blob], row.local.name, { type: row.local.type, lastModified: row.local.lastModified ?? 0 });
-        const handle = uploadEvidence(sid, file, (p) => setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0, stage: p.stage } : r))));
-        setRows((prev) => prev.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
+        const handle = uploadEvidence(sid, file, (p) => changeRows(live.current.rows.map((r) => (r.local.id === row.local.id ? { ...r, progress: p.total ? p.loaded / p.total : 0, stage: p.stage } : r))), { fileId: row.local.id, retry: row.local.attempted === true || row.local.status === "failed" });
+        changeRows(live.current.rows.map((r) => (r.local.id === row.local.id ? { ...r, handle, local: { ...r.local, status: "queued", error: undefined } } : r)));
         const res = await handle.done;
-        outcomes.set(row.local.id, { ok: res.ok, message: res.ok ? undefined : res.message });
-        setRows((prev) => prev.map(applyOutcome));
-        await persist(rows.map(applyOutcome).filter((r) => r.local.status !== "uploaded"), caption, sid);
+        outcomes.set(row.local.id, { ok: res.ok, message: res.ok ? undefined : res.message, fileId: res.ok ? res.fileId : undefined });
+        changeRows(live.current.rows.map(applyOutcome));
+        await persist();
         if (!res.ok) toast(res.message, "error");
       }
       router.refresh();
@@ -158,14 +200,18 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   }
 
   function removeLocal(row: Row) {
-    const next = rows.filter((r) => r.local.id !== row.local.id);
-    setRows(next);
-    persist(next, caption, submissionId);
+    changeRows(live.current.rows.filter((r) => r.local.id !== row.local.id));
+    void persist();
   }
 
   function saveCaption() {
     startTransition(async () => {
-      await persist(rows, caption, submissionId);
+      const saved = await persist();
+      if (!saved) return;
+      if (!online) {
+        toast("Draft saved on this device. Reconnect to send it.", "ok");
+        return;
+      }
       if (submissionId) {
         const res = await updateCaption({ submissionId, caption });
         const rated = rating != null && rating !== current?.rating ? await updateRating({ submissionId, rating }) : { ok: true as const };
@@ -195,7 +241,13 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       return;
     }
     startTransition(async () => {
-      if (caption !== (current?.caption ?? "")) await updateCaption({ submissionId, caption });
+      if (caption !== (current?.caption ?? "")) {
+        const saved = await updateCaption({ submissionId, caption });
+        if (!saved.ok) {
+          toast(saved.message, "error");
+          return;
+        }
+      }
       if (rated && rating != null && rating !== current?.rating) {
         const saved = await updateRating({ submissionId, rating });
         if (!saved.ok) {
@@ -206,8 +258,10 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       const res = await submitDraft({ submissionId });
       toast(res.message ?? "", res.ok ? "ok" : "error");
       if (res.ok) {
+        await writes.current;
         await clearDraft(draftKey);
-        setRows([]);
+        changeRows([]);
+        setLocalSaved(false);
         router.refresh();
       }
     });
@@ -217,6 +271,10 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
     startTransition(async () => {
       const res = await deleteDraftFile({ fileId });
       toast(res.message ?? "", res.ok ? "ok" : "error");
+      if (res.ok) {
+        changeRows(live.current.rows.filter((row) => row.uploadedId !== fileId));
+        await persist();
+      }
       router.refresh();
     });
   }
@@ -226,7 +284,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
   return (
     <div className="pb-panel">
       <div className="pb-panel-top">
-        <h2>{targetTitle}</h2>
+        <h2>{targetKind === "challenge" ? "Your proof" : targetTitle}</h2>
         <span className={`pb-tag ${current?.status === "flagged" || current?.status === "submitted" ? "orange" : ""}`}>{statusLabel.toUpperCase()}</span>
       </div>
       {current?.status === "approved" || current?.status === "submitted" ? (
@@ -240,12 +298,12 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       {editable ? (
         <>
           <div className="pb-drop">
-            <h3>Bring receipts. Literally.</h3>
-            <p>Photos, video, receipts and watch exports live here. Files stay on this device as a draft until you upload them. Clips up to 50 MB: keep them short or record at 1080p.</p>
+            <h3>Choose your evidence.</h3>
+            <p>Choose files, upload them, then submit for review. Photos and watch exports up to 25 MB. Clips up to 50 MB.</p>
             <div className="pb-actions" style={{ justifyContent: "center" }}>
               <label className="pb-secondary" style={{ cursor: "pointer" }}>
                 Choose files
-                <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => addFiles(e.target.files)} className="pb-sr-only" />
+                <input ref={inputRef} type="file" multiple disabled={!restored || pending || uploading} accept={accept} onChange={(e) => addFiles(e.target.files)} className="pb-sr-only" />
               </label>
               {rows.some((r) => r.local.status !== "uploaded") ? (
                 <button className="pb-primary" type="button" onClick={uploadAll} disabled={!online || uploading}>
@@ -254,7 +312,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
               ) : null}
             </div>
           </div>
-          {rows.map((row) => (
+          {rows.filter((row) => !row.uploadedId || !current?.files.some((file) => file.id === row.uploadedId)).map((row) => (
             <div className="pb-file" key={row.local.id}>
               <span className="pb-avatar" aria-hidden="true">{row.local.type.startsWith("video") ? "▷" : row.local.type.startsWith("image") ? "◫" : "▤"}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -306,7 +364,7 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
       {rated && editable ? (
         <div className="pb-field" data-tour="proof-rating">
           {ratingLabel}
-          <RatingSelector value={rating} label={ratingLabel} onChange={setRating} caption="your call" />
+          <RatingSelector value={rating} label={ratingLabel} onChange={changeRating} readOnly={!restored || pending} caption="your call" />
           <p className="pb-small" style={{ marginTop: 6 }}>Pick the score before you submit. It is saved with Save draft or Submit, goes on the record with the clip and settles the league’s rating predictions.</p>
         </div>
       ) : null}
@@ -321,17 +379,17 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
         <>
           <label className="pb-field">
             Caption
-            <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2000} placeholder={captionPlaceholder ?? "What did you find out?"} />
+            <textarea value={caption} disabled={!restored || pending} onChange={(e) => changeCaption(e.target.value)} maxLength={2000} placeholder={captionPlaceholder ?? "What did you find out?"} />
           </label>
           <div className="pb-actions">
-            <button className="pb-primary" type="button" onClick={submit} disabled={pending}>
+            <button className="pb-primary" type="button" onClick={submit} disabled={pending || uploading || !online || !restored}>
               {current?.status === "flagged" ? "Resubmit proof" : "Submit for review"}
             </button>
-            <button className="pb-secondary" type="button" onClick={saveCaption} disabled={pending}>Save draft</button>
+            <button className="pb-secondary" type="button" onClick={saveCaption} disabled={pending || !restored}>Save draft</button>
           </div>
           <p className="pb-small" style={{ marginTop: 12 }}>
             {online ? "Connected · submitted proof goes to commissioner review." : "Offline · files and caption stay in the local draft until you reconnect."}
-            {localSaved ? " Local draft saved on this device." : ""}
+            {localSaved ? " Draft saved on this device." : restored ? " Draft not yet saved on this device." : " Restoring your draft…"}
           </p>
         </>
       ) : (
@@ -344,7 +402,15 @@ export function EvidenceUploader({ targetKind, targetId, targetTitle, current, a
               startTransition(async () => {
                 const res = await createDraft(targetKind === "challenge" ? { challengeId: targetId } : { pressPromptId: targetId });
                 toast(res.ok ? `New version v${res.version} started.` : res.message, res.ok ? "ok" : "error");
-                router.refresh();
+                if (res.ok && res.submissionId) {
+                  live.current = { rows: [], caption: "", rating: null, submissionId: res.submissionId };
+                  setSubmissionId(res.submissionId);
+                  setCaption("");
+                  setRating(null);
+                  setRows([]);
+                  await persist();
+                  router.refresh();
+                }
               })
             }
           >

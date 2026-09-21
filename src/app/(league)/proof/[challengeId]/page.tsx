@@ -1,3 +1,4 @@
+import { checkQuery } from "@/lib/query-error";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MemberBadge } from "@/components/ui/Marks";
@@ -23,11 +24,13 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
   const { challengeId } = await props.params;
   const ctx = await getLeagueContext();
   const league = !ctx.isParticipant && !ctx.isCommissioner;
-  const { data: challenge } = await ctx.supabase.from("challenges").select("*").eq("id", challengeId).eq("event_id", ctx.event.id).maybeSingle();
+  const { data: challenge, error: challengeError } = await ctx.supabase.from("challenges").select("*").eq("id", challengeId).eq("event_id", ctx.event.id).maybeSingle();
+  checkQuery(challengeError, "challenge");
   if (!challenge) notFound();
   const [subs, participant] = await Promise.all([loadSubmissions(ctx).then((all) => all.filter((s) => s.challenge_id === challenge.id)), league ? loadParticipantProfile(ctx) : Promise.resolve(null)]);
   const current = subs[0] ?? null;
-  const { data: decisions } = current ? await ctx.supabase.from("review_decisions").select("*").in("submission_id", subs.map((s) => s.id)).order("created_at", { ascending: false }) : { data: [] };
+  const { data: decisions, error: decisionError } = current ? await ctx.supabase.from("review_decisions").select("*").in("submission_id", subs.map((s) => s.id)).order("created_at", { ascending: false }) : { data: [], error: null };
+  checkQuery(decisionError, "proof decisions");
   const tz = ctx.event.timezone;
   const seq = String(challenge.sequence).padStart(2, "0");
 
@@ -127,6 +130,7 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
             <div className="pb-status" role="status">Commissioner preview: only the participant can upload evidence.</div>
           ) : (
             <EvidenceUploader
+              key={challenge.id}
               targetKind="challenge"
               targetId={challenge.id}
               targetTitle={challenge.title}

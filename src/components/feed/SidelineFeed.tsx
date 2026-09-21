@@ -37,7 +37,7 @@ const KIND_LABEL: Record<string, string> = {
  * sits at the top of the feed so the member sees their jersey before they post. It lives
  * only on this screen and is never written to the database.
  */
-export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, timezone, canComment = true, viewer }: { initialPosts: FeedPost[]; initialHasMore?: boolean; eventId: string; timezone: string; canComment?: boolean; viewer?: FeedViewer }) {
+export function SidelineFeed({ initialPosts, initialHasMore = false, initialError = false, eventId, timezone, canComment = true, viewer }: { initialPosts: FeedPost[]; initialHasMore?: boolean; initialError?: boolean; eventId: string; timezone: string; canComment?: boolean; viewer?: FeedViewer }) {
   const router = useRouter();
   const tourRun = useTourRun();
   const preview = viewer && currentStepId(tourRun) === "sideline" ? viewer : null;
@@ -50,7 +50,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
     // Server refresh delivered a fresh first page: merge it over what is shown (derived state pattern).
     setSeenInitial(initialPosts);
     setPosts((prev) => mergeFeedPosts(initialPosts, prev));
-    if (!pagedOnce) setHasMore(initialHasMore);
+    if (!pagedOnce && !initialError) setHasMore(initialHasMore);
   }
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [comment, setComment] = useState("");
@@ -139,6 +139,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
 
   return (
     <section className="pb-sideline" aria-labelledby="sideline-heading" data-tour="sideline">
+      {initialError ? <div className="pb-save-state" role="alert">The feed could not be updated. Previously loaded posts are still shown. <button className="pb-secondary" type="button" onClick={() => router.refresh()}>Retry</button></div> : null}
       <div className="pb-sideline-head">
         <div>
           <div className="pb-kicker">THE LOCKER ROOM IS TALKING</div>
@@ -147,7 +148,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, eventId, ti
         <p className="pb-small">
           Team kits. Personal takes.
           <br />
-          {online ? "Live · updates as they land." : "Offline · showing the last loaded feed."}
+          {initialError ? "Updates delayed · retry to reconnect." : online ? "Live · updates as they land." : "Offline · showing the last loaded feed."}
         </p>
       </div>
       {preview ? (
