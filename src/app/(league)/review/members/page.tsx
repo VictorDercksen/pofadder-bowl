@@ -2,6 +2,8 @@ import { TitleRow } from "@/components/ui/TitleRow";
 import { IconLink } from "@/components/ui/IconButton";
 import { InviteForm, MemberRow, SleeperImport } from "@/components/review/MemberAdmin";
 import { TourTestPanel } from "@/components/tour/TourButtons";
+import { TestingReset } from "@/components/review/TestingReset";
+import { testingResetEnabled } from "@/lib/env";
 import { requireAdmin } from "@/lib/league";
 import { formatDateTime } from "@/lib/time";
 
@@ -9,6 +11,7 @@ export const metadata = { title: "Members & invites" };
 
 export default async function MembersPage() {
   const ctx = await requireAdmin();
+  const canReset = testingResetEnabled();
   const [{ data: memberships }, { data: profiles }, { data: sleeperUsers }] = await Promise.all([
     ctx.supabase.from("memberships").select("*").eq("league_id", ctx.league.id).order("created_at"),
     ctx.supabase.from("profiles").select("id, display_name, kit_team, kit_number"),
@@ -69,6 +72,13 @@ export default async function MembersPage() {
             <p className="pb-small">Every member walks through the tour once at first sign-in and can replay it from League access. Run any role’s version here; test runs never mark anything.</p>
             <TourTestPanel isParticipant={ctx.isParticipant} />
           </div>
+          {canReset ? (
+            <div className="pb-panel pb-testing-panel" style={{ marginTop: 18 }}>
+              <h3>Testing reset</h3>
+              <p className="pb-small">This is the testing deployment. Start the event again from a clean sheet.</p>
+              <TestingReset eventSlug={ctx.event.slug} />
+            </div>
+          ) : null}
         </div>
       </div>
     </>

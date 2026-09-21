@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_MAP_TILE_URL, resolveTileUrl, DEFAULT_MAP_ROUTING_URL, resolveRoutingUrl } from "./env";
+import { DEFAULT_MAP_TILE_URL, resolveTileUrl, DEFAULT_MAP_ROUTING_URL, resolveRoutingUrl, parseFlag } from "./env";
 
 describe("resolveTileUrl", () => {
   it("defaults to OpenStreetMap when nothing is configured", () => {
@@ -26,5 +26,21 @@ describe("resolveRoutingUrl", () => {
     expect(resolveRoutingUrl("https://osrm.example.org/")).toBe("https://osrm.example.org/");
     expect(resolveRoutingUrl("none")).toBe("");
     expect(resolveRoutingUrl("OFF")).toBe("");
+  });
+});
+
+describe("parseFlag", () => {
+  it("accepts the usual spellings of on", () => {
+    expect(parseFlag("true")).toBe(true);
+    expect(parseFlag(" TRUE\r")).toBe(true);
+    expect(parseFlag("1")).toBe(true);
+    expect(parseFlag("yes")).toBe(true);
+  });
+  it("is off unless set explicitly", () => {
+    expect(parseFlag(undefined)).toBe(false);
+    expect(parseFlag("")).toBe(false);
+    expect(parseFlag("false")).toBe(false);
+    expect(parseFlag("0")).toBe(false);
+    expect(parseFlag("production")).toBe(false);
   });
 });

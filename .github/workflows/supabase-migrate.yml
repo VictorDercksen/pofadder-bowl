@@ -7,7 +7,10 @@ name: Supabase migrations
 # missing from supabase_migrations.schema_migrations, so a rerun is a no-op. Vercel deploys
 # the app in parallel; migrations must stay backward compatible with the previous deploy.
 #
-# Repository secrets (Settings → Secrets and variables → Actions):
+# Secrets come from the GitHub environment chosen at run time (Settings → Environments):
+# "testing" (the Supabase project behind main) or "league" (the project behind production).
+# Each environment holds its own three secrets; a repository-level secret of the same name
+# is used when the environment does not define it.
 #   SUPABASE_ACCESS_TOKEN  personal access token (Supabase account → Access Tokens)
 #   SUPABASE_PROJECT_REF   the project ref (Project Settings → General)
 #   SUPABASE_DB_PASSWORD   the database password (Project Settings → Database)
@@ -15,18 +18,26 @@ name: Supabase migrations
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: "Which Supabase project to migrate"
+        type: choice
+        options:
+          - testing
+          - league
+        default: testing
       dry_run:
         description: "Only list what would be applied"
         type: boolean
         default: false
 
 concurrency:
-  group: supabase-migrate
+  group: supabase-migrate-${{ inputs.target }}
   cancel-in-progress: false
 
 jobs:
   push:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
     permissions:
       contents: read
     env:
@@ -54,7 +65,9 @@ jobs:
           version: latest
 
       - name: Link the hosted project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        run: |
+          echo "Target: ${{ inputs.target }} (project $SUPABASE_PROJECT_REF)"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Pending migrations
         run: supabase migration list --linked

@@ -718,3 +718,8 @@ a{color:inherit}
 .pb .pb-member-pin.current .pb-member-pin-tail{border-right-color:#cc542b;border-bottom-color:#cc542b}
 .pb .pb-legend-badge.current{box-shadow:0 0 0 1.5px #cc542b,0 0 0 4px #d8643624}
 
+
+/* Testing deployment: banner under the header and the admin reset panel (PB_TESTING_RESET) */
+.pb .pb-testing-banner{background:#fbe9c4;color:#6b4a0c;border-bottom-color:var(--pb-gold);text-align:center}
+.pb .pb-testing-panel{border:1.5px solid var(--pb-orange)}
+.pb .pb-testing-panel h3{color:var(--pb-orange)}
