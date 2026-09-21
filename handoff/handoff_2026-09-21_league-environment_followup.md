@@ -6,7 +6,7 @@ Follow-on to `handoff_2026-09-21_league-environment.md`. Victor approved the thr
 
 | Item | Value |
 |---|---|
-| Branches | `main` and `production` at the commit that adds this file. `production` is pushed. `main` is still local only (two commits ahead of `origin/main`): push it after L3 |
+| Branches | `main` and `production` at the commit that adds this file. `production` is pushed. `origin/main` is at `ff3ce9b` (Victor pushed the first league handoff during the session), so local `main` is one commit ahead with this file: push it after L3 |
 | League database | `xfjzfghfytraydwbxcjt`: all 23 migrations and `supabase/seed.sql` applied |
 | League Vercel project | `pofadder-bowl-league` now has all eleven Production variables, including `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` (legacy JWT `anon` and `service_role` keys, the same style as testing). Production branch is still `main` (L3) |
 | Testing Vercel project | `pofadder-bowl` has `PB_TESTING_RESET=true` for Production and Preview. It takes effect on the next deployment of `main` |
