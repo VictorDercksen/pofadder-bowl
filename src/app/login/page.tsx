@@ -6,6 +6,7 @@ import { getVerifiedUser } from "@/lib/league";
 import { LoginForm } from "./LoginForm";
 import { LocalPasswordForm } from "./LocalPasswordForm";
 import { isLocalStack } from "./local-actions";
+import { safeInternalPath } from "@/lib/paths";
 
 export const metadata = { title: "League access" };
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
   const { user } = await getVerifiedUser();
   if (user) redirect("/");
   const reason = typeof params.reason === "string" ? params.reason : undefined;
-  const next = typeof params.next === "string" && params.next.startsWith("/") ? params.next : "/";
+  const next = safeInternalPath(params.next, "/");
 
   return (
     <div className="pb">

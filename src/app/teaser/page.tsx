@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { EVENT_META } from "@/lib/programme";
+import { Suspense } from "react";
 import { KickoffTimer } from "@/components/teaser/KickoffTimer";
+import { SignInLink } from "@/components/teaser/SignInLink";
 
 export const metadata = {
   title: "Teaser",
@@ -10,7 +12,9 @@ export const metadata = {
   openGraph: { images: ["/brand/pofadder-bowl-2026-teaser.png"] },
 };
 
-/** Public teaser/landing route. Only artwork and non-personal event copy are public. */
+const signInStyle = { background: "var(--pb-gold)", color: "var(--pb-green)", borderColor: "var(--pb-gold)", boxShadow: "0 2px 0 #9a7a34" } as const;
+
+/** Public teaser/landing route. Only artwork and non-personal event copy are public. Anonymous visitors to any private screen land here. */
 export default function TeaserPage() {
   return (
     <div className="pb" style={{ background: "#10291f", color: "#f4f0e6" }}>
@@ -30,7 +34,9 @@ export default function TeaserPage() {
         />
         <KickoffTimer departureIso={EVENT_META.departure} homeArrivalIso={EVENT_META.homeArrival} />
         <div className="pb-actions">
-          <Link className="pb-primary" href="/login" style={{ background: "var(--pb-gold)", color: "var(--pb-green)", borderColor: "var(--pb-gold)", boxShadow: "0 2px 0 #9a7a34" }}>League sign-in</Link>
+          <Suspense fallback={<Link className="pb-primary" href="/login" style={signInStyle}>League sign-in</Link>}>
+            <SignInLink className="pb-primary" style={signInStyle}>League sign-in</SignInLink>
+          </Suspense>
           <Link className="pb-secondary" href="/demo" style={{ background: "transparent", color: "#f4f0e6", borderColor: "#f4f0e6", boxShadow: "none" }}>Interactive demo</Link>
         </div>
         <p className="pb-small" style={{ color: "#9fb09b", marginTop: 20 }}>
