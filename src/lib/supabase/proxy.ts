@@ -1,18 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv, isBackendConfigured } from "@/lib/env";
-
-const PUBLIC_PREFIXES = ["/", "/teaser", "/demo", "/login", "/auth", "/recap/public", "/setup", "/_next", "/brand", "/nfl", "/maps", "/favicon"];
-
-function isPublicPath(pathname: string): boolean {
-  if (pathname === "/") return true;
-  return PUBLIC_PREFIXES.some((p) => p !== "/" && (pathname === p || pathname.startsWith(p + "/")));
-}
+import { anonymousRedirect, isPublicPath } from "@/lib/public-paths";
 
 /**
- * Refreshes the Supabase session cookie on every matched request and redirects
- * anonymous visitors away from private league routes. Server Actions and pages
- * re-check membership themselves; this is only the first gate.
+ * Refreshes the Supabase session cookie on every matched request and sends anonymous
+ * visitors on private league routes to the public teaser. Server Actions and pages
+ * re-check membership and role themselves; this is only the first gate.
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   let response = NextResponse.next({ request });
@@ -22,6 +16,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     if (!isPublicPath(request.nextUrl.pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = "/setup";
+      url.search = "";
       return NextResponse.redirect(url);
     }
     return response;
@@ -44,13 +39,17 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const { data, error } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims) && !error;
 
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   if (!signedIn && !isPublicPath(pathname)) {
+    // Unauthenticated traffic lands on the teaser; its sign-in button carries the deep link.
+    const target = anonymousRedirect(pathname, search);
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    url.searchParams.set("reason", "session");
-    return NextResponse.redirect(url);
+    url.pathname = target.pathname;
+    url.search = "";
+    if (target.next) url.searchParams.set("next", target.next);
+    const redirect = NextResponse.redirect(url);
+    redirect.headers.set("Cache-Control", "private, no-store");
+    return redirect;
   }
 
   if (!isPublicPath(pathname)) {
