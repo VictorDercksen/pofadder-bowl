@@ -453,6 +453,32 @@ async function main() {
     await participant.rpc("set_certificate_consent", { p_event: event.id, p_consent: false });
   });
 
+  await test("testing reset: admin only, slug must match, activity gone and programme kept", async () => {
+    const { error: ce } = await commissioner.rpc("reset_event_data", { p_event: event.id, p_confirm_slug: event.slug });
+    assert.ok(ce && /admin/.test(ce.message), "commissioner must not reset");
+    const { error: se } = await participant.rpc("reset_event_data", { p_event: event.id, p_confirm_slug: "wrong-slug" });
+    assert.ok(se && /confirmation/.test(se.message), "wrong slug must fail");
+    const { count: before } = await admin.from("evidence_submissions").select("id", { count: "exact", head: true }).eq("event_id", event.id);
+    assert.ok((before ?? 0) > 0, "fixture should have submissions before the reset");
+    const { data, error } = await participant.rpc("reset_event_data", { p_event: event.id, p_confirm_slug: event.slug, p_reset_tours: true });
+    assert.ok(!error, error?.message);
+    const counts = data as { submissions: number; posts: number; storage_paths: string[] };
+    assert.equal(counts.submissions, before);
+    assert.ok(Array.isArray(counts.storage_paths));
+    for (const table of ["evidence_submissions", "activity_posts", "checkins", "predictions", "prop_picks", "official_results", "prediction_awards", "member_locations"] as const) {
+      const { count } = await admin.from(table).select("*", { count: "exact", head: true }).eq("event_id", event.id);
+      assert.equal(count, 0, `${table} should be empty`);
+    }
+    const { data: cert } = await admin.from("certificates").select("status, is_public, participant_consent").eq("event_id", event.id).single();
+    assert.deepEqual(cert, { status: "pending", is_public: false, participant_consent: false });
+    const { count: challenges } = await admin.from("challenges").select("id", { count: "exact", head: true }).eq("event_id", event.id);
+    assert.ok((challenges ?? 0) > 0, "programme must survive");
+    const { count: members } = await admin.from("memberships").select("id", { count: "exact", head: true }).eq("league_id", league.id);
+    assert.ok((members ?? 0) > 0, "roster must survive");
+    const { data: settled } = await admin.from("props").select("id").eq("event_id", event.id).not("result", "is", null);
+    assert.equal(settled?.length ?? 0, 0, "props must be unsettled");
+  });
+
   const failed = results.filter((r) => !r.ok);
   console.log(`\n${results.length - failed.length}/${results.length} integration checks passed.`);
   if (failed.length) process.exit(1);

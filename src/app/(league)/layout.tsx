@@ -9,12 +9,14 @@ import { TutorialTour } from "@/components/tour/TutorialTour";
 import { describeRole, getLeagueContext, homeFor } from "@/lib/league";
 import { loadClaimedTeams } from "@/lib/roster";
 import { sleeperAvatarUrl } from "@/lib/sleeper";
+import { testingResetEnabled } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeagueLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getLeagueContext();
   const teams = await loadClaimedTeams(ctx);
+  const testing = testingResetEnabled();
   const roleLabel = describeRole(ctx);
   const toggle = ctx.canViewAsMember ? <MemberViewToggle viewing={ctx.viewingAsMember} /> : null;
   const sleeper = ctx.sleeper;
@@ -71,6 +73,11 @@ export default async function LeagueLayout({ children }: { children: React.React
         </>
       }
     >
+      {testing ? (
+        <div className="pb-demo-banner pb-testing-banner" role="status">
+          <span>TESTING · Dummy data only. Admins can reset the event from Review → Members.</span>
+        </div>
+      ) : null}
       {ctx.viewingAsMember ? (
         <div className="pb-demo-banner pb-member-banner" role="status">
           <span>LEAGUE MEMBER VIEW · This is what the league sees. Your own screens (My trip, Commissioner) are hidden and the proof locker is read-only until you exit.</span>

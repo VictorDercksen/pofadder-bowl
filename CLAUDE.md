@@ -14,7 +14,8 @@ Private fantasy-league punishment app ("Show Us Your TD's"). One participant tra
 
 - **Always write a handoff before committing.** Add a new dated file `handoff/handoff_YYYY-MM-DD[_topic].md` (never overwrite an earlier one) covering: state at handoff (branch, deploy, schema/env changes), what was asked and done, how it works and where it lives, what was verified and what was not, suggested checks on production, and still-open items. Commit the handoff with the work.
 - Verify before committing: `npm run typecheck && npm run lint && npm test`. Run `npm run test:integration` when the local Supabase stack is available and the change touches SQL, RLS or actions.
-- Work on the assigned branch. Do not open a pull request unless asked. Do not push to `main` unless asked.
+- Work on the assigned branch. Do not open a pull request unless asked. Do not push to `main` or `production` unless asked.
+- Two deployments: `main` is the testing deployment (dummy data, `PB_TESTING_RESET=true`, admin reset panel under Review → Members) and `production` is the league deployment (its own Supabase project, no reset). Work lands on `main` first and is promoted with a fast-forward merge into `production`. See "Testing and league environments" in `README.md`.
 - Never commit secrets. `.env*` is ignored except `.env.example`; keep env files LF (a stray `\r` once broke the league slug on Vercel).
 - From cloud sessions: no `vercel deploy`, no `supabase db push`. Schema changes go into `supabase/migrations/`; Supabase's GitHub integration pushes them when they land on `main`. Fallbacks: the manual `Supabase migrations` workflow (`.github/workflows/supabase-migrate.yml`, needs the three `SUPABASE_*` repository secrets) or `npm run db:push` from the laptop. Migrations must stay backward compatible with the previous deploy because Vercel builds in parallel.
 - Keep the Next.js managed block in `AGENTS.md`; `next dev` re-adds it if removed.
@@ -100,6 +101,7 @@ Prefer the top-level validators: `z.iso.datetime()`, `z.email()`, `z.uuid()`, `z
 |---|---|
 | Private screens | `src/app/(league)/*` (game-centre, my-trip, map, proof, review, props, predictions, press, recap, account), `review/members`, `choose-team` |
 | Public routes | `/teaser`, `/demo/*` (in-memory, never touches the backend), `/login`, `/recap/public/[league]/[event]` |
+| Testing reset | `src/lib/actions/testing.ts`, `src/components/review/TestingReset.tsx`, `reset_event_data` in `supabase/migrations/20260921000200_testing_reset.sql`, flag in `src/lib/env.ts` |
 | Server actions | `src/lib/actions/*.ts` |
 | Context, roles, guards | `src/lib/league.ts`, `src/lib/roles.ts` |
 | Data loaders | `src/lib/checkins.ts`, `evidence.ts`, `feed.ts`, `itinerary.ts`, `predictions.ts`, `props.ts` |

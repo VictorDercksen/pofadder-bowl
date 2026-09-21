@@ -1602,6 +1602,10 @@ export type Database = {
         Args: { p_event: string; p_ids?: string[] }
         Returns: number
       }
+      reset_event_data: {
+        Args: { p_confirm_slug: string; p_event: string; p_reset_tours?: boolean }
+        Returns: Json
+      }
       resolve_predictions: { Args: { p_event: string }; Returns: number }
       review_submission: {
         Args: {

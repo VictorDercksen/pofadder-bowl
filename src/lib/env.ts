@@ -78,3 +78,17 @@ export function mapRoutingUrl(): string {
   if (typeof window !== "undefined") throw new Error("mapRoutingUrl() called in the browser");
   return resolveRoutingUrl(process.env.MAP_ROUTING_URL);
 }
+
+/** Boolean env flag: "true", "1", "yes" and "on" (any case, trimmed) switch it on. */
+export function parseFlag(value: string | undefined): boolean {
+  return ["true", "1", "yes", "on"].includes(clean(value).toLowerCase());
+}
+
+/**
+ * Testing deployments only (branch main): shows the admin "reset the event" panel and lets
+ * the reset action run. Never set PB_TESTING_RESET on the league deployment. Server only.
+ */
+export function testingResetEnabled(): boolean {
+  if (typeof window !== "undefined") throw new Error("testingResetEnabled() called in the browser");
+  return parseFlag(process.env.PB_TESTING_RESET);
+}
