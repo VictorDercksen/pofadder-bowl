@@ -93,8 +93,8 @@ Two deployments share this repository and never share data:
 | | Testing | League |
 |---|---|---|
 | Branch | `main` | `production` |
-| Vercel project | the existing `pofadder-bowl` (production branch `main`) | a second Vercel project on the same repo with production branch `production` |
-| Supabase project | the existing project (dummy data) | a fresh project: migrations, `seed.sql`, no fixtures |
+| Vercel project | `pofadder-bowl` (production branch `main`) | `pofadder-bowl-league` on the same repo (production branch `production`) |
+| Supabase project | `pofadder-bowl`, ref `nsiqnqlkaelskimjeyed` (dummy data) | `pofadder-bowl-league`, ref `xfjzfghfytraydwbxcjt`: migrations, `seed.sql`, no fixtures |
 | `PB_TESTING_RESET` | `true` | unset |
 
 On the testing deployment every private screen carries a **TESTING** banner and **Review → Members** shows a **Testing reset** panel. An admin types the event slug and the `reset_event_data` RPC (admin only, slug re-checked in SQL) deletes every submission, upload, comment, reaction, check-in, pin, prop pick, prediction, result and penalty for the event, puts the certificate back to pending and, optionally, clears every member's first-run tour. Memberships, kits, Sleeper links and the seeded programme stay. The server action then removes the storage objects with the service-role key. The league deployment never sets `PB_TESTING_RESET`, so the panel and the action are unavailable there; the RPC still exists but only an admin can call it.
