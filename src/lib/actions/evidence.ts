@@ -40,6 +40,7 @@ export async function updateCaption(input: { submissionId: string; caption: stri
   const parsed = z.object({ submissionId: z.string().uuid(), caption: z.string().max(2000) }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Caption too long." };
   const ctx = await getLeagueContext();
+  if (!ctx.isParticipant) return { ok: false, message: "Only the participant edits proof." };
   const { error, count } = await ctx.supabase.from("evidence_submissions").update({ caption: parsed.data.caption }, { count: "exact" }).eq("id", parsed.data.submissionId).eq("submitter_id", ctx.user.id);
   if (error) return { ok: false, message: "Could not save the caption." };
   if (!count) return { ok: false, message: "This submission can no longer be edited. Create a new version instead." };
@@ -155,6 +156,7 @@ export async function submitDraft(input: { submissionId: string }): Promise<Acti
   const parsed = z.object({ submissionId: z.string().uuid() }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid submission." };
   const ctx = await getLeagueContext();
+  if (!ctx.isParticipant) return { ok: false, message: "Only the participant submits proof." };
   const { error } = await ctx.supabase.rpc("submit_submission", { p_submission: parsed.data.submissionId });
   if (error) {
     if (error.message.includes("attach at least")) return { ok: false, message: "Attach at least one uploaded file before submitting." };

@@ -1,6 +1,7 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeInternalPath } from "@/lib/paths";
 
 /**
  * Magic-link / invite landing. Supports both shapes:
@@ -13,8 +14,7 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
-  const nextParam = searchParams.get("next") ?? "/home";
-  const next = nextParam.startsWith("/") ? nextParam : "/home";
+  const next = safeInternalPath(searchParams.get("next"), "/home");
 
   const redirectTo = request.nextUrl.clone();
   redirectTo.search = "";
