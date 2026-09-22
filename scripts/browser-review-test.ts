@@ -51,9 +51,9 @@ async function main() {
     assert.match(normal?.headers()["permissions-policy"] ?? "", /camera=\(\)/);
     console.log("  Recording permission policy is scoped to Press Room.");
 
-    const { data: challenge, error } = await admin.from("challenges").select("id").eq("event_id", event.id).eq("sequence", 6).single();
+    const { data: challenge, error } = await admin.from("challenges").select("id").eq("event_id", event.id).eq("sequence", 7).single();
     assert.ok(!error && challenge, error?.message);
-    // Re-running this local check replaces only this fixture's proof for challenge six.
+    // Re-running this local check replaces only this fixture's proof for challenge seven (the rated combo).
     const previous = await admin.from("evidence_submissions").select("id, files:evidence_files(storage_path)").eq("challenge_id", challenge!.id).eq("submitter_id", ids.participant);
     assert.ok(!previous.error, previous.error?.message);
     const paths = previous.data!.flatMap((submission) => submission.files.map((file) => file.storage_path));

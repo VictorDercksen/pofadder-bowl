@@ -39,8 +39,8 @@ export default async function ReviewPage() {
   const openProps = (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs());
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
   const approvedRating = subs.find((s) => s.status === "approved" && s.rating != null)?.rating ?? null;
-  // Defaults for the official results: the daylight sign photo (#03) settles on its first submission time.
-  const signChallenge = (challenges ?? []).find((c) => /daylight/i.test(c.title)) ?? (challenges ?? []).find((c) => c.sequence === 3);
+  // Defaults for the official results: the daylight sign photo (#04) settles on its first submission time.
+  const signChallenge = (challenges ?? []).find((c) => /daylight/i.test(c.title)) ?? (challenges ?? []).find((c) => c.sequence === 4);
   const signSubmittedAt = subs.filter((s) => s.challenge_id === signChallenge?.id && s.submitted_at).map((s) => s.submitted_at as string).sort()[0];
   const defaults = { rating: approvedRating, finalScore: score.approvedChallenges > 0 ? score.approved : null, signPhotoMinutes: signSubmittedAt ? minuteOfDay(signSubmittedAt, tz) : null, flagCount: flagCount ?? null };
 

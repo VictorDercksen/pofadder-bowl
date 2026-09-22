@@ -1,6 +1,6 @@
 # Pofadder Bowl 2026 · Show Us Your TD’s
 
-Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 10 km and completes ten proof challenges worth 100 points while the league watches, reacts, plays the prop board and predicts the damage.
+Private fantasy-football league punishment app: Victor Dercksen travels Malmesbury → Pofadder → Malmesbury (23–25 September 2026), runs 10 km and completes eleven proof challenges worth 100 points while the league watches, reacts, plays the prop board and predicts the damage.
 
 Built with Next.js 16 (App Router, TypeScript), Supabase (Postgres, Auth, Storage, Realtime) and Leaflet, deployed to Vercel.
 

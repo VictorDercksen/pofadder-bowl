@@ -75,7 +75,7 @@ export default async function MyTripPage() {
               </p>
             </>
           ) : (
-            <h3>All ten plays approved.</h3>
+            <h3>All eleven plays approved.</h3>
           )}
           <div className="pb-actions">
             <Link className="pb-primary orange" href={nextChallenge ? `/proof/${nextChallenge.id}` : "/proof"}>{play?.pending ? "View submission" : nextChallenge ? "Add challenge proof" : "View approved proof"} ↗</Link>

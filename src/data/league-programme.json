@@ -122,69 +122,76 @@
     {
       "id": "challenge-01",
       "sequence": 1,
-      "title": "Town welcome sign, in the dark, on arrival",
+      "title": "Boarding the Intercape in Malmesbury, ticket and face in frame",
       "proofType": "photo",
       "points": 5
     },
     {
       "id": "challenge-02",
       "sequence": 2,
-      "title": "10 km run, full GPS trace including the R358 leg",
-      "proofType": "watch export",
-      "points": 25
+      "title": "Town welcome sign, in the dark, on arrival",
+      "proofType": "photo",
+      "points": 5
     },
     {
       "id": "challenge-03",
       "sequence": 3,
+      "title": "10 km run, full GPS trace including the R358 leg",
+      "proofType": "watch export",
+      "points": 20
+    },
+    {
+      "id": "challenge-04",
+      "sequence": 4,
       "title": "Welcome sign again, in daylight, still in running kit",
       "proofType": "photo",
       "points": 5
     },
     {
-      "id": "challenge-04",
-      "sequence": 4,
+      "id": "challenge-05",
+      "sequence": 5,
       "title": "Three locals asked what Pofadder is known for",
       "proofType": "3 clips",
       "points": 10
     },
     {
-      "id": "challenge-05",
-      "sequence": 5,
+      "id": "challenge-06",
+      "sequence": 6,
       "title": "Oldest building in town, with its year",
       "proofType": "photo",
       "points": 5
     },
     {
-      "id": "challenge-06",
-      "sequence": 6,
+      "id": "challenge-07",
+      "sequence": 7,
       "title": "Chicken and rib combo, rated out of ten",
       "proofType": "clip",
       "points": 5
     },
     {
-      "id": "challenge-07",
-      "sequence": 7,
+      "id": "challenge-08",
+      "sequence": 8,
       "title": "Final league standings read aloud in the Hotel bar",
       "proofType": "clip",
       "points": 15
     },
     {
-      "id": "challenge-08",
-      "sequence": 8,
+      "id": "challenge-09",
+      "sequence": 9,
       "title": "R50 spent in Pofadder on a public holiday",
       "proofType": "receipt",
       "points": 10
     },
     {
-      "id": "challenge-09",
-      "sequence": 9,
+      "id": "challenge-10",
+      "sequence": 10,
       "title": "Sunset loser's speech on the N14",
       "proofType": "clip",
       "points": 10
     },
     {
-      "id": "challenge-10",
-      "sequence": 10,
+      "id": "challenge-11",
+      "sequence": 11,
       "title": "Boarding the 22:30 bus, ticket and face in frame",
       "proofType": "clip",
       "points": 10
@@ -192,7 +199,7 @@
   ],
   "penalties": [
     "Missed the 22:30 bus: sentence doubled next season.",
-    "Run under 14.0 km on the trace: 25 points forfeited, plus 5 km added to next year's run.",
+    "Run under 10.0 km on the trace: 20 points forfeited, plus 5 km added to next year's run.",
     "Any checkpoint without proof: zero points for that play."
   ],
   "standings": [

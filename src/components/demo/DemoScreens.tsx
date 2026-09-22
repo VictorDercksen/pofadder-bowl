@@ -41,7 +41,7 @@ function Feed() {
   return (
     <div className="pb-jersey-feed">
       <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="Victor checked in" message="Pofadder. Still here. Still questioning my draft." time={state.checkin} kind="Check-in" reaction={<button className="pb-reaction" type="button" aria-pressed={state.reaction} onClick={() => dispatch({ type: "react" })}>😂 {state.reaction ? 9 : 8} · No sympathy</button>} actions={<a className="pb-post-action" href="#demo-comment">Reply</a>} />
-      <JerseyCard team="kc" displayName="COMMISH" number={1} heading="Points on the board" message="10 km run approved. That’s 25 points and one very questionable holiday." time="09:02" kind="Challenge #02" />
+      <JerseyCard team="kc" displayName="COMMISH" number={1} heading="Points on the board" message="10 km run approved. That’s 20 points and one very questionable holiday." time="09:02" kind="Challenge #03" />
       <JerseyCard team="cin" displayName="THE LEAGUE" number={9} heading="Trade offer incoming" message="Have you tried trading your return ticket for a running back?" time="08:54" kind="League comment" />
       {state.submitted ? <JerseyCard team="nyg" displayName="DERCKSEN" number={26} heading="New proof submitted" message="Three locals. One difficult explanation." time="Just now" kind={state.review} /> : null}
       {state.comments.map((c, i) => (
@@ -199,7 +199,7 @@ export function DemoTrip() {
           <div className="pb-panel">
             <h3>Your game plan</h3>
             {[
-              ["06:30", "10 km run", "Completed · 25 points approved"],
+              ["06:30", "10 km run", "Completed · 20 points approved"],
               ["08:30", "Breakfast + daylight sign", "Completed · Evidence approved"],
               ["10:30", "Town checkpoints", "In progress · Three local interviews"],
               ["13:00", "Chicken & ribs", "Badgers Grill · Rate it on camera"],
@@ -330,10 +330,11 @@ export function DemoProof() {
           <div className="pb-panel">
             <h3>Your submissions</h3>
             {[
-              ["01", "Night welcome sign", "Approved · +5 points"],
-              ["02", "10 km run", "Approved · +25 points"],
-              ["03", "Daylight welcome sign", "Approved · +5 points"],
-              ["04", "Local interviews", state.submitted ? state.review : "Draft · No proof submitted"],
+              ["01", "Malmesbury bus boarding", "Approved · +5 points"],
+              ["02", "Night welcome sign", "Approved · +5 points"],
+              ["03", "10 km run", "Approved · +20 points"],
+              ["04", "Daylight welcome sign", "Approved · +5 points"],
+              ["05", "Local interviews", state.submitted ? state.review : "Draft · No proof submitted"],
             ].map(([n, h, p]) => (
               <div className="pb-challenge" key={n}>
                 <span className="pb-num">{n}</span>
@@ -430,7 +431,7 @@ export function DemoReview() {
             <span className="pb-num">✓</span>
             <div>
               <strong>10 km run approved</strong>
-              <p>Full distance evidenced · +25 points</p>
+              <p>Full distance evidenced · +20 points</p>
             </div>
           </div>
           <div className="pb-challenge">
@@ -720,7 +721,7 @@ export function DemoRecap() {
         </div>
         <h2>Victor survived Pofadder.</h2>
         <p>
-          Two overnight buses. Ten kilometres. Ten plays.
+          Two overnight buses. Ten kilometres. Eleven plays.
           <br />
           One outstanding contribution to league entertainment.
         </p>

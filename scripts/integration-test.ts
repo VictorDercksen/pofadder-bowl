@@ -163,7 +163,7 @@ async function main() {
   });
 
   console.log("\nEvidence pipeline and scoring idempotency");
-  const { data: challenge2 } = await participant.from("challenges").select("*").eq("sequence", 2).single();
+  const { data: challenge2 } = await participant.from("challenges").select("*").eq("sequence", 3).single();
   let submissionId = "";
   let submissionV2 = "";
   await test("participant creates a draft and cannot submit without files", async () => {
@@ -229,7 +229,7 @@ async function main() {
     const third = await commissioner.rpc("review_submission", { p_submission: submissionId, p_version: 1, p_decision: "approved", p_idempotency_key: key + "-other" });
     assert.ok(third.error, "re-approving an approved submission with a new key must fail");
     const { data: score } = await member.from("event_scores").select("*").eq("event_id", event.id).single();
-    assert.equal(score?.approved_points, 25);
+    assert.equal(score?.approved_points, 20);
     const { count } = await admin.from("review_decisions").select("*", { count: "exact", head: true }).eq("submission_id", submissionId).eq("decision", "approved");
     assert.equal(count, 1, "exactly one approval recorded");
   });
@@ -244,7 +244,7 @@ async function main() {
     const okCount = attempts.filter((a) => !a.error).length;
     assert.equal(okCount, 1, `expected exactly one success, got ${okCount}`);
     const { data: score } = await member.from("event_scores").select("*").eq("event_id", event.id).single();
-    assert.equal(score?.approved_points, 30);
+    assert.equal(score?.approved_points, 25);
   });
   await test("flag requires a reason; member cannot review", async () => {
     const { error } = await commissioner.rpc("review_submission", { p_submission: submissionId, p_version: 1, p_decision: "flagged", p_idempotency_key: `flag-${Date.now()}` });
@@ -270,7 +270,7 @@ async function main() {
     const { data: decisions } = await admin.from("review_decisions").select("decision").eq("submission_id", submissionId);
     assert.ok(decisions?.some((d) => d.decision === "superseded"), "supersede decision recorded");
     const { data: score } = await member.from("event_scores").select("*").eq("event_id", event.id).single();
-    assert.equal(score?.approved_points, 30, "points not double counted across versions");
+    assert.equal(score?.approved_points, 25, "points not double counted across versions");
     const { error: staleErr } = await commissioner.rpc("review_submission", { p_submission: submissionV2, p_version: 1, p_decision: "flagged", p_reason: "x", p_idempotency_key: `stale-${Date.now()}` });
     assert.ok(staleErr && /version mismatch/.test(staleErr.message));
   });
@@ -475,7 +475,7 @@ async function main() {
     assert.ok(me);
     const { data: cert, error } = await commissioner.rpc("issue_certificate", { p_event: event.id, p_is_public: true });
     assert.ok(!error && cert?.status === "issued", error?.message);
-    assert.equal((cert!.summary as { approved_points: number }).approved_points, 30);
+    assert.equal((cert!.summary as { approved_points: number }).approved_points, 25);
     const { data: pub1 } = await anon.rpc("public_certificate", { p_league_slug: league.slug, p_event_slug: event.slug });
     assert.equal(pub1, null, "no participant consent yet");
     await participant.rpc("set_certificate_consent", { p_event: event.id, p_consent: true });

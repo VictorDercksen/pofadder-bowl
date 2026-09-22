@@ -5,6 +5,7 @@ import { CertificateExport, ConsentToggle } from "@/components/recap/Certificate
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { trackFileOf } from "@/lib/run-track";
+import { PHOTO_SLOTS, photoSlotChallenge } from "@/lib/photo-slots";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
 import { propWinners } from "@/lib/props";
@@ -73,7 +74,7 @@ export default async function RecapPage() {
         </div>
         <h2>{issued ? `${name.split(" ")[0]} survived Pofadder.` : "Not certified yet."}</h2>
         <p>
-          {issued ? "Two overnight buses. Ten kilometres. Ten plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
+          {issued ? "Two overnight buses. Ten kilometres. Eleven plays." : "The certificate stays pending until the commissioner issues it from the approved state."}
           <br />
           {issued ? "One outstanding contribution to league entertainment." : "Nothing here inherits demo values."}
         </p>
@@ -104,9 +105,9 @@ export default async function RecapPage() {
       </div>
 
       <div className="pb-photo-slots">
-        {(["THE ARRIVAL", "THE RUN", "THE RETURN"] as const).map((label, i) => {
-          const seq = [1, 2, 10][i];
-          const s = approved.find((x) => (challenges ?? []).find((c) => c.id === x.challenge_id)?.sequence === seq);
+        {PHOTO_SLOTS.map((label, i) => {
+          const slot = photoSlotChallenge(challenges ?? [], i);
+          const s = slot ? approved.find((x) => x.challenge_id === slot.id) : undefined;
           return (
             <div key={label}>
               {label}

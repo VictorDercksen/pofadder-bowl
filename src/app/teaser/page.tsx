@@ -23,7 +23,7 @@ export default function TeaserPage() {
         <div className="pb-kicker" style={{ color: "var(--pb-gold)" }}>SHOW US YOUR TD’S · PUNISHMENT SERIES</div>
         <h1 style={{ color: "#fff8e9" }}>Pofadder Bowl 2026</h1>
         <p style={{ fontSize: 13, color: "#c9d5c5", margin: "8px 0 18px" }}>
-          {EVENT_META.home} → {EVENT_META.away} → {EVENT_META.home}. 23–25 September. A {EVENT_META.requiredRunKm} km run and ten proof challenges worth {EVENT_META.maxProofPoints} points. League members: sign in for the game centre.
+          {EVENT_META.home} → {EVENT_META.away} → {EVENT_META.home}. 23–25 September. A {EVENT_META.requiredRunKm} km run and eleven proof challenges worth {EVENT_META.maxProofPoints} points. League members: sign in for the game centre.
         </p>
         <Image
           src="/brand/pofadder-bowl-2026-teaser.png"

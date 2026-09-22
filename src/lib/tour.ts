@@ -29,8 +29,8 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
     "FIRST DOWN",
     participant ? "Welcome to your own away game." : "Welcome to the Pofadder Bowl.",
     participant
-      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 10 km and complete ten proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
-      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 10 km and completes ten proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
+      ? "You finished last in the 2024 season. From 23 to 25 September you travel Malmesbury → Pofadder → Malmesbury, run 10 km and complete eleven proof challenges while the league watches. This tour shows every screen you will need on the road. Two minutes."
+      : `Victor finished last in the 2024 season. From 23 to 25 September he travels Malmesbury → Pofadder → Malmesbury, runs 10 km and completes eleven proof challenges while the league watches. This tour walks through every screen ${role === "member" ? "you" : "your role"} can see. Two minutes.`,
   ),
   step("header", "YOUR COLOURS", "Your kit and your Sleeper team.", "Your name, your franchise badge with its number and your confirmed Sleeper team ride together, next to your role. Tap the block to open League access. On a desktop it sits top right; on a phone, at the top of the Menu.", null, ["drawer-identity", "header-account", "menu"], true),
   step("nav", "THE PROGRAMME", "Every screen has a number.", "The rundown lists the screens your role can open, in broadcast order. On a desktop it sits on the left; on a phone, Menu opens it. The number turns into a tumbling football while a screen loads.", null, ["drawer-nav", "nav", "menu"], true),
@@ -39,7 +39,7 @@ const welcome = (role: Role, participant: boolean): TourStep[] => [
 const participantBlock: TourStep[] = [
   step("my-trip", "SCREEN 02", "My trip. Your next play.", "The phone card is the trip at a glance: the quarter you are in, the next challenge, how many uploads are in draft, in review or flagged, and the return bus countdown. Your full game plan sits alongside, quarter by quarter.", "/my-trip", ["trip-phone"]),
   step("location", "CONSENT FIRST", "Share your position when you choose.", "Check-ins are off until you switch sharing on. Each check-in posts to the sideline and extends the route on the map. Pause sharing whenever you like; the league only ever sees what you share, and the map is not proof of the run.", "/my-trip", ["location-sharing"]),
-  step("proof", "SCREEN 04", "The proof locker.", "Ten plays, one hundred points. Open a challenge, add photos or clips and submit. Unfinished drafts stay on this device until you send them, and large clips upload in chunks straight to private storage, so a weak signal does not cost you the file.", "/proof", ["proof-list"]),
+  step("proof", "SCREEN 04", "The proof locker.", "Eleven plays, one hundred points. Open a challenge, add photos or clips and submit. Unfinished drafts stay on this device until you send them, and large clips upload in chunks straight to private storage, so a weak signal does not cost you the file.", "/proof", ["proof-list"]),
   step("proof-flow", "THE WHISTLE", "Draft, submitted, approved.", "The commissioner reviews every submission. Approved puts the points on the board. Flagged sends it back with a note, and your fix goes in as a new version. Approved evidence is never overwritten.", "/proof", ["proof-flow"]),
 ];
 
@@ -77,7 +77,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
   ...(participant
     ? []
     : [
-        step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Ten plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
+        step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Eleven plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
         step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),
       ]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),

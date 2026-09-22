@@ -46,23 +46,24 @@ insert into public.itinerary_items (event_id, quarter, sequence, starts_at, titl
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 5, '2026-09-25T07:35:00+02:00', 'Arrive Malmesbury', 'Friday. Sentence served.', 'Malmesbury')
 on conflict (event_id, quarter, sequence) do update set starts_at = excluded.starts_at, title = excluded.title, description = excluded.description, venue_text = excluded.venue_text;
 
--- Ten proof challenges worth exactly 100 points.
+-- Eleven proof challenges worth exactly 100 points.
 insert into public.challenges (event_id, sequence, title, proof_type, points, rated) values
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Town welcome sign, in the dark, on arrival', 'photo', 5, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, '10 km run, full GPS trace including the R358 leg', 'watch export', 25, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Welcome sign again, in daylight, still in running kit', 'photo', 5, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Three locals asked what Pofadder is known for', '3 clips', 10, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Oldest building in town, with its year', 'photo', 5, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Chicken and rib combo, rated out of ten', 'clip', 5, true),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Final league standings read aloud in the Hotel bar', 'clip', 15, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'R50 spent in Pofadder on a public holiday', 'receipt', 10, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Sunset loser''s speech on the N14', 'clip', 10, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Boarding the 22:30 bus, ticket and face in frame', 'clip', 10, false)
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Boarding the Intercape in Malmesbury, ticket and face in frame', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Town welcome sign, in the dark, on arrival', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, '10 km run, full GPS trace including the R358 leg', 'watch export', 20, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Welcome sign again, in daylight, still in running kit', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Three locals asked what Pofadder is known for', '3 clips', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Oldest building in town, with its year', 'photo', 5, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Chicken and rib combo, rated out of ten', 'clip', 5, true),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Final league standings read aloud in the Hotel bar', 'clip', 15, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'R50 spent in Pofadder on a public holiday', 'receipt', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Sunset loser''s speech on the N14', 'clip', 10, false),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 11, 'Boarding the 22:30 bus, ticket and face in frame', 'clip', 10, false)
 on conflict (event_id, sequence) do update set title = excluded.title, proof_type = excluded.proof_type, points = excluded.points, rated = excluded.rated;
 
 insert into public.penalties (event_id, sequence, text) values
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Missed the 22:30 bus: sentence doubled next season.'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Run under 14.0 km on the trace: 25 points forfeited, plus 5 km added to next year''s run.'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Run under 10.0 km on the trace: 20 points forfeited, plus 5 km added to next year''s run.'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Any checkpoint without proof: zero points for that play.')
 on conflict (event_id, sequence) do update set text = excluded.text;
 
@@ -82,7 +83,7 @@ insert into public.props (event_id, sequence, title, detail, kind, line, unit, l
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Minutes the Intercape arrives late at KLK Garage', 'Scheduled 04:45. Settled from the arrival check-in or the night sign photo timestamp.', 'over_under', 20, 'min late', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Chicken and rib combo finished on camera', 'Plate clean in the rating clip. Bones do not count as leftovers.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Locals approached before three agree to be filmed', 'Victor keeps the tally and states it in the third clip. Commissioner may audit the footage.', 'over_under', 4.5, 'locals', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Proof challenges approved by the final whistle', 'Out of ten. Counted from the commissioner scoreboard when the certificate is issued.', 'over_under', 8.5, 'approved', '2026-09-23T19:15:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Proof challenges approved by the final whistle', 'Out of eleven. Counted from the commissioner scoreboard when the certificate is issued.', 'over_under', 9.5, 'approved', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Sideline feed comments before the sunset speech', 'Member comments on the feed posted before 17:30 on Thursday. System posts and reactions excluded.', 'over_under', 60.5, 'comments', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Map check-ins over the whole trip', 'Every check-in on the map between departure and arrival home.', 'over_under', 15.5, 'check-ins', '2026-09-23T19:15:00+02:00'),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Length of the sunset loser''s speech', 'Duration of the approved N14 clip, first word to last.', 'over_under', 90, 'seconds', '2026-09-23T19:15:00+02:00'),

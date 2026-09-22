@@ -40,7 +40,7 @@ export default async function ProofPage() {
       <>
         <TitleRow kicker={`LEAGUE VIEW · ${score.approvedChallenges} OF ${score.total} APPROVED`} title="The proof locker." blurb="Every play needs evidence. Watch it land, then watch the call." tag={`${score.approved} / ${score.max} POINTS`} team={kit} />
         <div className="pb-split">
-          <KitPanel team={kit} name="Ten plays. One hundred points." kicker={`${who.toUpperCase()} · PROOF LOCKER · READ ONLY`} tour="proof-list">
+          <KitPanel team={kit} name="Eleven plays. One hundred points." kicker={`${who.toUpperCase()} · PROOF LOCKER · READ ONLY`} tour="proof-list">
             {challenges.map((c) => {
               const s = latestFor(subs, { challengeId: c.id });
               return (
@@ -80,7 +80,7 @@ export default async function ProofPage() {
               </div>
             ) : (
               <div className="pb-next">
-                <h3>All ten plays approved.</h3>
+                <h3>All eleven plays approved.</h3>
                 <p>The commissioner holds the certificate whistle.</p>
               </div>
             )}
@@ -122,7 +122,7 @@ export default async function ProofPage() {
     <>
       <TitleRow kicker={`${ctx.isParticipant ? "VICTOR’S VIEW" : "COMMISSIONER PREVIEW"} · ${score.approvedChallenges} OF ${score.total} APPROVED`} title="The proof locker." blurb="Every play needs evidence. Every point has to be earned." tag={`${score.approved} / ${score.max} POINTS`} team={ctx.profile.kit_team} />
       <div className="pb-split">
-        <KitPanel team={ctx.profile.kit_team} name="Ten plays. One hundred points." kicker={`${ctx.profile.display_name.toUpperCase()} · PROOF LOCKER`} tour="proof-list">
+        <KitPanel team={ctx.profile.kit_team} name="Eleven plays. One hundred points." kicker={`${ctx.profile.display_name.toUpperCase()} · PROOF LOCKER`} tour="proof-list">
           {challenges.map((c) => {
             const s = latestFor(subs, { challengeId: c.id });
             return (
@@ -154,7 +154,7 @@ export default async function ProofPage() {
             </div>
           ) : (
             <div className="pb-next">
-              <h3>All ten plays approved.</h3>
+              <h3>All eleven plays approved.</h3>
               <p>The commissioner holds the certificate whistle.</p>
             </div>
           )}
