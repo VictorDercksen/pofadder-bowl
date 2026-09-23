@@ -45,7 +45,7 @@ const participantBlock: TourStep[] = [
 
 const commissionerBlock: TourStep[] = [
   step("review", "SCREEN 05", "Under review.", "Submitted proof lands in this queue with its version number. Open one, watch the evidence and approve or flag it. Every decision is recorded with your name and shows on the sideline.", "/review", ["review-queue"]),
-  step("review-tools", "THE SCOREBOARD SIDE", "Penalties, results, certificate.", "Flag a penalty, enter the official results (the league's predictions resolve against them) and issue the certificate that closes the event. Locked props wait for you to settle them on the prop board; the queue count shows here.", "/review", ["review-tools"]),
+  step("review-tools", "THE SCOREBOARD SIDE", "Penalties, results, certificate.", "Flag a penalty, enter the official results (the league's predictions resolve against them) and issue the certificate that closes the event. Locked props wait for you to settle them on the prop board once the bus is back in Malmesbury; the queue count shows here.", "/review", ["review-tools"]),
 ];
 
 const adminBlock: TourStep[] = [
@@ -80,7 +80,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
         step("proof-view", "SCREEN 04", "The proof locker, read-only.", "Eleven plays, one hundred points. Every play shows its status; open one to see the submitted photos, clips and exports and the commissioner’s call. Drafts stay private until Victor submits them, and nothing you open here changes the review.", "/proof", ["proof-list"]),
         step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),
       ]),
-  step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
+  step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once the bus is back in Malmesbury, and the standings alongside update live.", "/props", ["prop-board"]),
   step("predictions", "SCREEN 07", "Call it before kickoff.", "Seven calls: the 10 km finish time, the rib rating, the final score, when the daylight sign photo lands, how many versions get flagged, the distance on the trace and the speech length. The slip locks when the bus reaches Pofadder and stays hidden from the others until the bus is back in Malmesbury. Closest call takes the points once the official results are in and the slips are resolved.", "/predictions", ["prediction-slip"]),
   step(
     "press",

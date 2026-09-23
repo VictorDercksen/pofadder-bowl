@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLine, isPropLocked, isSideValid, pendingPicks, pickOutcome, propWinners, scorePicks, sideLabel, sidesFor, sortStandings, type PropLike } from "./props";
+import { formatLine, isPropLocked, isSettlementOpen, isSideValid, pendingPicks, pickOutcome, propWinners, scorePicks, sideLabel, sidesFor, sortStandings, type PropLike } from "./props";
 
 const props: PropLike[] = [
   { id: "a", kind: "over_under", result: "over" },
@@ -28,6 +28,15 @@ describe("prop lock", () => {
     expect(isPropLocked("2026-09-23T17:15:00Z", new Date(at.getTime() - 1))).toBe(false);
     expect(isPropLocked("2026-09-23T17:15:00Z", at)).toBe(true);
     expect(isPropLocked("not a date", at)).toBe(true);
+  });
+  it("opens settlement at the Malmesbury arrival, not at the lock", () => {
+    const home = "2026-09-25T05:35:00Z"; // Fri 07:35 SAST, the "Arrive Malmesbury" stop
+    expect(isSettlementOpen(home, new Date("2026-09-24T02:45:00Z"))).toBe(false); // board locked in Pofadder
+    expect(isSettlementOpen(home, new Date("2026-09-25T05:34:59Z"))).toBe(false);
+    expect(isSettlementOpen(home, new Date("2026-09-25T05:35:00Z"))).toBe(true);
+  });
+  it("treats an unparseable arrival as not yet open", () => {
+    expect(isSettlementOpen("", new Date("2026-09-30T00:00:00Z"))).toBe(false);
   });
 });
 

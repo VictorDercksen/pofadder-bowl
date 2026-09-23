@@ -23,10 +23,11 @@ export type BoardProp = {
 
 /**
  * Production board: a member drafts one side per prop and saves the lot with the button at the
- * bottom; nothing is written until then. A commissioner settles a locked prop. Everything is
+ * bottom; nothing is written until then. A commissioner settles a locked prop once the bus is
+ * back in Malmesbury (`settleOpen`; `settleAtLabel` is that instant, formatted). Everything is
  * re-checked by the RPCs; the buttons only decide what to show.
  */
-export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCommissioner: boolean }) {
+export function PropBoard({ props, isCommissioner, settleOpen, settleAtLabel }: { props: BoardProp[]; isCommissioner: boolean; settleOpen: boolean; settleAtLabel: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   // Sides tapped but not saved, keyed by prop id. A draft equal to the saved side counts as clean,
@@ -125,7 +126,8 @@ export function PropBoard({ props, isCommissioner }: { props: BoardProp[]; isCom
                           ? `You have ${sideLabel(p.mine)}. Tap the other side to change it.`
                           : "Pick a side."}
                 </p>
-                {isCommissioner && p.locked ? (
+                {isCommissioner && p.locked && !settleOpen && !settled ? <p className="pb-small pb-prop-state">Settles once the bus is back in Malmesbury ({settleAtLabel}).</p> : null}
+                {isCommissioner && p.locked && settleOpen ? (
                   <div className="pb-actions compact">
                     {[...sides, "void" as const].map((r) => (
                       <button key={r} className={r === "void" ? "pb-secondary" : "pb-primary"} type="button" disabled={pending || p.result === r} onClick={() => settle(p.id, r)}>

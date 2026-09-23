@@ -85,3 +85,45 @@ begin
   values (p_event, auth.uid(), 'prediction', 'Predictions resolved', format('%s award(s) handed out against the official results.', v_count));
   return v_count;
 end $$;
+
+-- The prop board settles at the same stop: settle_prop refuses until events.home_arrival_at has
+-- passed (after the existing lock check). Picks are already visible from the lock; this only holds
+-- the results, the standings and the "Prop settled" feed posts until the bus is back.
+create or replace function public.settle_prop(p_prop uuid, p_result public.prop_result)
+returns public.props
+language plpgsql security definer set search_path = public as $$
+declare
+  v_prop public.props;
+  v_correct integer;
+  v_total integer;
+begin
+  select * into v_prop from public.props where id = p_prop for update;
+  if v_prop.id is null then raise exception 'prop not found' using errcode = 'P0002'; end if;
+  if not public.pb_is_event_commissioner(v_prop.event_id) then
+    raise exception 'commissioner role required' using errcode = '42501';
+  end if;
+  if now() < v_prop.locks_at then
+    raise exception 'prop settles only after it locks at %', v_prop.locks_at using errcode = '42501';
+  end if;
+  if now() < (select e.home_arrival_at from public.events e where e.id = v_prop.event_id) then
+    raise exception 'props settle once the bus is back in Malmesbury' using errcode = '42501';
+  end if;
+  if p_result <> 'void' and not public.pb_side_matches_kind(v_prop.kind, p_result::text) then
+    raise exception 'result does not fit this prop' using errcode = '22023';
+  end if;
+  if v_prop.result is not distinct from p_result then return v_prop; end if;  -- idempotent
+
+  update public.props
+  set result = p_result, settled_by = auth.uid(), settled_at = now()
+  where id = p_prop returning * into v_prop;
+
+  select count(*) filter (where pk.side::text = p_result::text), count(*) into v_correct, v_total
+  from public.prop_picks pk where pk.prop_id = p_prop;
+
+  insert into public.activity_posts (event_id, author_id, kind, heading, body)
+  values (v_prop.event_id, auth.uid(), 'prop', 'Prop settled',
+    left(format('#%s %s · %s', v_prop.sequence, v_prop.title,
+      case when p_result = 'void' then 'void, no points'
+           else format('%s · %s of %s picks correct', initcap(p_result::text), v_correct, v_total) end), 1000));
+  return v_prop;
+end $$;

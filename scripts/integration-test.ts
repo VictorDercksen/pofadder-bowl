@@ -373,6 +373,17 @@ async function main() {
     assert.ok(late, "no picks after lock");
     const { data: visible } = await member.from("prop_picks").select("user_id").eq("event_id", event.id).eq("prop_id", ou.id);
     assert.equal(visible?.length, 2, "all picks visible after lock");
+    // Settlement waits for the Malmesbury arrival: locked but not yet home is refused.
+    const { data: timetable } = await admin.from("events").select("departure_at, away_arrival_at, return_departure_at, home_arrival_at").eq("id", event.id).single();
+    assert.ok(timetable, "event timetable");
+    const notHome = await admin.from("events").update({ home_arrival_at: "2099-01-02T00:00:00Z" }).eq("id", event.id);
+    assert.ok(!notHome.error, notHome.error?.message);
+    const { error: beforeHome } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
+    assert.ok(beforeHome && /Malmesbury/.test(beforeHome.message), "cannot settle before the bus is back in Malmesbury");
+    // Move the whole timetable into the past (the columns are chained by check constraints), restored below.
+    const t = Date.now();
+    const home = await admin.from("events").update({ departure_at: new Date(t - 4 * 3600_000).toISOString(), away_arrival_at: new Date(t - 3 * 3600_000).toISOString(), return_departure_at: new Date(t - 2 * 3600_000).toISOString(), home_arrival_at: new Date(t - 60_000).toISOString() }).eq("id", event.id);
+    assert.ok(!home.error, home.error?.message);
     const { error: me } = await member.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
     assert.ok(me, "member cannot settle");
     const { error: wrongKind } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "yes" });
@@ -398,6 +409,8 @@ async function main() {
     const { data: lb2 } = await member.rpc("prop_leaderboard", { p_event: event.id });
     assert.equal(lb2?.find((r) => r.user_id === ids.participant)?.correct, 1);
     assert.equal(lb2?.[0].user_id, ids.participant, "corrected leader first");
+    const restored = await admin.from("events").update(timetable!).eq("id", event.id);
+    assert.ok(!restored.error, restored.error?.message);
   });
 
   console.log("\nKits");
