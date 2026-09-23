@@ -118,7 +118,7 @@ function step(s: DemoState, a: DemoAction): DemoState {
     case "answer":
       return { ...s, message: "Sample press-room answer submitted for review." };
     case "pick":
-      return { ...s, picks: { ...s.picks, [a.sequence]: a.side }, message: `Demo pick saved: prop ${a.sequence}, ${a.side}. In the league game picks lock at departure.` };
+      return { ...s, picks: { ...s.picks, [a.sequence]: a.side }, message: `Demo pick saved: prop ${a.sequence}, ${a.side}. In the league game picks lock when the bus reaches Pofadder.` };
   }
 }
 

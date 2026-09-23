@@ -47,7 +47,7 @@ export function randAmount(title: string): number | null {
 
 /** Ten props for the event. Deterministic for the same programme. */
 export function generateProps(event: PropSourceEvent, challenges: PropSourceChallenge[]): PropDraft[] {
-  const locks_at = event.departure_at;
+  const locks_at = event.away_arrival_at;
   const arrive = clockIn(event.away_arrival_at, event.timezone);
   const depart = clockIn(event.return_departure_at, event.timezone);
   const runKm = Number.isFinite(event.required_run_km) && event.required_run_km > 0 ? event.required_run_km : 10;

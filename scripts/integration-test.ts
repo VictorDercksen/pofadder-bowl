@@ -43,7 +43,7 @@ async function main() {
   await admin.from("prediction_awards").delete().eq("event_id", event.id);
   await admin.from("checkins").delete().eq("event_id", event.id);
   await admin.from("activity_posts").delete().eq("event_id", event.id);
-  await admin.from("events").update({ prediction_lock_at: "2026-09-23T17:15:00Z", prediction_reveal_at: "2026-09-23T17:15:00Z" }).eq("id", event.id);
+  await admin.from("events").update({ prediction_lock_at: "2026-09-24T02:45:00Z", prediction_reveal_at: "2026-09-24T02:45:00Z" }).eq("id", event.id);
 
   const participant = await signIn(FIXTURES.participant.email);
   const commissioner = await signIn(FIXTURES.commissioner.email);

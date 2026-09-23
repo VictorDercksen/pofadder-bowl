@@ -38,9 +38,9 @@ export async function savePrediction(input: z.input<typeof schema>): Promise<Act
     p_run_distance_km: v.run_distance_km ?? 0,
     p_speech_seconds: v.speech_seconds ?? 0,
   });
-  if (error) return { ok: false, message: error.message.includes("locked") ? "Predictions locked at departure. No late slips." : error.message };
+  if (error) return { ok: false, message: error.message.includes("locked") ? "Predictions locked when the bus reached Pofadder. No late slips." : error.message };
   revalidatePath("/predictions");
-  return { ok: true, message: "Prediction saved. Editable until departure." };
+  return { ok: true, message: "Prediction saved. Editable until the bus reaches Pofadder." };
 }
 
 const rulesSchema = z.object(Object.fromEntries(METRICS.map((m) => [`${m.key}_points`, z.number().int().min(0).max(100)])) as Record<keyof PredictionRules, z.ZodNumber>);

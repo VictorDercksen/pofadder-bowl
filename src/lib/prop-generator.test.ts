@@ -35,9 +35,9 @@ describe("programme parsing", () => {
 
 describe("generateProps", () => {
   const props = generateProps(event, challenges);
-  it("returns ten props, numbered 1..10, all locking at departure", () => {
+  it("returns ten props, numbered 1..10, all locking at the Pofadder arrival", () => {
     expect(props.map((p) => p.sequence)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    expect(new Set(props.map((p) => p.locks_at))).toEqual(new Set([event.departure_at]));
+    expect(new Set(props.map((p) => p.locks_at))).toEqual(new Set([event.away_arrival_at]));
   });
   it("derives lines from the programme", () => {
     expect(props[0]).toMatchObject({ line: 10.25, unit: "km" });

@@ -452,12 +452,12 @@ export function DemoProps() {
   const picked = Object.keys(state.picks).length;
   return (
     <>
-      <TitleRow kicker="LEAGUE SIDE QUEST · LOCKS WED 23 SEPT · 19:15" title="Call the damage." blurb="Ten props on Victor’s trip. Pick a side on each before departure. Most correct calls wins 5 FAAB in Sleeper." tag={`${picked}/${DEMO_PROPS.length} PICKED`} team="cin" />
+      <TitleRow kicker="LEAGUE SIDE QUEST · LOCKS THU 24 SEPT · 04:45" title="Call the damage." blurb="Ten props on Victor’s trip. Pick a side on each before the bus reaches Pofadder. Most correct calls wins 5 FAAB in Sleeper." tag={`${picked}/${DEMO_PROPS.length} PICKED`} team="cin" />
       <div className="pb-split">
         <div className="pb-panel">
           <div className="pb-panel-top">
             <h3>The prop board</h3>
-            <span className="pb-tag">LOCKS AT 19:15</span>
+            <span className="pb-tag">LOCKS AT 04:45</span>
           </div>
           <div className="pb-prop-board" role="list" aria-label="Prop board">
             {DEMO_PROPS.map((p) => {
@@ -484,7 +484,7 @@ export function DemoProps() {
               );
             })}
           </div>
-          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap a side. In the league game picks lock at departure, other members’ picks show once the board locks and a commissioner settles each prop from the record.</p>
+          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap a side. In the league game picks lock when the bus reaches Pofadder, other members’ picks show once the board locks and a commissioner settles each prop from the record.</p>
         </div>
         <div>
           <div className="pb-panel">
@@ -560,7 +560,7 @@ export function DemoPredictions() {
   }
   return (
     <>
-      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock at departure. The top slip wins 5 FAAB in Sleeper." tag="LOCKS AT 19:15" team="gb" />
+      <TitleRow kicker="PREGAME VIEW · WED 23 SEPT · 18:00" title="Call it before kickoff." blurb="Predictions lock when the bus reaches Pofadder. The top slip wins 5 FAAB in Sleeper." tag="LOCKS AT 04:45" team="gb" />
       <div className="pb-split">
         <div className="pb-panel">
           <h2>The prediction slip</h2>
@@ -610,7 +610,7 @@ export function DemoPredictions() {
           <div className="pb-actions">
             <button className="pb-primary" type="button" onClick={predict}>{state.prediction ? "Update predictions" : "Lock in my predictions"}</button>
           </div>
-          <p className="pb-small" style={{ marginTop: 12 }}>You can edit until departure. No cash stakes.</p>
+          <p className="pb-small" style={{ marginTop: 12 }}>You can edit until the bus reaches Pofadder. No cash stakes.</p>
         </div>
         <div className="pb-panel">
           <h3>How the points work</h3>

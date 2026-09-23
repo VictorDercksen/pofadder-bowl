@@ -75,7 +75,7 @@ export default async function PropsPage() {
       <TitleRow
         kicker={`LEAGUE SIDE QUEST · ${allLocked ? "BOARD LOCKED" : `LOCKS ${formatDateTime(firstLock, tz).toUpperCase()}`}`}
         title="Call the damage."
-        blurb="Ten props on Victor’s trip. Pick a side on each before departure. Most correct calls wins 5 FAAB in Sleeper."
+        blurb="Ten props on Victor’s trip. Pick a side on each before the bus reaches Pofadder. Most correct calls wins 5 FAAB in Sleeper."
         tag={allLocked ? (settled ? `${settled}/${board.length} SETTLED` : "LOCKED") : `LOCKS AT ${formatTime(firstLock, tz)}`}
         team={ctx.profile.kit_team}
       />

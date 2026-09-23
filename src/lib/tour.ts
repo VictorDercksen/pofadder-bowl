@@ -81,7 +81,7 @@ const leagueBlock = (participant: boolean): TourStep[] => [
         step("proof-view-flow", "THE WHISTLE", "Submitted, approved, flagged.", "Submitted proof waits for the commissioner. Approved puts the points on the scoreboard the moment the call is made. Flagged sends it back for a new version, with the reason on record.", "/proof", ["proof-flow"]),
       ]),
   step("props", "SCREEN 06", "The prop board.", "Over/unders on the trip itself. Pick a side on each prop before it locks; the others' picks stay hidden until then. The commissioner settles each prop once it is decided, and the standings alongside update live.", "/props", ["prop-board"]),
-  step("predictions", "SCREEN 07", "Call it before kickoff.", "Seven calls: the 10 km finish time, the rib rating, the final score, when the daylight sign photo lands, how many versions get flagged, the distance on the trace and the speech length. The slip locks at departure and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
+  step("predictions", "SCREEN 07", "Call it before kickoff.", "Seven calls: the 10 km finish time, the rib rating, the final score, when the daylight sign photo lands, how many versions get flagged, the distance on the trace and the speech length. The slip locks when the bus reaches Pofadder and stays hidden from the others until reveal. Closest call takes the points once the official results are in.", "/predictions", ["prediction-slip"]),
   step(
     "press",
     "SCREEN 08",

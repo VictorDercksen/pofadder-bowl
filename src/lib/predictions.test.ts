@@ -60,10 +60,10 @@ describe("prediction resolution", () => {
 });
 
 describe("prediction locking", () => {
-  it("locks at the exact configured departure instant", () => {
-    const lock = "2026-09-23T17:15:00.000Z"; // 19:15 SAST
-    expect(isLocked(lock, new Date("2026-09-23T17:14:59.000Z"))).toBe(false);
-    expect(isLocked(lock, new Date("2026-09-23T17:15:00.000Z"))).toBe(true);
+  it("locks at the exact configured instant (Pofadder arrival)", () => {
+    const lock = "2026-09-24T02:45:00.000Z"; // 04:45 SAST
+    expect(isLocked(lock, new Date("2026-09-24T02:44:59.000Z"))).toBe(false);
+    expect(isLocked(lock, new Date("2026-09-24T02:45:00.000Z"))).toBe(true);
   });
   it("validates slip values", () => {
     expect(validatePrediction(slip)).toBeNull();

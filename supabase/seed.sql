@@ -17,7 +17,7 @@ insert into public.events (
   'pofadder-bowl-2026', 'Pofadder Bowl 2026', 'Show Us Your TD’s · Punishment series',
   'Africa/Johannesburg', 'Malmesbury', 'Pofadder', 'Intercape Mainliner',
   '2026-09-23T19:15:00+02:00', '2026-09-24T04:45:00+02:00', '2026-09-24T22:30:00+02:00', '2026-09-25T07:35:00+02:00',
-  '2026-09-23T19:15:00+02:00', '2026-09-23T19:15:00+02:00', 10, 100, 974, 2024
+  '2026-09-24T04:45:00+02:00', '2026-09-24T04:45:00+02:00', 10, 100, 974, 2024
 )
 on conflict (league_id, slug) do update set
   name = excluded.name, subtitle = excluded.subtitle, timezone = excluded.timezone,
@@ -76,19 +76,19 @@ insert into public.press_prompts (event_id, slot, sequence, question, opens_at) 
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 'sunset', 1, 'The sunset speech: address the league, own the result, and give your next-season promise.', '2026-09-24T17:30:00+02:00')
 on conflict (event_id, slot, sequence) do update set question = excluded.question, opens_at = excluded.opens_at;
 
--- Prop board: ten over/under and yes/no props, set before departure. Picks lock at departure.
+-- Prop board: ten over/under and yes/no props, set before departure. Picks lock when the bus arrives in Pofadder.
 -- Settled by a commissioner from the record after the trip (see detail for each rule).
 insert into public.props (event_id, sequence, title, detail, kind, line, unit, locks_at) values
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Watch distance on the approved run trace', 'The distance on the GPS export the commissioner approves for the 10 km run.', 'over_under', 10.25, 'km', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Minutes the Intercape arrives late at KLK Garage', 'Scheduled 04:45. Settled from the arrival check-in or the night sign photo timestamp.', 'over_under', 20, 'min late', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Chicken and rib combo finished on camera', 'Plate clean in the rating clip. Bones do not count as leftovers.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Locals approached before three agree to be filmed', 'Victor keeps the tally and states it in the third clip. Commissioner may audit the footage.', 'over_under', 4.5, 'locals', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Proof challenges approved by the final whistle', 'Out of eleven. Counted from the commissioner scoreboard when the certificate is issued.', 'over_under', 9.5, 'approved', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Sideline feed comments before the sunset speech', 'Member comments on the feed posted before 17:30 on Thursday. System posts and reactions excluded.', 'over_under', 60.5, 'comments', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Map check-ins over the whole trip', 'Every check-in on the map between departure and arrival home.', 'over_under', 15.5, 'check-ins', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Length of the sunset loser''s speech', 'Duration of the approved N14 clip, first word to last.', 'over_under', 90, 'seconds', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Rand spent in Pofadder on receipts', 'Total of every receipt submitted as proof, including the R50 challenge.', 'over_under', 150, 'rand', '2026-09-23T19:15:00+02:00'),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'The 22:30 Intercape leaves within 15 minutes of schedule', 'Settled from the boarding clip and the departure check-in.', 'yes_no', null, null, '2026-09-23T19:15:00+02:00')
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 1, 'Watch distance on the approved run trace', 'The distance on the GPS export the commissioner approves for the 10 km run.', 'over_under', 10.25, 'km', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 2, 'Minutes the Intercape arrives late at KLK Garage', 'Scheduled 04:45. Settled from the arrival check-in or the night sign photo timestamp.', 'over_under', 20, 'min late', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 3, 'Chicken and rib combo finished on camera', 'Plate clean in the rating clip. Bones do not count as leftovers.', 'yes_no', null, null, '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 4, 'Locals approached before three agree to be filmed', 'Victor keeps the tally and states it in the third clip. Commissioner may audit the footage.', 'over_under', 4.5, 'locals', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 5, 'Proof challenges approved by the final whistle', 'Out of eleven. Counted from the commissioner scoreboard when the certificate is issued.', 'over_under', 9.5, 'approved', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 6, 'Sideline feed comments before the sunset speech', 'Member comments on the feed posted before 17:30 on Thursday. System posts and reactions excluded.', 'over_under', 60.5, 'comments', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 7, 'Map check-ins over the whole trip', 'Every check-in on the map between departure and arrival home.', 'over_under', 15.5, 'check-ins', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Length of the sunset loser''s speech', 'Duration of the approved N14 clip, first word to last.', 'over_under', 90, 'seconds', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'Rand spent in Pofadder on receipts', 'Total of every receipt submitted as proof, including the R50 challenge.', 'over_under', 150, 'rand', '2026-09-24T04:45:00+02:00'),
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'The 22:30 Intercape leaves within 15 minutes of schedule', 'Settled from the boarding clip and the departure check-in.', 'yes_no', null, null, '2026-09-24T04:45:00+02:00')
 on conflict (event_id, sequence) do update set title = excluded.title, detail = excluded.detail, kind = excluded.kind, line = excluded.line, unit = excluded.unit, locks_at = excluded.locks_at;
 
 insert into public.prediction_rules (event_id, run_points, meal_points, final_score_points, sign_photo_points, flags_points, distance_points, speech_points)

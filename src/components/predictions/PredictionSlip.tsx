@@ -113,11 +113,11 @@ export function PredictionSlip({ locked, lockAt, existing }: { locked: boolean; 
       <p className="pb-small" style={{ marginTop: 5 }}>Flags: exact match wins. Speech: minutes / seconds on the approved N14 clip.</p>
       <div className="pb-actions">
         <button className="pb-primary" type="button" onClick={save} disabled={locked || pending}>
-          {pending ? "Saving predictions…" : locked ? "Locked at departure" : savedSlip ? "Save changes" : "Save predictions"}
+          {pending ? "Saving predictions…" : locked ? "Locked at Pofadder arrival" : savedSlip ? "Save changes" : "Save predictions"}
         </button>
       </div>
       <p className="pb-small" style={{ marginTop: 12 }}>
-        {locked ? "The slip is closed." : <>You can edit until departure (<Countdown targetIso={lockAt} passedLabel="locked" />). No cash stakes.</>}
+        {locked ? "The slip is closed." : <>You can edit until the bus reaches Pofadder (<Countdown targetIso={lockAt} passedLabel="locked" />). No cash stakes.</>}
       </p>
       <p className={`pb-save-state ${dirty && !locked ? "unsaved" : ""}`} role={saveError ? "alert" : "status"}>
         {pending ? "Saving your slip…" : saveError ?? (dirty && !locked ? "Unsaved changes" : savedSlip ? "Your predictions are saved." : "No predictions saved.")}
