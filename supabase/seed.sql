@@ -17,7 +17,7 @@ insert into public.events (
   'pofadder-bowl-2026', 'Pofadder Bowl 2026', 'Show Us Your TD’s · Punishment series',
   'Africa/Johannesburg', 'Malmesbury', 'Pofadder', 'Intercape Mainliner',
   '2026-09-23T19:15:00+02:00', '2026-09-24T04:45:00+02:00', '2026-09-24T22:30:00+02:00', '2026-09-25T07:35:00+02:00',
-  '2026-09-24T04:45:00+02:00', '2026-09-24T04:45:00+02:00', 10, 100, 974, 2024
+  '2026-09-24T04:45:00+02:00', '2026-09-25T07:35:00+02:00', 10, 100, 974, 2024
 )
 on conflict (league_id, slug) do update set
   name = excluded.name, subtitle = excluded.subtitle, timezone = excluded.timezone,

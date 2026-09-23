@@ -76,6 +76,16 @@ export function isLocked(lockAtIso: string, now: Date = new Date()): boolean {
   return !Number.isFinite(lock) || now.getTime() >= lock;
 }
 
+/**
+ * Other members' slips become visible, and the slips can be resolved, once the bus is back in
+ * Malmesbury (events.prediction_reveal_at = home_arrival_at). Fails closed: an unparseable reveal
+ * instant reads as still hidden (RLS and resolve_predictions enforce the real reveal).
+ */
+export function isRevealed(revealAtIso: string, now: Date = new Date()): boolean {
+  const reveal = Date.parse(revealAtIso);
+  return Number.isFinite(reveal) && now.getTime() >= reveal;
+}
+
 /** Matches the predictions.run_seconds check constraint (0 .. 8 h). */
 export const MAX_RUN_SECONDS = 8 * 3600;
 

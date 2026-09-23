@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
+import { isRevealed } from "@/lib/predictions";
+import { formatDateTime } from "@/lib/time";
 import type { ActionResult } from "@/lib/actions/feed";
 
 function revalidateReview() {
@@ -82,8 +84,9 @@ export async function saveOfficialResults(input: z.input<typeof resultsSchema>):
 export async function resolvePredictions(): Promise<ActionResult> {
   const ctx = await getLeagueContext();
   if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  if (!isRevealed(ctx.event.prediction_reveal_at)) return { ok: false, message: `Predictions resolve once the bus is back in Malmesbury (${formatDateTime(ctx.event.prediction_reveal_at, ctx.event.timezone)}).` };
   const { data, error } = await ctx.supabase.rpc("resolve_predictions", { p_event: ctx.event.id });
-  if (error) return { ok: false, message: error.message };
+  if (error) return { ok: false, message: error.message.includes("Malmesbury") ? "Predictions resolve once the bus is back in Malmesbury." : error.message };
   revalidateReview();
   return { ok: true, message: `${data ?? 0} prediction award(s) recorded.` };
 }

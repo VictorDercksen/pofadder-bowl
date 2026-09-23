@@ -6,6 +6,7 @@ import { TitleRow } from "@/components/ui/TitleRow";
 import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
+import { isRevealed } from "@/lib/predictions";
 import { formatDateTime, minuteOfDay, nowMs } from "@/lib/time";
 
 export const metadata = { title: "Commissioner" };
@@ -154,7 +155,7 @@ export default async function ReviewPage() {
             );
           })}
           <PenaltyList penalties={penalties ?? []} />
-          <ResultsForm results={results ?? null} timezone={tz} defaults={defaults} />
+          <ResultsForm results={results ?? null} timezone={tz} defaults={defaults} revealAt={ctx.event.prediction_reveal_at} revealed={isRevealed(ctx.event.prediction_reveal_at, new Date(nowMs()))} />
           <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} timezone={tz} />
         </div>
       </div>

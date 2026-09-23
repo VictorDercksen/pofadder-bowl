@@ -43,7 +43,7 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
 /** What the record already says, offered as defaults: the approved rating, the scoreboard, the sign photo's submit time and the flag tally. */
 export type ResultDefaults = { rating: number | null; finalScore: number | null; signPhotoMinutes: number | null; flagCount: number | null };
 
-export function ResultsForm({ results, timezone, defaults }: { results: Tables<"official_results"> | null; timezone: string; defaults: ResultDefaults }) {
+export function ResultsForm({ results, timezone, defaults, revealAt, revealed }: { results: Tables<"official_results"> | null; timezone: string; defaults: ResultDefaults; revealAt: string; revealed: boolean }) {
   const approvedRating = defaults.rating;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -147,7 +147,7 @@ export function ResultsForm({ results, timezone, defaults }: { results: Tables<"
         <button
           className="pb-primary"
           type="button"
-          disabled={pending || !results}
+          disabled={pending || !results || !revealed}
           onClick={() =>
             startTransition(async () => {
               const res = await resolvePredictions();
@@ -159,6 +159,7 @@ export function ResultsForm({ results, timezone, defaults }: { results: Tables<"
           Resolve predictions
         </button>
       </div>
+      {!revealed ? <p className="pb-inline-status">Slips resolve once the bus is back in Malmesbury ({formatDateTime(revealAt, timezone)}). Results can be entered now.</p> : null}
       {results?.resolved_at ? <p className="pb-inline-status">Last resolved {formatDateTime(results.resolved_at, timezone)}. Resolving again recomputes awards.</p> : null}
     </div>
   );

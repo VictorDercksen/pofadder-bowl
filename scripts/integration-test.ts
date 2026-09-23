@@ -43,7 +43,7 @@ async function main() {
   await admin.from("prediction_awards").delete().eq("event_id", event.id);
   await admin.from("checkins").delete().eq("event_id", event.id);
   await admin.from("activity_posts").delete().eq("event_id", event.id);
-  await admin.from("events").update({ prediction_lock_at: "2026-09-24T02:45:00Z", prediction_reveal_at: "2026-09-24T02:45:00Z" }).eq("id", event.id);
+  await admin.from("events").update({ prediction_lock_at: "2026-09-24T02:45:00Z", prediction_reveal_at: "2026-09-25T05:35:00Z" }).eq("id", event.id);
 
   const participant = await signIn(FIXTURES.participant.email);
   const commissioner = await signIn(FIXTURES.commissioner.email);
@@ -304,6 +304,8 @@ async function main() {
     assert.equal(hidden?.length ?? 0, 0, "others' predictions must be hidden before reveal");
     const { data: base } = await participant.from("predictions").select("user_id").eq("event_id", event.id);
     assert.equal(base?.length ?? 0, 0, "base table must not leak before reveal");
+    const { error: early } = await commissioner.rpc("resolve_predictions", { p_event: event.id });
+    assert.ok(early && /Malmesbury/.test(early.message), "resolving before the reveal must be refused");
     const past = new Date(Date.now() - 60_000).toISOString();
     await admin.from("events").update({ prediction_lock_at: past }).eq("id", event.id);
     const { error: locked } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1, p_final_score: 1, p_sign_photo_minutes: 1, p_flag_count: 1, p_run_distance_km: 1, p_speech_seconds: 1 });
