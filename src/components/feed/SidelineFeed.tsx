@@ -18,7 +18,6 @@ import type { FeedPost } from "@/lib/feed";
 export type FeedViewer = { name: string; team: string | null; number: number };
 
 const KIND_LABEL: Record<string, string> = {
-  checkin: "Check-in",
   comment: "League comment",
   submission: "Proof submitted",
   decision: "Commissioner call",
@@ -173,7 +172,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, initialErro
         </div>
       ) : null}
       {posts.length === 0 ? (
-        <EmptyState title="Nobody has said anything yet.">The first check-in, proof or comment will appear here as a jersey card.</EmptyState>
+        <EmptyState title="Nobody has said anything yet.">The first proof, decision or comment will appear here as a jersey card.</EmptyState>
       ) : (
         <div className="pb-jersey-feed">
           {posts.map((post) => (
@@ -186,7 +185,7 @@ export function SidelineFeed({ initialPosts, initialHasMore = false, initialErro
               message={post.body}
               time={formatTime(post.created_at, timezone)}
               kind={KIND_LABEL[post.kind] ?? post.kind}
-              captain={post.kind === "decision" || post.kind === "checkin"}
+              captain={post.kind === "decision"}
               reaction={
                 <button className="pb-reaction" type="button" aria-pressed={post.reacted} onClick={() => react(post)} aria-label={`${post.reacted ? "Remove" : "Add"} no-sympathy reaction`}>
                   😂 {post.reaction_count} · No sympathy

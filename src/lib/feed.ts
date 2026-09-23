@@ -24,12 +24,17 @@ export type FeedPage = { posts: FeedPost[]; hasMore: boolean };
  * One page of posts (newest first) with author kit and reaction state for the signed-in
  * member. `before` continues from the oldest post already shown; `hasMore` says whether
  * another page exists so the client can offer "Earlier plays".
+ *
+ * Positional check-ins (`kind = 'checkin'`, written by `record_checkin`) are left out: the map
+ * and the "Where's Victor?" panel already show position, so the sideline stays about plays.
+ * The filter is applied in the query so paging cursors stay consistent.
  */
 export async function loadFeed(ctx: LeagueContext, { limit = FEED_PAGE_SIZE, before }: { limit?: number; before?: FeedCursor | null } = {}): Promise<FeedPage> {
   let query = ctx.supabase
     .from("activity_posts")
     .select("id, kind, heading, body, created_at, author_id")
     .eq("event_id", ctx.event.id)
+    .neq("kind", "checkin")
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(limit + 1);
