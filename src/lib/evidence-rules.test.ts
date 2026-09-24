@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MB, RESUMABLE_THRESHOLD, STORAGE_MAX_BYTES, classify, formatBytes, safeExtension, validateFile } from "./evidence-rules";
+import { MB, RESUMABLE_THRESHOLD, STORAGE_MAX_BYTES, acceptForProofType, classify, formatBytes, safeExtension, validateFile } from "./evidence-rules";
 
 describe("upload validation", () => {
   it("classifies by mime and extension", () => {
@@ -52,5 +52,19 @@ describe("real-world file types", () => {
   it("never prints 1024 KB", () => {
     expect(formatBytes(MB - 1)).toBe("1.0 MB");
     expect(formatBytes(500 * 1024)).toBe("500 KB");
+  });
+});
+
+describe("file picker per proof type", () => {
+  it("narrows the picker to what the challenge asks for", () => {
+    expect(acceptForProofType("photo")).toBe("image/*");
+    expect(acceptForProofType("clip")).toBe("video/*");
+    expect(acceptForProofType("3 clips")).toBe("video/*");
+    expect(acceptForProofType("watch export")).toBe(".gpx,.tcx,.fit,.csv,image/*,application/pdf");
+    expect(acceptForProofType("receipt")).toBe("image/*,video/*,application/pdf");
+  });
+  it("takes a picture or a clip when the challenge accepts either", () => {
+    expect(acceptForProofType("clip or photo")).toBe("image/*,video/*");
+    expect(acceptForProofType("Photo or clip")).toBe("image/*,video/*");
   });
 });

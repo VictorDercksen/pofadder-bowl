@@ -11,6 +11,7 @@ import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { getLeagueContext } from "@/lib/league";
 import { loadParticipantProfile, loadSubmissions, statusHeading } from "@/lib/evidence";
 import { trackFileOf } from "@/lib/run-track";
+import { acceptForProofType } from "@/lib/evidence-rules";
 import { formatDateTime } from "@/lib/time";
 
 export const metadata = { title: "Challenge proof" };
@@ -118,7 +119,7 @@ export default async function ChallengeProofPage(props: PageProps<"/proof/[chall
     );
   }
 
-  const accept = challenge.proof_type.includes("photo") ? "image/*" : challenge.proof_type.includes("clip") ? "video/*" : isRun ? ".gpx,.tcx,.fit,.csv,image/*,application/pdf" : "image/*,video/*,application/pdf";
+  const accept = acceptForProofType(challenge.proof_type);
 
   return (
     <>

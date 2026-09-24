@@ -64,6 +64,22 @@ export function validateFile(mimeType: string, fileName: string, byteSize: numbe
   return { ok: true, kind: c.kind, mime: c.mime };
 }
 
+/**
+ * The file picker's `accept` list for a challenge's stated proof type. "clip or photo" takes
+ * both; a plain "photo" or "clip" narrows the picker. Only a hint for the device: the server
+ * still accepts any supported type (`validateFile`) and the commissioner judges the evidence.
+ */
+export function acceptForProofType(proofType: string): string {
+  const t = proofType.toLowerCase();
+  if (t.includes("export")) return ".gpx,.tcx,.fit,.csv,image/*,application/pdf";
+  const photo = t.includes("photo");
+  const clip = t.includes("clip");
+  if (photo && clip) return "image/*,video/*";
+  if (photo) return "image/*";
+  if (clip) return "video/*";
+  return "image/*,video/*,application/pdf";
+}
+
 export function safeExtension(fileName: string): string {
   const m = /\.([a-z0-9]{1,8})$/i.exec(fileName);
   return m ? m[1].toLowerCase() : "bin";
