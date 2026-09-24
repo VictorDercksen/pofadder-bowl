@@ -2,7 +2,7 @@
 
 ## State at handoff
 
-Branch `claude/league-standings-proof-picture-cv8i8r`, on top of `e30ab11` (standings proof, already on `main` and `production`). One new migration (`supabase/migrations/20260924000200_return_bus_proof_photo.sql`, data only). No schema or env changes. Pushed to the branch only; not yet on `main` or `production` (the fast-forward is waiting on approval).
+Branch `claude/league-standings-proof-picture-cv8i8r`, on top of `e30ab11` (standings proof, already on `main` and `production`). One new migration (`supabase/migrations/20260924000200_return_bus_proof_photo.sql`, data only). No schema or env changes. Fast-forwarded into `main` and `production` at `50b8bc2`.
 
 ## Asked and done
 
