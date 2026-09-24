@@ -70,6 +70,8 @@ describe("prediction locking", () => {
     expect(validatePrediction({ ...slip, hours: 9 })).toMatch(/hours/);
     expect(validatePrediction({ ...slip, minutes: 60 })).toMatch(/minutes/);
     expect(validatePrediction({ ...slip, mealRating: 11 })).toMatch(/rating/);
+    expect(validatePrediction({ ...slip, mealRating: 7.5 })).toBeNull();
+    expect(validatePrediction({ ...slip, mealRating: 7.25 })).toMatch(/one decimal/);
     expect(validatePrediction({ ...slip, mealRating: null })).toMatch(/Pick a rib rating/);
     expect(validatePrediction({ ...slip, hours: 0, minutes: 0 })).toMatch(/zero/);
     expect(validatePrediction({ ...slip, finalScore: 101 })).toMatch(/Final score/);
@@ -115,6 +117,7 @@ describe("metric formatting", () => {
   it("prints each call in its own unit", () => {
     expect(formatMetric("run", 5700)).toBe("1:35:00");
     expect(formatMetric("meal", 8)).toBe("8 / 10");
+    expect(formatMetric("meal", 7.5)).toBe("7.5 / 10");
     expect(formatMetric("final_score", 85)).toBe("85 / 100");
     expect(formatMetric("sign_photo", 580)).toBe("09:40");
     expect(formatMetric("flags", 1)).toBe("1 flag");

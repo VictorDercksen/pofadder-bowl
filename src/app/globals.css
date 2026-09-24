@@ -750,3 +750,18 @@ a{color:inherit}
   .pb .pb-recovery{margin:12px 0}
   .pb .pb-save-state{font-size:14px}
 }
+
+/* Rating strip decimals: the tenths row under the cells and the partial fill of the next cell (src/components/ui/RatingSelector.tsx) */
+.pb .pb-rating-body{display:grid;gap:5px;flex:1;min-width:0}
+.pb .pb-rating-cell.part{background:linear-gradient(90deg,#cc542b73 var(--part),var(--pb-panel) var(--part))}
+.pb .pb-rating.dark .pb-rating-cell.part{background:linear-gradient(90deg,#cc542ba6 var(--part),#ffffff12 var(--part))}
+.pb .pb-rating-tenths{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}
+.pb .pb-rating-tenth{min-height:30px;padding:0;border:1px solid #d3d9cd;border-radius:4px;background:transparent;color:#84937c;font:600 13px/1 var(--font-barlow-condensed),'Barlow Condensed',Impact,sans-serif;transition:background-color .1s ease,color .1s ease,border-color .1s ease}
+.pb button.pb-rating-tenth:hover:not(:disabled){border-color:var(--pb-green);color:var(--pb-green)}
+.pb .pb-rating-tenth.pick{background:var(--pb-green);border-color:var(--pb-green);color:var(--pb-gold)}
+.pb .pb-rating-tenth:disabled{opacity:.45;cursor:default}
+.pb .pb-rating.dark .pb-rating-tenth{border-color:#ffffff33;color:#cbd7c1}
+.pb .pb-rating.dark .pb-rating-tenth.pick{background:var(--pb-gold);border-color:var(--pb-gold);color:var(--pb-green)}
+.pb .pb-rating-score{min-width:64px}
+.pb .pb-rating.small .pb-rating-score{min-width:44px}
+@media(max-width:480px){.pb .pb-rating:not(.small) .pb-rating-body{flex-basis:100%}.pb .pb-rating-tenths{grid-template-columns:repeat(5,minmax(0,1fr))}.pb .pb-rating-tenth{min-height:36px}}

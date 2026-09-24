@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
 import { RatingSelector } from "@/components/ui/RatingSelector";
+import { formatRating } from "@/lib/rating";
 import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime, minutesToClock } from "@/lib/time";
@@ -83,7 +84,7 @@ export function ResultsForm({ results, timezone, defaults, revealAt, revealed }:
         Chicken and rib combo rating
         <RatingSelector value={meal} label="Chicken and rib combo rating" onChange={setMeal} caption="official" />
         <p className="pb-small" style={{ marginTop: 6 }}>
-          {approvedRating != null ? `Prefilled from the approved proof (${approvedRating} / 10). Change it only if the clip says otherwise.` : "Defaults to the score on the approved rating clip once it is in. Leave it unset and the rating category is not scored."}
+          {approvedRating != null ? `Prefilled from the approved proof (${formatRating(approvedRating)} / 10). Change it only if the clip says otherwise.` : "Defaults to the score on the approved rating clip once it is in. Leave it unset and the rating category is not scored."}
           {meal != null ? (
             <>
               {" "}

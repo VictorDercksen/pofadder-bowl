@@ -10,7 +10,7 @@ const int = z.number().int();
 const schema = z.object({
   hours: int,
   minutes: int,
-  mealRating: int,
+  mealRating: z.number(),
   finalScore: int,
   signHour: int,
   signMinute: int,
@@ -23,7 +23,7 @@ const schema = z.object({
 /** Saves or updates the member's prediction; the RPC enforces the server-side lock time. */
 export async function savePrediction(input: z.input<typeof schema>): Promise<ActionResult> {
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Use whole numbers (two decimals for the distance)." };
+  if (!parsed.success) return { ok: false, message: "Use whole numbers (one decimal for the rating, two for the distance)." };
   const invalid = validatePrediction(parsed.data);
   if (invalid) return { ok: false, message: invalid };
   const v = slipToValues(parsed.data);

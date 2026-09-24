@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
 import { isRevealed } from "@/lib/predictions";
+import { isRating } from "@/lib/rating";
 import { formatDateTime } from "@/lib/time";
 import type { ActionResult } from "@/lib/actions/feed";
 
@@ -60,7 +61,7 @@ export async function setPenalty(input: { penaltyId: string; applied: boolean; n
 const resultsSchema = z.object({
   runSeconds: z.number().int().min(0).max(8 * 3600).nullable(),
   runDistanceKm: z.number().min(0).max(100).nullable(),
-  mealRating: z.number().int().min(1).max(10).nullable(),
+  mealRating: z.number().refine(isRating).nullable(),
   finalScore: z.number().int().min(0).max(100).nullable(),
   signPhotoMinutes: z.number().int().min(0).max(1439).nullable(),
   flagCount: z.number().int().min(0).max(99).nullable(),

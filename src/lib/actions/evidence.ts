@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
 import { RESUMABLE_THRESHOLD, safeExtension, validateFile } from "@/lib/evidence-rules";
+import { isRating } from "@/lib/rating";
 import type { ActionResult } from "@/lib/actions/feed";
 
 const BUCKET = "evidence";
@@ -53,8 +54,8 @@ export async function updateCaption(input: { submissionId: string; caption: stri
  * flagged version takes it; submit_submission refuses a rated play without one.
  */
 export async function updateRating(input: { submissionId: string; rating: number }): Promise<ActionResult> {
-  const parsed = z.object({ submissionId: z.uuid(), rating: z.number().int().min(1).max(10) }).safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Rate it 1 to 10." };
+  const parsed = z.object({ submissionId: z.uuid(), rating: z.number().refine(isRating) }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Rate it 1 to 10, one decimal at most." };
   const ctx = await getLeagueContext();
   if (!ctx.isParticipant) return { ok: false, message: "Only the participant can rate the play." };
   const { error, count } = await ctx.supabase.from("evidence_submissions").update({ rating: parsed.data.rating }, { count: "exact" }).eq("id", parsed.data.submissionId).eq("submitter_id", ctx.user.id);

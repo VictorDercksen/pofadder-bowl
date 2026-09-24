@@ -5,6 +5,7 @@
  * No money, no wagering: bragging rights only.
  */
 
+import { formatRating, isRating } from "@/lib/rating";
 import { minutesToClock, secondsToClock } from "@/lib/time";
 
 export type MetricKey = "run" | "meal" | "final_score" | "sign_photo" | "flags" | "distance" | "speech";
@@ -108,7 +109,7 @@ export function validatePrediction(input: SlipInput): string | null {
   if (!Number.isInteger(hours) || hours < 0 || hours > 8) return "Use whole hours between 0 and 8.";
   if (!Number.isInteger(minutes) || minutes < 0 || minutes > 59) return "Use whole minutes between 0 and 59.";
   if (mealRating == null) return "Pick a rib rating out of ten.";
-  if (!Number.isInteger(mealRating) || mealRating < 1 || mealRating > 10) return "Rib rating must be 1 to 10.";
+  if (!isRating(mealRating)) return "Rib rating must be 1 to 10, one decimal at most.";
   if (hours === 0 && minutes === 0) return "A finish time of zero is optimistic even for Victor.";
   if (hours * 3600 + minutes * 60 > MAX_RUN_SECONDS) return "Keep the finish time at 8 hours or under.";
   if (!Number.isInteger(finalScore) || finalScore < 0 || finalScore > 100) return "Final score must be a whole number from 0 to 100.";
@@ -141,7 +142,7 @@ export function formatMetric(key: MetricKey, value: number | null | undefined): 
     case "run":
       return secondsToClock(value);
     case "meal":
-      return `${value} / 10`;
+      return `${formatRating(value)} / 10`;
     case "final_score":
       return `${value} / 100`;
     case "sign_photo":

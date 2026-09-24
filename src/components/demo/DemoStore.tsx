@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast-store";
 import type { ToastTone } from "@/lib/toasts";
 import { PRESS_QUESTIONS, PROPS } from "@/lib/programme";
 import type { PropSide } from "@/lib/props";
+import { formatRating } from "@/lib/rating";
 
 /** In-memory demo state mirroring the approved mockup. Never persisted, never sent anywhere. */
 export type DemoState = {
@@ -110,7 +111,7 @@ function step(s: DemoState, a: DemoAction): DemoState {
       if (!a.text.trim()) return { ...s, tone: "warn", message: "Write a comment first." };
       return { ...s, comments: [a.text.trim(), ...s.comments], message: "Demo comment added to the local feed." };
     case "predict":
-      return { ...s, prediction: { h: a.h, m: a.m, rating: a.rating, finalScore: a.finalScore, flags: a.flags }, message: `Prediction saved for this preview: ${a.h} h ${a.m} m, ribs ${a.rating} / 10, ${a.finalScore} / 100, ${a.flags} flag(s). Editable until kickoff.` };
+      return { ...s, prediction: { h: a.h, m: a.m, rating: a.rating, finalScore: a.finalScore, flags: a.flags }, message: `Prediction saved for this preview: ${a.h} h ${a.m} m, ribs ${formatRating(a.rating)} / 10, ${a.finalScore} / 100, ${a.flags} flag(s). Editable until kickoff.` };
     case "question":
       return { ...s, question: (s.question + 1) % DEMO_QUESTIONS.length, recorded: false };
     case "record":
