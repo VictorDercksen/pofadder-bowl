@@ -58,7 +58,7 @@ insert into public.challenges (event_id, sequence, title, proof_type, points, ra
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 8, 'Final league standings read aloud in the Hotel bar', 'clip or photo', 15, false),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 9, 'R50 spent in Pofadder on a public holiday', 'receipt', 10, false),
   ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 10, 'Sunset loser''s speech on the N14', 'clip', 10, false),
-  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 11, 'Boarding the 22:30 bus, ticket and face in frame', 'clip', 10, false)
+  ('4b0c3c9e-0002-4a5e-9a0a-000000000002', 11, 'Boarding the 22:30 bus, ticket and face in frame', 'clip or photo', 10, false)
 on conflict (event_id, sequence) do update set title = excluded.title, proof_type = excluded.proof_type, points = excluded.points, rated = excluded.rated;
 
 insert into public.penalties (event_id, sequence, text) values
