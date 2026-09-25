@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RULES, formatMetric, isLocked, isRevealed, METRICS, resolvePredictions, slipToValues, validatePrediction, type Prediction, type SlipInput } from "./predictions";
+import { DEFAULT_RULES, formatMetric, isLocked, METRICS, resolvePredictions, slipToValues, validatePrediction, type Prediction, type SlipInput } from "./predictions";
 
 const base = { final_score: null, sign_photo_minutes: null, flag_count: null, run_distance_km: null, speech_seconds: null };
 const preds: Prediction[] = [
@@ -91,15 +91,6 @@ describe("prediction edge cases", () => {
   });
   it("treats an unparseable lock instant as locked", () => {
     expect(isLocked("", new Date("2026-09-01T00:00:00Z"))).toBe(true);
-  });
-  it("reveals the league's calls at the Malmesbury arrival, not before", () => {
-    const reveal = "2026-09-25T05:35:00.000Z"; // Fri 07:35 SAST, the "Arrive Malmesbury" stop
-    expect(isRevealed(reveal, new Date("2026-09-24T02:45:00.000Z"))).toBe(false); // locked in Pofadder, still hidden
-    expect(isRevealed(reveal, new Date("2026-09-25T05:34:59.000Z"))).toBe(false);
-    expect(isRevealed(reveal, new Date("2026-09-25T05:35:00.000Z"))).toBe(true);
-  });
-  it("treats an unparseable reveal instant as still hidden", () => {
-    expect(isRevealed("", new Date("2026-09-30T00:00:00Z"))).toBe(false);
   });
   it("ignores a corrupt row when finding the closest guess", () => {
     const corrupt: Prediction[] = [

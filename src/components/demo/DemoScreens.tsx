@@ -484,7 +484,7 @@ export function DemoProps() {
               );
             })}
           </div>
-          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap a side. In the league game picks lock when the bus reaches Pofadder, other members’ picks show once the board locks and a commissioner settles each prop from the record once the bus is back in Malmesbury.</p>
+          <p className="pb-small" style={{ marginTop: 12 }}>Demo: tap a side. In the league game picks lock when the bus reaches Pofadder, other members’ picks show once the board locks and a commissioner settles each prop from the record once resolution opens.</p>
         </div>
         <div>
           <div className="pb-panel">

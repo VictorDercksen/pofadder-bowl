@@ -5,8 +5,9 @@ import { MemberBadge } from "@/components/ui/Marks";
 import { RatingBadge, RatingSelector } from "@/components/ui/RatingSelector";
 import { PredictionSlip, RulesEditor } from "@/components/predictions/PredictionSlip";
 import { getLeagueContext } from "@/lib/league";
-import { DEFAULT_RULES, formatMetric, isRevealed, METRIC_SHORT, METRICS, type PredictionRules, type PredictionValues } from "@/lib/predictions";
+import { DEFAULT_RULES, formatMetric, METRIC_SHORT, METRICS, type PredictionRules, type PredictionValues } from "@/lib/predictions";
 import { formatDateTime, formatTime, nowMs } from "@/lib/time";
+import { isResolutionOpen } from "@/lib/resolution";
 
 export const metadata = { title: "Predictions" };
 
@@ -15,7 +16,7 @@ export default async function PredictionsPage() {
   const tz = ctx.event.timezone;
   const now = nowMs();
   const locked = now >= Date.parse(ctx.event.prediction_lock_at);
-  const revealed = isRevealed(ctx.event.prediction_reveal_at, new Date(now));
+  const revealed = isResolutionOpen(ctx.event.resolution_opened_at);
   const [{ data: mine, error: mineError }, { data: rules, error: rulesError }, { data: all, error: allError }, { data: results, error: resultsError }, { data: awards, error: awardsError }, { data: profiles, error: profilesError }] = await Promise.all([
     ctx.supabase.from("predictions").select("*").eq("event_id", ctx.event.id).eq("user_id", ctx.user.id).maybeSingle(),
     ctx.supabase.from("prediction_rules").select("*").eq("event_id", ctx.event.id).maybeSingle(),
@@ -59,7 +60,7 @@ export default async function PredictionsPage() {
               {(all ?? []).length === 0 ? <p className="pb-small">No slips were submitted.</p> : null}
             </div>
           ) : (
-            <p className="pb-small" style={{ marginTop: 14 }}>Other members’ answers stay hidden until the bus is back in Malmesbury ({formatDateTime(ctx.event.prediction_reveal_at, tz)}). The slips are resolved after that.</p>
+            <p className="pb-small" style={{ marginTop: 14 }}>Other members’ answers stay hidden until the commissioner opens resolution. The slips are resolved after that.</p>
           )}
         </KitPanel>
         <div className="pb-panel">
@@ -75,7 +76,7 @@ export default async function PredictionsPage() {
           ))}
           <div className="pb-next">
             <h3>Equal guesses share the glory.</h3>
-            <p>Tied winners receive the same points. Results appear once Victor is back in Malmesbury and the commissioner enters official results and resolves the slips. Separate from Victor’s 100-point punishment score.</p>
+            <p>Tied winners receive the same points. Results appear once the commissioner opens resolution, enters the official results and resolves the slips. Separate from Victor’s 100-point punishment score.</p>
           </div>
           <div className="pb-next">
             <div className="pb-kicker">THE STAKES</div>

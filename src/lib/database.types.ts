@@ -288,6 +288,8 @@ export type Database = {
           prediction_lock_at: string
           prediction_reveal_at: string
           required_run_km: number
+          resolution_opened_at: string | null
+          resolution_opened_by: string | null
           return_departure_at: string
           season_punished: number | null
           slug: string
@@ -311,6 +313,8 @@ export type Database = {
           prediction_lock_at: string
           prediction_reveal_at: string
           required_run_km?: number
+          resolution_opened_at?: string | null
+          resolution_opened_by?: string | null
           return_departure_at: string
           season_punished?: number | null
           slug: string
@@ -334,6 +338,8 @@ export type Database = {
           prediction_lock_at?: string
           prediction_reveal_at?: string
           required_run_km?: number
+          resolution_opened_at?: string | null
+          resolution_opened_by?: string | null
           return_departure_at?: string
           season_punished?: number | null
           slug?: string
@@ -1768,6 +1774,16 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "penalties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_resolution_open: {
+        Args: { p_event: string; p_open: boolean }
+        Returns: Database["public"]["Tables"]["events"]["Row"]
+        SetofOptions: {
+          from: "*"
+          to: "events"
           isOneToOne: true
           isSetofReturn: false
         }

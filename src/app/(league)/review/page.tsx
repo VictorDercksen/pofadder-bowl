@@ -3,11 +3,10 @@ import Link from "next/link";
 import { MemberBadge, Shield } from "@/components/ui/Marks";
 import { IconLink } from "@/components/ui/IconButton";
 import { TitleRow } from "@/components/ui/TitleRow";
-import { PenaltyList, ResultsForm, CertificateIssue } from "@/components/review/CommissionerTools";
+import { PenaltyList, ResultsForm, CertificateIssue, ResolutionControl } from "@/components/review/CommissionerTools";
 import { getEventScore, requireCommissioner } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
-import { isRevealed } from "@/lib/predictions";
-import { isSettlementOpen } from "@/lib/props";
+import { isResolutionOpen } from "@/lib/resolution";
 import { formatDateTime, minuteOfDay, nowMs } from "@/lib/time";
 
 export const metadata = { title: "Commissioner" };
@@ -38,8 +37,9 @@ export default async function ReviewPage() {
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
   const kits = new Map((profiles ?? []).map((p) => [p.id, p.kit_team]));
   const queue = subs.filter((s) => s.status === "submitted");
-  const settleOpen = isSettlementOpen(ctx.event.home_arrival_at, new Date(nowMs()));
-  const openProps = settleOpen ? (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs()) : [];
+  const resolutionOpen = isResolutionOpen(ctx.event.resolution_opened_at);
+  const canCloseResolution = !(props ?? []).some((p) => p.result != null) && !results?.resolved_at;
+  const openProps = resolutionOpen ? (props ?? []).filter((p) => p.result == null && Date.parse(p.locks_at) <= nowMs()) : [];
   const others = subs.filter((s) => s.status !== "submitted" && s.status !== "draft");
   const approvedRating = subs.find((s) => s.status === "approved" && s.rating != null)?.rating ?? null;
   // Defaults for the official results: the daylight sign photo (#04) settles on its first submission time.
@@ -98,6 +98,10 @@ export default async function ReviewPage() {
             })}
           </div>
           <div className="pb-panel" style={{ marginTop: 15 }}>
+            <h3>Resolve props and predictions</h3>
+            <ResolutionControl openedAt={ctx.event.resolution_opened_at} canClose={canCloseResolution} locked={nowMs() >= Date.parse(ctx.event.prediction_lock_at)} timezone={tz} />
+          </div>
+          <div className="pb-panel" style={{ marginTop: 15 }}>
             <h3>
               Props to settle
               {openProps.length ? <span className="pb-badge-count">{openProps.length}</span> : null}
@@ -108,7 +112,7 @@ export default async function ReviewPage() {
                 <IconLink icon="board" label="Settle on the prop board" href="/props" small />
               </p>
             ) : (props ?? []).some((p) => p.result == null) ? (
-              <p className="pb-small">Props settle once the bus is back in Malmesbury ({formatDateTime(ctx.event.home_arrival_at, tz)}).</p>
+              <p className="pb-small">Props settle once you press Resolve props and predictions.</p>
             ) : (
               <p className="pb-small">Every prop is settled.</p>
             )}
@@ -157,7 +161,7 @@ export default async function ReviewPage() {
             );
           })}
           <PenaltyList penalties={penalties ?? []} />
-          <ResultsForm results={results ?? null} timezone={tz} defaults={defaults} revealAt={ctx.event.prediction_reveal_at} revealed={isRevealed(ctx.event.prediction_reveal_at, new Date(nowMs()))} />
+          <ResultsForm results={results ?? null} timezone={tz} defaults={defaults} resolutionOpen={resolutionOpen} />
           <CertificateIssue certificate={certificate ?? null} approved={score.approved} max={score.max} timezone={tz} />
         </div>
       </div>

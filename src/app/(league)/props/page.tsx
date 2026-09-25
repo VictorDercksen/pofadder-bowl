@@ -6,8 +6,9 @@ import { Countdown } from "@/components/ui/Countdown";
 import { PropBoard, type BoardProp } from "@/components/props/PropBoard";
 import { PropLive } from "@/components/props/PropLive";
 import { getLeagueContext } from "@/lib/league";
-import { formatLine, isPropLocked, isSettlementOpen, sortStandings, type PropResult, type PropSide } from "@/lib/props";
+import { formatLine, isPropLocked, sortStandings, type PropResult, type PropSide } from "@/lib/props";
 import { formatDateTime, formatTime, nowMs } from "@/lib/time";
+import { isResolutionOpen } from "@/lib/resolution";
 
 export const metadata = { title: "Prop board" };
 
@@ -81,9 +82,9 @@ export default async function PropsPage() {
       />
       <div className="pb-split">
         <KitPanel team={ctx.profile.kit_team} name="The prop board" kicker={`${ctx.profile.display_name.toUpperCase()} · ${allLocked ? `${myCorrect} CORRECT OF ${settled} SETTLED` : `${myPicks}/${board.length} PICKED`}`} tour="prop-board">
-          <PropBoard props={board} isCommissioner={ctx.isCommissioner} settleOpen={isSettlementOpen(ctx.event.home_arrival_at, now)} settleAtLabel={formatDateTime(ctx.event.home_arrival_at, tz)} />
+          <PropBoard props={board} isCommissioner={ctx.isCommissioner} settleOpen={isResolutionOpen(ctx.event.resolution_opened_at)} />
           <p className="pb-small" style={{ marginTop: 12 }}>
-            {allLocked ? `The board is locked. A commissioner settles each prop from the record once the bus is back in Malmesbury (${formatDateTime(ctx.event.home_arrival_at, tz)}).` : <>Tap your sides, then Save picks. Picks can be changed until the board locks (<Countdown targetIso={firstLock} passedLabel="locked" />). Other members’ picks show once it locks.</>}
+            {allLocked ? "The board is locked. A commissioner settles each prop from the record once resolution opens." : <>Tap your sides, then Save picks. Picks can be changed until the board locks (<Countdown targetIso={firstLock} passedLabel="locked" />). Other members’ picks show once it locks.</>}
           </p>
         </KitPanel>
         <div>

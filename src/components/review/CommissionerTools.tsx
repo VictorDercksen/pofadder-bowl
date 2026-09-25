@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
 import { RatingSelector } from "@/components/ui/RatingSelector";
-import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty } from "@/lib/actions/review";
+import { issueCertificate, resolvePredictions, saveOfficialResults, setPenalty, setResolutionOpen } from "@/lib/actions/review";
 import type { Tables } from "@/lib/database.types";
 import { formatDateTime, minutesToClock } from "@/lib/time";
 import { NumberInput } from "@/components/ui/NumberInput";
@@ -43,7 +43,7 @@ export function PenaltyList({ penalties }: { penalties: Tables<"penalties">[] })
 /** What the record already says, offered as defaults: the approved rating, the scoreboard, the sign photo's submit time and the flag tally. */
 export type ResultDefaults = { rating: number | null; finalScore: number | null; signPhotoMinutes: number | null; flagCount: number | null };
 
-export function ResultsForm({ results, timezone, defaults, revealAt, revealed }: { results: Tables<"official_results"> | null; timezone: string; defaults: ResultDefaults; revealAt: string; revealed: boolean }) {
+export function ResultsForm({ results, timezone, defaults, resolutionOpen }: { results: Tables<"official_results"> | null; timezone: string; defaults: ResultDefaults; resolutionOpen: boolean }) {
   const approvedRating = defaults.rating;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -147,7 +147,7 @@ export function ResultsForm({ results, timezone, defaults, revealAt, revealed }:
         <button
           className="pb-primary"
           type="button"
-          disabled={pending || !results || !revealed}
+          disabled={pending || !results || !resolutionOpen}
           onClick={() =>
             startTransition(async () => {
               const res = await resolvePredictions();
@@ -159,9 +159,66 @@ export function ResultsForm({ results, timezone, defaults, revealAt, revealed }:
           Resolve predictions
         </button>
       </div>
-      {!revealed ? <p className="pb-inline-status">Slips resolve once the bus is back in Malmesbury ({formatDateTime(revealAt, timezone)}). Results can be entered now.</p> : null}
+      {!resolutionOpen ? <p className="pb-inline-status">Slips resolve once you press Resolve props and predictions. Results can be entered now.</p> : null}
       {results?.resolved_at ? <p className="pb-inline-status">Last resolved {formatDateTime(results.resolved_at, timezone)}. Resolving again recomputes awards.</p> : null}
     </div>
+  );
+}
+
+/**
+ * The switch that opens resolution of the prop board and the predictions (set_resolution_open).
+ * Nothing settles, resolves or reveals on a timer; this button is the only way in. Two taps to open.
+ * Closing again is offered only while nothing has been settled or resolved.
+ */
+export function ResolutionControl({ openedAt, canClose, locked, timezone }: { openedAt: string | null; canClose: boolean; locked: boolean; timezone: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState(false);
+  const run = (open: boolean) =>
+    startTransition(async () => {
+      const res = await setResolutionOpen({ open });
+      toast(res.message ?? "", res.ok ? "ok" : "error");
+      setConfirming(false);
+      router.refresh();
+    });
+
+  if (openedAt) {
+    return (
+      <>
+        <p className="pb-small">
+          Opened {formatDateTime(openedAt, timezone)}. The league’s calls are visible; settle each prop on the board and resolve the slips below.
+        </p>
+        {canClose ? (
+          <div className="pb-actions">
+            <button className="pb-secondary" type="button" disabled={pending} onClick={() => run(false)}>
+              Close again
+            </button>
+          </div>
+        ) : null}
+      </>
+    );
+  }
+  return (
+    <>
+      <p className="pb-small">Props stay unsettled and the slips stay hidden and unresolved until you press this. Nothing opens on a timer.</p>
+      <div className="pb-actions">
+        {confirming ? (
+          <>
+            <button className="pb-primary" type="button" disabled={pending} onClick={() => run(true)}>
+              Confirm: resolve now
+            </button>
+            <button className="pb-secondary" type="button" disabled={pending} onClick={() => setConfirming(false)}>
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button className="pb-primary" type="button" disabled={pending || !locked} onClick={() => setConfirming(true)}>
+            Resolve props and predictions
+          </button>
+        )}
+      </div>
+      {!locked ? <p className="pb-inline-status">Available once the board and the slips have locked.</p> : null}
+    </>
   );
 }
 

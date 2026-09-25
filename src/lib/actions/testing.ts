@@ -30,6 +30,8 @@ export async function resetTestingData(input: { confirm: string; resetTours: boo
 
   const { data, error } = await ctx.supabase.rpc("reset_event_data", { p_event: ctx.event.id, p_confirm_slug: parsed.data.confirm, p_reset_tours: parsed.data.resetTours });
   if (error) return { ok: false, message: error.message };
+  // Props and slips are back to unsettled, so resolution closes again (the Review button reopens it).
+  const { error: closeError } = await ctx.supabase.rpc("set_resolution_open", { p_event: ctx.event.id, p_open: false });
   const result = (data ?? {}) as Record<string, unknown>;
   const paths = Array.isArray(result.storage_paths) ? (result.storage_paths as string[]) : [];
   const counts: Record<string, number> = {};
@@ -56,5 +58,6 @@ export async function resetTestingData(input: { confirm: string; resetTours: boo
     .filter(([, n]) => n > 0)
     .map(([key, n]) => `${n} ${key.replace(/_/g, " ")}`)
     .join(", ");
-  return { ok: true, counts, message: `Event reset.${summary ? ` Removed ${summary}.` : " Nothing to remove."}${storageNote}` };
+  const closeNote = closeError ? ` Resolution could not be closed: ${closeError.message}` : "";
+  return { ok: true, counts, message: `Event reset.${summary ? ` Removed ${summary}.` : " Nothing to remove."}${storageNote}${closeNote}` };
 }

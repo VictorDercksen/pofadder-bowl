@@ -4,12 +4,12 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
 import { generateProps } from "@/lib/prop-generator";
-import { isSettlementOpen } from "@/lib/props";
-import { formatDateTime } from "@/lib/time";
+import { isResolutionOpen } from "@/lib/resolution";
 import type { ActionResult } from "@/lib/actions/feed";
 
 const sideSchema = z.enum(["over", "under", "yes", "no"]);
 const resultSchema = z.enum(["over", "under", "yes", "no", "void"]);
+const RESOLUTION_CLOSED = "Props settle once a commissioner presses Resolve props and predictions on Review.";
 
 function revalidateProps() {
   revalidatePath("/props");
@@ -54,17 +54,17 @@ export async function savePropPicks(input: { picks: { propId: string; side: stri
   return { ok: false, message: saved > 0 ? `${saved} saved, ${failed.length} refused. ${reason}` : reason };
 }
 
-/** Commissioner settles a locked prop once the bus is back in Malmesbury. Re-settling corrects a mistake. */
+/** Commissioner settles a locked prop once resolution is open (the Review button). Re-settling corrects a mistake. */
 export async function settleProp(input: { propId: string; result: string }): Promise<ActionResult> {
   const parsed = z.object({ propId: z.uuid(), result: resultSchema }).safeParse(input);
   if (!parsed.success) return { ok: false, message: "Choose a result." };
   const ctx = await getLeagueContext();
   if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
-  if (!isSettlementOpen(ctx.event.home_arrival_at)) return { ok: false, message: `Props settle once the bus is back in Malmesbury (${formatDateTime(ctx.event.home_arrival_at, ctx.event.timezone)}).` };
+  if (!isResolutionOpen(ctx.event.resolution_opened_at)) return { ok: false, message: RESOLUTION_CLOSED };
   const { error } = await ctx.supabase.rpc("settle_prop", { p_prop: parsed.data.propId, p_result: parsed.data.result });
   if (error) {
     if (error.message.includes("settles only after")) return { ok: false, message: "Props settle only once the board has locked." };
-    if (error.message.includes("Malmesbury")) return { ok: false, message: "Props settle once the bus is back in Malmesbury." };
+    if (error.message.includes("opens resolution")) return { ok: false, message: RESOLUTION_CLOSED };
     return { ok: false, message: error.message };
   }
   revalidateProps();

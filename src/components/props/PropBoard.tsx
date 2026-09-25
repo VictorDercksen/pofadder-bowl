@@ -23,11 +23,11 @@ export type BoardProp = {
 
 /**
  * Production board: a member drafts one side per prop and saves the lot with the button at the
- * bottom; nothing is written until then. A commissioner settles a locked prop once the bus is
- * back in Malmesbury (`settleOpen`; `settleAtLabel` is that instant, formatted). Everything is
+ * bottom; nothing is written until then. A commissioner settles a locked prop once resolution is
+ * open (`settleOpen`, the Resolve props and predictions button on Review). Everything is
  * re-checked by the RPCs; the buttons only decide what to show.
  */
-export function PropBoard({ props, isCommissioner, settleOpen, settleAtLabel }: { props: BoardProp[]; isCommissioner: boolean; settleOpen: boolean; settleAtLabel: string }) {
+export function PropBoard({ props, isCommissioner, settleOpen }: { props: BoardProp[]; isCommissioner: boolean; settleOpen: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   // Sides tapped but not saved, keyed by prop id. A draft equal to the saved side counts as clean,
@@ -126,7 +126,7 @@ export function PropBoard({ props, isCommissioner, settleOpen, settleAtLabel }: 
                           ? `You have ${sideLabel(p.mine)}. Tap the other side to change it.`
                           : "Pick a side."}
                 </p>
-                {isCommissioner && p.locked && !settleOpen && !settled ? <p className="pb-small pb-prop-state">Settles once the bus is back in Malmesbury ({settleAtLabel}).</p> : null}
+                {isCommissioner && p.locked && !settleOpen && !settled ? <p className="pb-small pb-prop-state">Settles once you press Resolve props and predictions on Review.</p> : null}
                 {isCommissioner && p.locked && settleOpen ? (
                   <div className="pb-actions compact">
                     {[...sides, "void" as const].map((r) => (

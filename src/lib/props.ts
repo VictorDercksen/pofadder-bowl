@@ -31,16 +31,6 @@ export function isPropLocked(locksAtIso: string, now: Date = new Date()): boolea
   return !Number.isFinite(lock) || now.getTime() >= lock;
 }
 
-/**
- * Props settle only once the bus is back in Malmesbury (events.home_arrival_at, the "Arrive
- * Malmesbury" stop). Fails closed: an unparseable instant reads as not yet open (settle_prop
- * enforces the real instant).
- */
-export function isSettlementOpen(homeArrivalAtIso: string, now: Date = new Date()): boolean {
-  const arrival = Date.parse(homeArrivalAtIso);
-  return Number.isFinite(arrival) && now.getTime() >= arrival;
-}
-
 /** "10.25 km", "90 seconds", "20 min late". Trailing zeros are dropped. */
 export function formatLine(line: number | string | null, unit: string | null): string {
   if (line == null) return "";

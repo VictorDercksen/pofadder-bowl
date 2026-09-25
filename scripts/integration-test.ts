@@ -43,7 +43,7 @@ async function main() {
   await admin.from("prediction_awards").delete().eq("event_id", event.id);
   await admin.from("checkins").delete().eq("event_id", event.id);
   await admin.from("activity_posts").delete().eq("event_id", event.id);
-  await admin.from("events").update({ prediction_lock_at: "2026-09-24T02:45:00Z", prediction_reveal_at: "2026-09-25T05:35:00Z" }).eq("id", event.id);
+  await admin.from("events").update({ prediction_lock_at: "2026-09-24T02:45:00Z", prediction_reveal_at: "2026-09-25T05:35:00Z", resolution_opened_at: null, resolution_opened_by: null }).eq("id", event.id);
 
   const participant = await signIn(FIXTURES.participant.email);
   const commissioner = await signIn(FIXTURES.commissioner.email);
@@ -305,7 +305,9 @@ async function main() {
     const { data: base } = await participant.from("predictions").select("user_id").eq("event_id", event.id);
     assert.equal(base?.length ?? 0, 0, "base table must not leak before reveal");
     const { error: early } = await commissioner.rpc("resolve_predictions", { p_event: event.id });
-    assert.ok(early && /Malmesbury/.test(early.message), "resolving before the reveal must be refused");
+    assert.ok(early && /opens resolution/.test(early.message), "resolving before the commissioner opens resolution must be refused");
+    const { error: tooSoon } = await commissioner.rpc("set_resolution_open", { p_event: event.id, p_open: true });
+    assert.ok(tooSoon && /after predictions lock/.test(tooSoon.message), "resolution cannot open before the lock");
     const past = new Date(Date.now() - 60_000).toISOString();
     await admin.from("events").update({ prediction_lock_at: past }).eq("id", event.id);
     const { error: locked } = await member.rpc("upsert_prediction", { p_event: event.id, p_run_seconds: 1, p_meal_rating: 1, p_final_score: 1, p_sign_photo_minutes: 1, p_flag_count: 1, p_run_distance_km: 1, p_speech_seconds: 1 });
@@ -314,7 +316,16 @@ async function main() {
     assert.ok(outErr);
   });
   await test("resolution awards closest/exact with ties sharing", async () => {
+    // The reveal instant passing opens nothing: only the commissioner's button does.
     await admin.from("events").update({ prediction_reveal_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", event.id);
+    const { data: stillHidden } = await participant.from("predictions_revealed").select("user_id").eq("event_id", event.id);
+    assert.equal(stillHidden?.length ?? 0, 0, "slips stay hidden after the reveal instant until resolution opens");
+    const { error: notYet } = await commissioner.rpc("resolve_predictions", { p_event: event.id });
+    assert.ok(notYet && /opens resolution/.test(notYet.message), "no timed resolution");
+    const { error: memberOpen } = await member.rpc("set_resolution_open", { p_event: event.id, p_open: true });
+    assert.ok(memberOpen, "members cannot open resolution");
+    const { error: opened } = await commissioner.rpc("set_resolution_open", { p_event: event.id, p_open: true });
+    assert.ok(!opened, opened?.message);
     const { error: re } = await commissioner.from("official_results").upsert({ event_id: event.id, run_seconds: 5700, meal_rating: 8, final_score: 85, sign_photo_minutes: 575, flag_count: 2, run_distance_km: 10.35, speech_seconds: 121 }, { onConflict: "event_id" });
     assert.ok(!re, re?.message);
     const { data: n, error } = await commissioner.rpc("resolve_predictions", { p_event: event.id });
@@ -331,7 +342,9 @@ async function main() {
     assert.equal(awards!.find((a) => a.category === "speech")?.user_id, ids.commissioner, "closest speech length");
     assert.equal(n, 8);
     const { data: revealed } = await participant.from("predictions_revealed").select("user_id").eq("event_id", event.id);
-    assert.equal(revealed?.length, 2, "predictions visible after reveal");
+    assert.equal(revealed?.length, 2, "predictions visible once resolution is open");
+    const { error: closeAfter } = await commissioner.rpc("set_resolution_open", { p_event: event.id, p_open: false });
+    assert.ok(closeAfter && /cannot close/.test(closeAfter.message), "resolution stays open once the slips are resolved");
     const { error: memberResolve } = await member.rpc("resolve_predictions", { p_event: event.id });
     assert.ok(memberResolve);
   });
@@ -373,17 +386,13 @@ async function main() {
     assert.ok(late, "no picks after lock");
     const { data: visible } = await member.from("prop_picks").select("user_id").eq("event_id", event.id).eq("prop_id", ou.id);
     assert.equal(visible?.length, 2, "all picks visible after lock");
-    // Settlement waits for the Malmesbury arrival: locked but not yet home is refused.
-    const { data: timetable } = await admin.from("events").select("departure_at, away_arrival_at, return_departure_at, home_arrival_at").eq("id", event.id).single();
-    assert.ok(timetable, "event timetable");
-    const notHome = await admin.from("events").update({ home_arrival_at: "2099-01-02T00:00:00Z" }).eq("id", event.id);
-    assert.ok(!notHome.error, notHome.error?.message);
-    const { error: beforeHome } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
-    assert.ok(beforeHome && /Malmesbury/.test(beforeHome.message), "cannot settle before the bus is back in Malmesbury");
-    // Move the whole timetable into the past (the columns are chained by check constraints), restored below.
-    const t = Date.now();
-    const home = await admin.from("events").update({ departure_at: new Date(t - 4 * 3600_000).toISOString(), away_arrival_at: new Date(t - 3 * 3600_000).toISOString(), return_departure_at: new Date(t - 2 * 3600_000).toISOString(), home_arrival_at: new Date(t - 60_000).toISOString() }).eq("id", event.id);
-    assert.ok(!home.error, home.error?.message);
+    // Settlement waits for the commissioner's resolution button, not a clock.
+    const closed = await admin.from("events").update({ resolution_opened_at: null, resolution_opened_by: null }).eq("id", event.id);
+    assert.ok(!closed.error, closed.error?.message);
+    const { error: beforeOpen } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
+    assert.ok(beforeOpen && /opens resolution/.test(beforeOpen.message), "cannot settle before resolution opens");
+    const reopened = await admin.from("events").update({ resolution_opened_at: new Date().toISOString() }).eq("id", event.id);
+    assert.ok(!reopened.error, reopened.error?.message);
     const { error: me } = await member.rpc("settle_prop", { p_prop: ou.id, p_result: "under" });
     assert.ok(me, "member cannot settle");
     const { error: wrongKind } = await commissioner.rpc("settle_prop", { p_prop: ou.id, p_result: "yes" });
@@ -409,8 +418,6 @@ async function main() {
     const { data: lb2 } = await member.rpc("prop_leaderboard", { p_event: event.id });
     assert.equal(lb2?.find((r) => r.user_id === ids.participant)?.correct, 1);
     assert.equal(lb2?.[0].user_id, ids.participant, "corrected leader first");
-    const restored = await admin.from("events").update(timetable!).eq("id", event.id);
-    assert.ok(!restored.error, restored.error?.message);
   });
 
   console.log("\nKits");

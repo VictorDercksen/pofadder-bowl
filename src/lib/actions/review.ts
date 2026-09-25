@@ -3,8 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getLeagueContext } from "@/lib/league";
-import { isRevealed } from "@/lib/predictions";
-import { formatDateTime } from "@/lib/time";
+import { isResolutionOpen } from "@/lib/resolution";
 import type { ActionResult } from "@/lib/actions/feed";
 
 function revalidateReview() {
@@ -81,12 +80,34 @@ export async function saveOfficialResults(input: z.input<typeof resultsSchema>):
   return { ok: true, message: "Official results saved." };
 }
 
+const PREDICTIONS_CLOSED = "Predictions resolve once a commissioner presses Resolve props and predictions.";
+
+/**
+ * The Review button: opens (or, while nothing is settled or resolved, closes) resolution of the prop
+ * board and the predictions. Opening reveals the league's slips and unlocks settle_prop and
+ * resolve_predictions; nothing opens on a timer.
+ */
+export async function setResolutionOpen(input: { open: boolean }): Promise<ActionResult> {
+  const parsed = z.object({ open: z.boolean() }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Invalid request." };
+  const ctx = await getLeagueContext();
+  if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
+  const { error } = await ctx.supabase.rpc("set_resolution_open", { p_event: ctx.event.id, p_open: parsed.data.open });
+  if (error) {
+    if (error.message.includes("after predictions lock")) return { ok: false, message: "Resolution opens only once the board and the slips have locked." };
+    if (error.message.includes("cannot close")) return { ok: false, message: "A prop is settled or the slips are resolved. Resolution stays open." };
+    return { ok: false, message: error.message };
+  }
+  revalidateReview();
+  return { ok: true, message: parsed.data.open ? "Resolution open. Settle the props and resolve the slips." : "Resolution closed. Slips are hidden again." };
+}
+
 export async function resolvePredictions(): Promise<ActionResult> {
   const ctx = await getLeagueContext();
   if (!ctx.isCommissioner) return { ok: false, message: "Commissioner role required." };
-  if (!isRevealed(ctx.event.prediction_reveal_at)) return { ok: false, message: `Predictions resolve once the bus is back in Malmesbury (${formatDateTime(ctx.event.prediction_reveal_at, ctx.event.timezone)}).` };
+  if (!isResolutionOpen(ctx.event.resolution_opened_at)) return { ok: false, message: PREDICTIONS_CLOSED };
   const { data, error } = await ctx.supabase.rpc("resolve_predictions", { p_event: ctx.event.id });
-  if (error) return { ok: false, message: error.message.includes("Malmesbury") ? "Predictions resolve once the bus is back in Malmesbury." : error.message };
+  if (error) return { ok: false, message: error.message.includes("opens resolution") ? PREDICTIONS_CLOSED : error.message };
   revalidateReview();
   return { ok: true, message: `${data ?? 0} prediction award(s) recorded.` };
 }
