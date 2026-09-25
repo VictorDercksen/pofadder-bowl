@@ -2,7 +2,7 @@
 
 ## State at handoff
 
-Branch `claude/certificate-map-checkin-p7jj69`, from `main` (`42990e2`). Not merged into `main` or `production`. One new migration, `supabase/migrations/20260925000200_final_checkin.sql` (two nullable columns on `certificates`, one new RPC). It applies when the branch lands on `main` (Supabase GitHub integration) and must also reach the league project when `production` is fast-forwarded. No env changes. `src/lib/database.types.ts` edited by hand for the new columns and RPC (no local stack to regenerate).
+Branch `claude/certificate-map-checkin-p7jj69`, from `main` (`42990e2`). Fast-forwarded into `main` and `production` on 25 Sept (the commit carrying this line). One new migration, `supabase/migrations/20260925000200_final_checkin.sql` (two nullable columns on `certificates`, one new RPC). It applies when the branch lands on `main` (Supabase GitHub integration) and must also reach the league project when `production` is fast-forwarded. No env changes. `src/lib/database.types.ts` edited by hand for the new columns and RPC (no local stack to regenerate).
 
 ## Asked and done
 
