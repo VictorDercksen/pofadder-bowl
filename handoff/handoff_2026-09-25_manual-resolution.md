@@ -2,7 +2,7 @@
 
 ## State at handoff
 
-Branch `claude/prop-board-manual-resolve-sbl59g`, from `main` (`2858a09`). Not merged, not deployed. One new migration, `supabase/migrations/20260925000100_manual_resolution.sql` (two nullable columns on `events`, one new RPC, one RLS policy replaced, `resolve_predictions` and `settle_prop` redefined). It applies on merge to `main` through the Supabase GitHub integration and must also reach the league project when `production` is fast-forwarded. No env changes. `src/lib/database.types.ts` was edited by hand for the new columns and RPC (no local stack to regenerate).
+Branch `claude/prop-board-manual-resolve-sbl59g`, from `main` (`2858a09`). Fast-forwarded into `main` and `production` at 07:15 SAST on 25 Sept (the commit carrying this line). One new migration, `supabase/migrations/20260925000100_manual_resolution.sql` (two nullable columns on `events`, one new RPC, one RLS policy replaced, `resolve_predictions` and `settle_prop` redefined). It applies on merge to `main` through the Supabase GitHub integration and must also reach the league project when `production` is fast-forwarded. No env changes. `src/lib/database.types.ts` was edited by hand for the new columns and RPC (no local stack to regenerate).
 
 **Time-critical.** Written at 07:10 SAST on Fri 25 Sept. Until the migration is on the league project, the old gates still apply: at 07:35 SAST (`home_arrival_at` / `prediction_reveal_at`) the slips reveal and the settle buttons open. Once the migration applies, slips are hidden again (RLS) until the button is pressed, unless a prop was already settled or the slips were already resolved, in which case the migration marks resolution as open to stay consistent.
 
