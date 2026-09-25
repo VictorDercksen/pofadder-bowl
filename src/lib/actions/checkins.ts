@@ -77,6 +77,27 @@ export async function removeCheckins(input: { ids?: string[] }): Promise<ActionR
   return { ok: true, message: `${data ?? 0} check-in(s) removed from the league view.` };
 }
 
+/**
+ * Participant (or commissioner): confirm the last check-in of the trip, so the certificate draws
+ * the route up to it. `checkinId: null` clears the confirmation. The RPC re-checks the role, that
+ * the check-in is the participant's, and refuses once the certificate is issued.
+ */
+export async function setFinalCheckin(input: { checkinId: string | null }): Promise<ActionResult> {
+  const parsed = z.object({ checkinId: z.uuid().nullable() }).safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Invalid check-in." };
+  const ctx = await getLeagueContext();
+  if (!ctx.isParticipant && !ctx.isCommissioner) return { ok: false, message: "Only the participant can confirm the final check-in." };
+  const { error } = await ctx.supabase.rpc("set_final_checkin", { p_event: ctx.event.id, p_checkin: parsed.data.checkinId ?? undefined });
+  if (error) {
+    if (error.message.includes("issued")) return { ok: false, message: "The certificate is issued. The route is set." };
+    if (error.message.includes("not found")) return { ok: false, message: "That check-in is no longer on record. Refresh and try again." };
+    return { ok: false, message: "Could not save the final check-in." };
+  }
+  revalidatePath("/map");
+  revalidatePath("/recap");
+  return { ok: true, message: parsed.data.checkinId ? "Final check-in confirmed. The certificate draws the route up to it." : "Final check-in cleared. The certificate shows the provisional route." };
+}
+
 const memberLocationSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),

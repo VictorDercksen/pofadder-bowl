@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast-store";
 import { setCertificateConsent } from "@/lib/actions/account";
 import { teamLogoSrc } from "@/lib/nfl";
+import { routeCaption, type CertificateRoute } from "@/lib/certificate-map";
+import { drawRouteMap, loadImage } from "./routeMapCanvas";
 
 export type CertificateSummary = {
   participant: string;
@@ -21,28 +23,20 @@ export type CertificateSummary = {
   eventName: string;
 };
 
-function loadImage(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
-  });
-}
-
-/** Renders a share image / certificate PNG on a canvas from the real summary. */
 /** next/font exposes the real (hashed) family names only through these variables; canvas needs them by name. */
-function leagueFonts(): { barlow: string; condensed: string } {
+export function leagueFonts(): { barlow: string; condensed: string } {
   const styles = getComputedStyle(document.documentElement);
   const barlow = styles.getPropertyValue("--font-barlow").trim() || "Barlow";
   const condensed = styles.getPropertyValue("--font-barlow-condensed").trim() || "'Barlow Condensed'";
   return { barlow, condensed };
 }
 
-async function renderCertificate(summary: CertificateSummary, issued: boolean, kitTeam: string | null): Promise<Blob | null> {
+/** Renders a share image / certificate PNG on a canvas from the real summary, with the route map under the stats. */
+async function renderCertificate(summary: CertificateSummary, issued: boolean, kitTeam: string | null, route: CertificateRoute): Promise<Blob | null> {
   const { barlow, condensed } = leagueFonts();
   const W = 1200;
-  const H = 1200;
+  // 1200 tall before the route map; everything below the stats moved down 600 to make room.
+  const H = 1800;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -118,40 +112,52 @@ async function renderCertificate(summary: CertificateSummary, issued: boolean, k
     c.fillRect(x - 150, 680, 300, 3);
   });
 
+  // The route map: first check-in to the confirmed final one, the participant's badge at the end.
+  const caption = routeCaption(route);
+  c.fillStyle = "#687366";
+  c.font = `600 20px ${barlow}, Arial, sans-serif`;
+  c.textAlign = "left";
+  c.fillText(caption.left, 80, 740);
+  c.textAlign = "right";
+  c.fillStyle = route.confirmed ? "#687366" : orange;
+  c.fillText(caption.right, W - 80, 740);
+  await drawRouteMap(c, { x: 80, y: 758, w: W - 160, h: 540 }, route, { barlow, condensed });
+  c.textAlign = "center";
+
   c.fillStyle = "#192e25";
   c.font = `400 26px ${barlow}, Arial, sans-serif`;
-  c.fillText(`Prop board: ${summary.propWinners.length ? summary.propWinners.join(", ") : "not settled"}`, W / 2, 760);
-  c.fillText(`Predictions: ${summary.predictionWinners.length ? summary.predictionWinners.join(", ") : "not resolved"}`, W / 2, 800);
-  c.fillText(`${summary.checkins} timestamped check-in${summary.checkins === 1 ? "" : "s"}`, W / 2, 840);
+  c.fillText(`Prop board: ${summary.propWinners.length ? summary.propWinners.join(", ") : "not settled"}`, W / 2, 1360);
+  c.fillText(`Predictions: ${summary.predictionWinners.length ? summary.predictionWinners.join(", ") : "not resolved"}`, W / 2, 1400);
+  c.fillText(`${summary.checkins} timestamped check-in${summary.checkins === 1 ? "" : "s"}`, W / 2, 1440);
 
   c.fillStyle = green;
   c.font = `500 54px ${condensed}, Impact, sans-serif`;
-  c.fillText(issued ? "The Commissioner" : "Awaiting the Commissioner", W / 2, 950);
+  c.fillText(issued ? "The Commissioner" : "Awaiting the Commissioner", W / 2, 1550);
   c.fillStyle = "#687366";
   c.font = `400 22px ${barlow}, Arial, sans-serif`;
-  c.fillText(summary.issuedAt ? `Issued ${summary.issuedAt}` : summary.eventName, W / 2, 990);
+  c.fillText(summary.issuedAt ? `Issued ${summary.issuedAt}` : summary.eventName, W / 2, 1590);
 
   // Ticket stub
   c.setLineDash([8, 8]);
   c.strokeStyle = "#9baf8c";
   c.lineWidth = 2;
   c.beginPath();
-  c.moveTo(120, 1050);
-  c.lineTo(W - 120, 1050);
+  c.moveTo(120, 1650);
+  c.lineTo(W - 120, 1650);
   c.stroke();
   c.setLineDash([]);
   c.fillStyle = "#192e25";
   c.font = `600 20px ${barlow}, Arial, sans-serif`;
   c.textAlign = "left";
-  c.fillText(`PB26 · ${issued ? "SENTENCE CLOSED" : "SENTENCE OPEN"} · UNOFFICIAL FANTASY LEAGUE`, 120, 1095);
+  c.fillText(`PB26 · ${issued ? "SENTENCE CLOSED" : "SENTENCE OPEN"} · UNOFFICIAL FANTASY LEAGUE`, 120, 1695);
   for (let i = 0; i < 40; i++) {
     c.fillStyle = "#173c2b";
-    c.fillRect(W - 120 - i * 8 - (i % 3 === 0 ? 4 : 2), 1072, i % 3 === 0 ? 4 : 2, 30);
+    c.fillRect(W - 120 - i * 8 - (i % 3 === 0 ? 4 : 2), 1672, i % 3 === 0 ? 4 : 2, 30);
   }
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }
 
-export function CertificateExport({ summary, issued, kitTeam }: { summary: CertificateSummary; issued: boolean; kitTeam: string | null }) {
+export function CertificateExport({ summary, issued, kitTeam, route }: { summary: CertificateSummary; issued: boolean; kitTeam: string | null; route: CertificateRoute }) {
   const [busy, setBusy] = useState(false);
 
   async function exportPng(share: boolean) {
@@ -160,7 +166,7 @@ export function CertificateExport({ summary, issued, kitTeam }: { summary: Certi
       const fonts = leagueFonts();
       await Promise.all([document.fonts?.load(`900 96px ${fonts.condensed}`), document.fonts?.load(`600 22px ${fonts.barlow}`)]).catch(() => {});
       await document.fonts?.ready;
-      const blob = await renderCertificate(summary, issued, kitTeam);
+      const blob = await renderCertificate(summary, issued, kitTeam, route);
       if (!blob) throw new Error("render failed");
       const file = new File([blob], `pofadder-bowl-2026-${issued ? "certificate" : "progress"}.png`, { type: "image/png" });
       if (share && navigator.share && navigator.canShare?.({ files: [file] })) {

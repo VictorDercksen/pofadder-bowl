@@ -32,6 +32,8 @@ export async function resetTestingData(input: { confirm: string; resetTours: boo
   if (error) return { ok: false, message: error.message };
   // Props and slips are back to unsettled, so resolution closes again (the Review button reopens it).
   const { error: closeError } = await ctx.supabase.rpc("set_resolution_open", { p_event: ctx.event.id, p_open: false });
+  // The check-ins are gone (the final one's id is already null); clear its confirmation time too. Best effort.
+  await ctx.supabase.rpc("set_final_checkin", { p_event: ctx.event.id });
   const result = (data ?? {}) as Record<string, unknown>;
   const paths = Array.isArray(result.storage_paths) ? (result.storage_paths as string[]) : [];
   const counts: Record<string, number> = {};

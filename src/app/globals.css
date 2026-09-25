@@ -750,3 +750,10 @@ a{color:inherit}
   .pb .pb-recovery{margin:12px 0}
   .pb .pb-save-state{font-size:14px}
 }
+
+/* Certificate route map (recap preview, same drawing as the PNG) and the final check-in control */
+.pb .pb-route-map{margin:18px auto 6px;max-width:640px;text-align:left}
+.pb .pb-route-caption{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--pb-muted,#687366);margin-bottom:6px}
+.pb .pb-route-preview{display:block;width:100%;height:auto;aspect-ratio:1040/540;border-radius:8px;background:#e5e8df}
+.pb .pb-final-checkin.inline{margin-top:16px;padding-top:14px;border-top:1px solid var(--pb-line)}
+.pb .pb-final-checkin .pb-actions{margin-top:10px}

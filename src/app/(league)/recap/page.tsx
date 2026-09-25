@@ -2,6 +2,10 @@ import { Suspense } from "react";
 import { LeaguePatch, Shield, TeamLogo } from "@/components/ui/Marks";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { CertificateExport, ConsentToggle } from "@/components/recap/CertificateExport";
+import { FinalCheckin } from "@/components/recap/FinalCheckin";
+import { RouteMapPreview } from "@/components/recap/RouteMapPreview";
+import { certificateRoute, routeCaption, thinPath, type CertificateRoute } from "@/lib/certificate-map";
+import { placeLabel } from "@/lib/places";
 import { MediaGallery } from "@/components/proof/MediaGallery";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
 import { trackFileOf } from "@/lib/run-track";
@@ -9,20 +13,21 @@ import { PHOTO_SLOTS, photoSlotChallenge } from "@/lib/photo-slots";
 import { getEventScore, getLeagueContext } from "@/lib/league";
 import { loadSubmissions } from "@/lib/evidence";
 import { propWinners } from "@/lib/props";
-import { loadCheckins, participantName } from "@/lib/checkins";
+import { loadCheckins, loadRouteCheckins, participantProfile } from "@/lib/checkins";
 import { publicEnv } from "@/lib/env";
-import { eventPhase, formatDateTime, formatLongDate, secondsToClock } from "@/lib/time";
+import { eventPhase, formatDateTime, formatDay, formatLongDate, formatTime, secondsToClock } from "@/lib/time";
 
 export const metadata = { title: "Final whistle" };
 
 export default async function RecapPage() {
   const ctx = await getLeagueContext();
   const tz = ctx.event.timezone;
-  const [score, subs, checkins, name, { data: cert }, { data: results }, { data: standings }, { data: awards }, { data: profiles }, { data: challenges }, { data: penalties }] = await Promise.all([
+  const [score, subs, checkins, participant, routeRows, { data: cert }, { data: results }, { data: standings }, { data: awards }, { data: profiles }, { data: challenges }, { data: penalties }] = await Promise.all([
     getEventScore(ctx),
     loadSubmissions(ctx),
     loadCheckins(ctx, 200),
-    participantName(ctx),
+    participantProfile(ctx),
+    loadRouteCheckins(ctx),
     ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.from("official_results").select("*").eq("event_id", ctx.event.id).maybeSingle(),
     ctx.supabase.rpc("prop_leaderboard", { p_event: ctx.event.id }),
@@ -31,6 +36,7 @@ export default async function RecapPage() {
     ctx.supabase.from("challenges").select("*").eq("event_id", ctx.event.id).order("sequence"),
     ctx.supabase.from("penalties").select("*").eq("event_id", ctx.event.id).eq("applied", true),
   ]);
+  const name = participant.name;
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
   const approved = subs.filter((s) => s.status === "approved" && s.challenge_id);
   const phase = eventPhase(ctx.event);
@@ -60,6 +66,22 @@ export default async function RecapPage() {
     issuedAt: cert?.issued_at ? formatLongDate(cert.issued_at, tz) : null,
     eventName: ctx.event.name,
   };
+  // The certificate map: first check-in to the confirmed final one (the whole trail, provisionally, until then).
+  const finalId = cert?.final_checkin_id ?? null;
+  const trail = certificateRoute(routeRows, finalId);
+  const when = (iso: string) => `${formatDay(iso, tz)} ${formatTime(iso, tz)}`;
+  const route: CertificateRoute = {
+    path: thinPath(trail.path, 250),
+    confirmed: trail.confirmed,
+    finalPlace: trail.last ? placeLabel(trail.last) : null,
+    finalWhen: trail.last ? when(trail.last.captured_at) : null,
+    count: trail.path.length,
+    kitTeam: participant.kitTeam,
+    name,
+  };
+  const caption = routeCaption(route);
+  const latestRow = routeRows.length ? routeRows[routeRows.length - 1] : null;
+  const confirmedRow = trail.confirmed ? trail.last : null;
   const publicUrl = `${publicEnv.appOrigin}/recap/public/${ctx.league.slug}/${ctx.event.slug}`;
 
   return (
@@ -95,6 +117,13 @@ export default async function RecapPage() {
             </strong>
             <small>CHALLENGES SERVED</small>
           </div>
+        </div>
+        <div className="pb-route-map">
+          <div className="pb-route-caption">
+            <span>{caption.left}</span>
+            <span className={route.confirmed ? "" : "pb-warn-text"}>{caption.right}</span>
+          </div>
+          <RouteMapPreview route={route} />
         </div>
         <div className="pb-signature">{issued ? "The Commissioner" : "Awaiting the Commissioner"}</div>
         <p className="pb-small">{issued && cert?.issued_at ? `Issued ${formatDateTime(cert.issued_at, tz)}` : `${checkins.length} check-in(s) on record · ${(penalties ?? []).length} penalt${(penalties ?? []).length === 1 ? "y" : "ies"} applied`}</p>
@@ -178,7 +207,16 @@ export default async function RecapPage() {
               </Suspense>
             </div>
           ) : null}
-          <CertificateExport summary={summary} issued={issued} kitTeam={ctx.profile.kit_team} />
+          {ctx.isParticipant || ctx.isCommissioner ? (
+            <FinalCheckin
+              inline
+              latest={latestRow ? { id: latestRow.id, place: placeLabel(latestRow), when: when(latestRow.captured_at) } : null}
+              confirmed={confirmedRow ? { id: confirmedRow.id, place: placeLabel(confirmedRow), when: when(confirmedRow.captured_at) } : null}
+              confirmedAt={confirmedRow && cert?.final_checkin_confirmed_at ? when(cert.final_checkin_confirmed_at) : null}
+              locked={issued}
+            />
+          ) : null}
+          <CertificateExport summary={summary} issued={issued} kitTeam={ctx.profile.kit_team} route={route} />
           {ctx.isParticipant ? <ConsentToggle consent={cert?.participant_consent ?? false} isPublic={cert?.is_public ?? false} publicUrl={publicUrl} /> : null}
           {ctx.isCommissioner ? (
             <p className="pb-small" style={{ marginTop: 10 }}>

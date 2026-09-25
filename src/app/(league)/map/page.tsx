@@ -6,6 +6,7 @@ import { LocationSharing } from "@/components/map/LocationSharing";
 import { MemberLocationShare } from "@/components/map/MemberLocationShare";
 import { MemberBadge } from "@/components/ui/Marks";
 import { RunTrack, RunTrackSkeleton } from "@/components/map/RunTrackPanel";
+import { FinalCheckin } from "@/components/recap/FinalCheckin";
 import { getLeagueContext } from "@/lib/league";
 import { checkinPath } from "@/lib/checkin-path";
 import { loadCheckins, loadLocationSettings, loadMemberLocations, ownMemberLocation, participantProfile } from "@/lib/checkins";
@@ -20,7 +21,10 @@ export default async function MapPage() {
   const ctx = await getLeagueContext();
   const [checkins, settings, participant, run, members] = await Promise.all([loadCheckins(ctx), ctx.isParticipant ? loadLocationSettings(ctx) : null, participantProfile(ctx), loadRunSubmission(ctx), loadMemberLocations(ctx)]);
   const name = participant.name;
-  const { data: places } = await ctx.supabase.from("itinerary_items").select("id, title, venue_text, latitude, longitude, location_verified").eq("event_id", ctx.event.id).eq("location_verified", true);
+  const [{ data: places }, { data: cert }] = await Promise.all([
+    ctx.supabase.from("itinerary_items").select("id, title, venue_text, latitude, longitude, location_verified").eq("event_id", ctx.event.id).eq("location_verified", true),
+    ctx.isParticipant ? ctx.supabase.from("certificates").select("*").eq("event_id", ctx.event.id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
   const latest = checkins[0];
   const tz = ctx.event.timezone;
   // Oldest to newest: the line the league watches grow from Malmesbury to Pofadder and back.
@@ -31,6 +35,15 @@ export default async function MapPage() {
   const now = new Date();
   const memberPinList = memberPins(members, (iso) => formatTime(iso, tz), now);
   const own = ownMemberLocation(ctx, members);
+  // The participant's final check-in for the certificate route (the same control sits on the recap).
+  const when = (iso: string) => `${formatDay(iso, tz)} ${formatTime(iso, tz)}`;
+  const finalId = cert?.final_checkin_id ?? null;
+  let finalRow = finalId ? (checkins.find((c) => c.id === finalId) ?? null) : null;
+  if (finalId && !finalRow) {
+    // Older than the 50 loaded above; still on record unless removed.
+    const { data } = await ctx.supabase.from("checkins").select("*").eq("id", finalId).is("removed_at", null).maybeSingle();
+    finalRow = data ?? null;
+  }
 
   const pins: MapPin[] = [
     ...(latest ? [{ id: latest.id, latitude: latest.latitude, longitude: latest.longitude, label: `${name} · ${placeLabel(latest)} · ${formatTime(latest.captured_at, tz)}`, kind: "current" as const, team: participant.kitTeam, name }] : []),
@@ -75,7 +88,21 @@ export default async function MapPage() {
           </div>
         </div>
         <div>
-          {ctx.isParticipant && settings ? <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} /> : <MemberLocationShare own={own ? { place: placeLabel(own), captured: `${formatDay(own.captured_at, tz)} ${formatTime(own.captured_at, tz)}`, age: ageLabel(own.captured_at, now) } : null} />}
+          {ctx.isParticipant && settings ? (
+            <>
+              <LocationSharing initial={settings} checkinIds={checkins.map((c) => c.id)} />
+              <div style={{ marginTop: 18 }}>
+                <FinalCheckin
+                  latest={latest ? { id: latest.id, place: placeLabel(latest), when: when(latest.captured_at) } : null}
+                  confirmed={finalRow ? { id: finalRow.id, place: placeLabel(finalRow), when: when(finalRow.captured_at) } : null}
+                  confirmedAt={finalRow && cert?.final_checkin_confirmed_at ? when(cert.final_checkin_confirmed_at) : null}
+                  locked={cert?.status === "issued"}
+                />
+              </div>
+            </>
+          ) : (
+            <MemberLocationShare own={own ? { place: placeLabel(own), captured: `${formatDay(own.captured_at, tz)} ${formatTime(own.captured_at, tz)}`, age: ageLabel(own.captured_at, now) } : null} />
+          )}
           <div className="pb-panel" style={{ marginTop: 18 }} data-tour="league-pins">
             <div className="pb-panel-top">
               <h3>Where the league is{members.length ? ` · ${members.length}` : ""}</h3>

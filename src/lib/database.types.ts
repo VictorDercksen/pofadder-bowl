@@ -109,6 +109,8 @@ export type Database = {
       certificates: {
         Row: {
           event_id: string
+          final_checkin_confirmed_at: string | null
+          final_checkin_id: string | null
           is_public: boolean
           issued_at: string | null
           issued_by: string | null
@@ -119,6 +121,8 @@ export type Database = {
         }
         Insert: {
           event_id: string
+          final_checkin_confirmed_at?: string | null
+          final_checkin_id?: string | null
           is_public?: boolean
           issued_at?: string | null
           issued_by?: string | null
@@ -129,6 +133,8 @@ export type Database = {
         }
         Update: {
           event_id?: string
+          final_checkin_confirmed_at?: string | null
+          final_checkin_id?: string | null
           is_public?: boolean
           issued_at?: string | null
           issued_by?: string | null
@@ -138,6 +144,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "certificates_final_checkin_id_fkey"
+            columns: ["final_checkin_id"]
+            isOneToOne: false
+            referencedRelation: "checkins"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "certificates_event_id_fkey"
             columns: ["event_id"]
@@ -1518,6 +1531,8 @@ export type Database = {
         Args: { p_event: string; p_is_public: boolean }
         Returns: {
           event_id: string
+          final_checkin_confirmed_at: string | null
+          final_checkin_id: string | null
           is_public: boolean
           issued_at: string | null
           issued_by: string | null
@@ -1681,6 +1696,29 @@ export type Database = {
         Args: { p_consent: boolean; p_event: string }
         Returns: {
           event_id: string
+          final_checkin_confirmed_at: string | null
+          final_checkin_id: string | null
+          is_public: boolean
+          issued_at: string | null
+          issued_by: string | null
+          participant_consent: boolean
+          status: Database["public"]["Enums"]["certificate_status"]
+          summary: Json
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "certificates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_final_checkin: {
+        Args: { p_checkin?: string; p_event: string }
+        Returns: {
+          event_id: string
+          final_checkin_confirmed_at: string | null
+          final_checkin_id: string | null
           is_public: boolean
           issued_at: string | null
           issued_by: string | null

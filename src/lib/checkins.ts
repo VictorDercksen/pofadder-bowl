@@ -21,6 +21,24 @@ export async function loadCheckins(ctx: LeagueContext, limit = 50): Promise<Chec
   return data ?? [];
 }
 
+export type RoutePoint = Pick<Checkin, "id" | "latitude" | "longitude" | "captured_at" | "received_at" | "place_label">;
+
+/** The participant’s whole trail on record, oldest first, for the certificate route (a few columns only; 1000 is the API row cap, about three days of five-minute check-ins). */
+export async function loadRouteCheckins(ctx: LeagueContext, limit = 1000): Promise<RoutePoint[]> {
+  const participant = ctx.event.participant_user_id;
+  if (!participant) return [];
+  const { data, error } = await ctx.supabase
+    .from("checkins")
+    .select("id, latitude, longitude, captured_at, received_at, place_label")
+    .eq("event_id", ctx.event.id)
+    .eq("user_id", participant)
+    .is("removed_at", null)
+    .order("captured_at", { ascending: true })
+    .limit(limit);
+  checkQuery(error, "route check-ins");
+  return data ?? [];
+}
+
 export async function loadLocationSettings(ctx: LeagueContext) {
   const { data, error } = await ctx.supabase.from("location_settings").select("*").eq("event_id", ctx.event.id).eq("user_id", ctx.user.id).maybeSingle();
   checkQuery(error, "location settings");
